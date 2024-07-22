@@ -1,67 +1,135 @@
-using AventStack.ExtentReports;
-using AventStack.ExtentReports.Reporter;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using System;
+public static void UpdateDebugLog(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
+{            
+        XmlAttribute Screenattr = null;
+        XmlDocument doc = new XmlDocument();
+        doc.Load(debugLogFile);
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        // Initialize the Extent Reports
-        var htmlReporter = new ExtentHtmlReporter("extentReport.html");
-        var extent = new ExtentReports();
-        extent.AttachReporter(htmlReporter);
+        XmlNode xNode = doc.SelectSingleNode("/testdetails/test[@name='" + TestName + "']");
 
-        // Create a test instance
-        var test = extent.CreateTest("Sample Test");
-
-        // Example Selenium test steps with detailed logging
-        IWebDriver driver = new ChromeDriver();
-
-        try
+        if (!xNode.HasChildNodes)
         {
-            // Step 1: Navigate to example.com
-            LogStep(test, "Navigation", "Navigate to example.com", "URL: https://www.example.com", 
-                    "Example Domain", () => driver.Navigate().GoToUrl("https://www.example.com"), driver.Title);
+            XmlNode descNode = doc.CreateElement("description");
+            descNode.InnerText = TestDescription;
+            xNode.AppendChild(descNode);
 
-            // Step 2: Verify element text (modify as per your element)
-            LogStep(test, "Validation", "Verify element text", "Element ID: exampleElement", 
-                    "Expected Text", () => driver.FindElement(By.Id("exampleElement")).Text, "Actual Text");
+            // for PrintLog.exe
+            string testDesc = "\t" + TestDescription;
+            string TestDescBorder = new String('*', testDesc.Length + 2);
+            PrintLog(TestDescBorder + Environment.NewLine + "* " + testDesc + Environment.NewLine + TestDescBorder);
 
-        }
-        catch (Exception ex)
-        {
-            test.Log(Status.Fail, $"Test failed with exception: {ex.Message}");
-        }
-        finally
-        {
-            driver.Quit();
+            XmlDocument docSummary = new XmlDocument();
+            docSummary.Load(SummaryLog);
+
+            XmlNode testNode = docSummary.DocumentElement.SelectSingleNode("/tests/codedui/sDesc");
+
+            XmlNode parNode = testNode.ParentNode;
+            parNode.RemoveChild(testNode);
+
+            XmlNode sDesc = docSummary.CreateElement("description");
+            sDesc.InnerText = TestDescription;
+            parNode.AppendChild(sDesc);
+
+            docSummary.Save(SummaryLog);
         }
 
-        // Flush the report
-        extent.Flush();
-    }
-
-    static void LogStep(ExtentTest test, string type, string action, string inputData, string expectedData, Func<string> actionMethod, string actualData)
-    {
-        test.Log(Status.Info, $"Type: {type}");
-        test.Log(Status.Info, $"Action: {action}");
-        test.Log(Status.Info, $"Input Data: {inputData}");
-
-        // Execute the action and capture the actual data
-        string actualResult = actionMethod();
-        test.Log(Status.Info, $"Expected Data: {expectedData}");
-        test.Log(Status.Info, $"Actual Data: {actualResult}");
-
-        if (actualResult == expectedData)
+        if (previousTestStep != testStep)
         {
-            test.Log(Status.Pass, "Result matches the expected value.");
+            TestSteps.Add(testStep);
+            testStep = testStep.Replace("'", "").Replace(ExpectedResult, " ");
+            Reports.testStepNumber = Reports.testStepNumber + 1;
+
+            XmlNode tStep = doc.CreateElement("teststep");
+
+            XmlAttribute teststepdescattr = doc.CreateAttribute("description");
+            teststepdescattr.Value = Reports.testStepNumber + ". " + testStep;
+            XmlAttribute testStepNumber = doc.CreateAttribute("stepnumber");
+            testStepNumber.Value = Reports.testStepNumber.ToString();
+
+            PrintLog(Reports.testStepNumber + ". " + testStep);     // for PrintLog.exe 
+
+            previousTestStep = testStep;
+
+            tStep.Attributes.Append(teststepdescattr);
+            tStep.Attributes.Append(testStepNumber);
+
+            xNode = xNode.AppendChild(tStep);
         }
         else
         {
-            test.Log(Status.Fail, "Result does not match the expected value.");
+            xNode = doc.SelectSingleNode("/testdetails/test[@name='" + TestName + "']/teststep[@description='" + testStepNumber + ". " + testStep + "']");
         }
-    }
+
+        XmlNode stmtNode = doc.CreateElement("dbg");
+
+        XmlAttribute Controlattr = doc.CreateAttribute("Control");
+        Controlattr.Value = Control;
+
+        XmlAttribute ControlTypeattr = doc.CreateAttribute("ControlType");
+        ControlTypeattr.Value = ControlType;
+
+        XmlAttribute Methodattr = doc.CreateAttribute("Method");
+        Methodattr.Value = Method;
+
+        XmlAttribute Propertyattr = doc.CreateAttribute("Property");
+        Propertyattr.Value = Property;
+
+        XmlAttribute Valueattr = doc.CreateAttribute("Value");
+        Valueattr.Value = Value;
+
+        XmlAttribute AValueattr = doc.CreateAttribute("AValue");
+        AValueattr.Value = AValue;
+
+        XmlAttribute Resultattr = doc.CreateAttribute("Result");
+        Resultattr.Value = Result;
+
+        XmlAttribute Errorattr = doc.CreateAttribute("Error");
+        Errorattr.Value = Error;
+
+        if(AutoConfig.CaptureScreenshotForEachAction)
+        {
+            CaptureImage();
+            Screenattr = doc.CreateAttribute("Screenshot");
+            Screenattr.Value = screenshotPath;
+            screenshotPath = "";
+        }
+        
+        else
+        {
+        if (Resultattr.Value == "fail")
+        {
+            CaptureImage();
+            Screenattr = doc.CreateAttribute("Screenshot");
+            Screenattr.Value = screenshotPath;
+            screenshotPath = "";
+        }
+
+        else
+        {
+            Screenattr = doc.CreateAttribute("Screenshot");
+        }
+        
+        }
+
+        ActionStopTime = DateTime.Now;
+        XmlAttribute stepTimeattr = doc.CreateAttribute("stepTime");
+        if (ControlType != "")
+            stepTimeattr.Value = ((int)((ActionStopTime - ActionStartTime).TotalSeconds)).ToString();
+        else
+            stepTimeattr.Value = "";
+
+        stmtNode.Attributes.Append(Controlattr);
+        stmtNode.Attributes.Append(ControlTypeattr);
+        stmtNode.Attributes.Append(Methodattr);
+        stmtNode.Attributes.Append(Propertyattr);
+        stmtNode.Attributes.Append(Valueattr);
+        stmtNode.Attributes.Append(AValueattr);
+        stmtNode.Attributes.Append(Resultattr);
+        stmtNode.Attributes.Append(Errorattr);
+        stmtNode.Attributes.Append(stepTimeattr);
+        stmtNode.Attributes.Append(Screenattr);
+
+        xNode.AppendChild(stmtNode);
+
+        doc.Save(debugLogFile);
+   
 }
-3
