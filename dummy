@@ -1,1 +1,67 @@
-https://medium.com/maestral-solutions/creating-an-interactive-selenium-automation-report-with-extentreports-and-c-8684fab00a83
+using AventStack.ExtentReports;
+using AventStack.ExtentReports.Reporter;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Initialize the Extent Reports
+        var htmlReporter = new ExtentHtmlReporter("extentReport.html");
+        var extent = new ExtentReports();
+        extent.AttachReporter(htmlReporter);
+
+        // Create a test instance
+        var test = extent.CreateTest("Sample Test");
+
+        // Example Selenium test steps with detailed logging
+        IWebDriver driver = new ChromeDriver();
+
+        try
+        {
+            // Step 1: Navigate to example.com
+            LogStep(test, "Navigation", "Navigate to example.com", "URL: https://www.example.com", 
+                    "Example Domain", () => driver.Navigate().GoToUrl("https://www.example.com"), driver.Title);
+
+            // Step 2: Verify element text (modify as per your element)
+            LogStep(test, "Validation", "Verify element text", "Element ID: exampleElement", 
+                    "Expected Text", () => driver.FindElement(By.Id("exampleElement")).Text, "Actual Text");
+
+        }
+        catch (Exception ex)
+        {
+            test.Log(Status.Fail, $"Test failed with exception: {ex.Message}");
+        }
+        finally
+        {
+            driver.Quit();
+        }
+
+        // Flush the report
+        extent.Flush();
+    }
+
+    static void LogStep(ExtentTest test, string type, string action, string inputData, string expectedData, Func<string> actionMethod, string actualData)
+    {
+        test.Log(Status.Info, $"Type: {type}");
+        test.Log(Status.Info, $"Action: {action}");
+        test.Log(Status.Info, $"Input Data: {inputData}");
+
+        // Execute the action and capture the actual data
+        string actualResult = actionMethod();
+        test.Log(Status.Info, $"Expected Data: {expectedData}");
+        test.Log(Status.Info, $"Actual Data: {actualResult}");
+
+        if (actualResult == expectedData)
+        {
+            test.Log(Status.Pass, "Result matches the expected value.");
+        }
+        else
+        {
+            test.Log(Status.Fail, "Result does not match the expected value.");
+        }
+    }
+}
+3
