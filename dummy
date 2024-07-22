@@ -1,81 +1,272 @@
-using AventStack.ExtentReports;
-using AventStack.ExtentReports.Reporter;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using System;
+Element
 
-class Program
+Type
+
+Action
+
+Property
+
+Exp. Value
+
+Act. Value
+
+Result
+
+Error
+
+Time
+
+Screenshot
+
+
+ public void VerifyInternationalWire()
+ {
+    
+     Amount amount = null;
+     SubmittedTemplateInformation TemplateInfo = new SubmittedTemplateInformation();
+     BeneficiaryInformation beneficiaryInformation = null;
+
+     try
+     {
+         Reports.TestDescription = "Verify International Wire.";
+         //Opening Digital Banking Application
+
+         Reports.TestStep = "Open Digital Bank Application and login to it.";
+
+         PageOperations.DBIQLoginPage.OpenBottomLine();
+         PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr2_Name, AutoConfig.BottomLineUsr2_Pwd, AutoConfig.BottomLineUsr2_Key);
+
+         //Click on Transfers menu and Select Payment centre
+         Reports.TestStep = "Click on Transfers menu and Select Payment centre. ";
+         PageOperations.DBIQPaymentCenterPage.ClickOnTranferMenu();
+         PageOperations.DBIQPaymentCenterPage.ClickOnPaymentCenter();
+
+         //Click on Add a new Template.
+         Reports.TestStep = "Click on Add a new Template.";
+         PageOperations.DBIQPaymentCenterPage.ClickonAddaNewTemplate();
+
+         //Select Template Type
+         Reports.TestStep = "Select Template Type.";
+         PageOperations.DBIQPaymentCenterPage.SelectATemplateType(TemplateType.InternationalWire);
+         PageOperations.DBIQPaymentCenterPage.ClickOnContinueButton();
+
+         //Select Template information.
+         Reports.TestStep = "Dataset is created and entered for Template Information section of New Federal Tax Wire Template page";
+         TemplateInformation templateInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateTemplateInformation();
+         PageOperations.DBIQNewWireInternationalTemplatePage.SetTemplateInformation(templateInformation);
+
+         Reports.TestStep = "Data is created and entered for Debit Account section of New Federal Tax Wire Template page";
+         OriginatorInformation originatorInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateOrginatorInformation();
+         PageOperations.DBIQNewWireInternationalTemplatePage.SetOrginatorInformation(originatorInformation);
+
+         Reports.TestStep = "Dataset is created and entered for Tax Payer Information section of New Federal Tax Wire Template page";
+         BeneficiaryInformation taxPayerInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateBeneficiaryInformation();
+         PageOperations.DBIQNewWireInternationalTemplatePage.SetBeneficiaryInformation(taxPayerInformation, "International Wire");
+
+         Reports.TestStep = "Create Intermediary Bank Information";
+         IntermediaryBankInformation intermedbankinfo = PageOperations.DBIQNewWireInternationalTemplatePage.CrtIntermediaryBnkInfoForInternationalWireTmplt();
+
+         Reports.TestStep = "Set Intermediary Bank Information";
+         PageOperations.DBIQNewWireInternationalTemplatePage.SetIntermediaryBnkInfoForInternationalWireTmplt(intermedbankinfo);
+
+         Reports.TestStep = "Data created and entered into Credit amount text box";
+         amount = PageOperations.DBIQNewWireInternationalTemplatePage.CreateCreditAmt();
+         PageOperations.DBIQNewWireInternationalTemplatePage.SetAmount(amount);
+         TemplateInfo.Amount = amount.CreditAmount;
+         TemplateInfo.BeneficiaryName = taxPayerInformation.Name;
+
+         Reports.TestStep = "Verify New Internalional wire template can be saved by clicking Save button";
+         PageOperations.DBIQNewWireInternationalTemplatePage.ClickOnSaveBtn();
+     }
+     catch(Exception ex)
+     {
+         FailTest(ex.Message);
+     }
+
+ }
+
+public static void OpenBrowser(bool cleanSession = true, bool requireWindowFocus = false)
 {
-    static ExtentReports extent;
-    static ExtentTest test;
-
-    static void Main(string[] args)
+    try
     {
-        // Initialize Extent Reports
-        var htmlReporter = new ExtentHtmlReporter("extentReport.html");
-        extent = new ExtentReports();
-        extent.AttachReporter(htmlReporter);
-
-        // Create a test instance
-        test = extent.CreateTest("Sample Test");
-
-        IWebDriver driver = null;
-        
-        try
-        {
-            driver = new ChromeDriver();
-
-            // Example step
-            UpdateDebugLog("ControlName", "Button", "Click", "Visibility", "Visible", "Visible", "pass", "");
-
-            // Additional steps can be added here
-
-        }
-        catch (Exception ex)
-        {
-            test.Log(Status.Fail, $"Test failed with exception: {ex.Message}");
-        }
-        finally
-        {
-            driver?.Quit();
-        }
-
-        // Flush the report
-        extent.Flush();
+        Reports.StatusUpdate("First Login Attempt.", true);
+        KillBrowserInstance();
+        FATrustDrivers.Start(cleanSession, requireWindowFocus);
+        FATrustHelpers.ReleaseAllKeys();
+        Thread.Sleep(1000);
     }
-
-    public static void UpdateDebugLog(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
+    catch (Exception ex) //Handle 'The HTTP request to the remote WebDriver server for URL {URL} timed out after 60 seconds' error
     {
-        test.Log(Status.Info, $"Control: {Control}");
-        test.Log(Status.Info, $"ControlType: {ControlType}");
-        test.Log(Status.Info, $"Method: {Method}");
-        test.Log(Status.Info, $"Property: {Property}");
-        test.Log(Status.Info, $"Value: {Value}");
-        test.Log(Status.Info, $"AValue: {AValue}");
-        test.Log(Status.Info, $"Result: {Result}");
-        test.Log(Status.Info, $"Error: {Error}");
+        Reports.StatusUpdate("Second Login Attempt." + Environment.NewLine + "First attempt threw exception '" + ex.Message + "'", true);
 
-        if (AutoConfig.CaptureScreenshotForEachAction || Result == "fail")
+        string desktopPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop));
+        string uninstallShortCut = Path.Combine(desktopPath, "UnInstallPrint.lnk");
+        if (File.Exists(uninstallShortCut))
         {
-            string screenshotPath = CaptureImage();
-            test.AddScreenCaptureFromPath(screenshotPath);
+            Reports.StatusUpdate("Uninstall Printer Components Shortcut is Found.", true);
+            System.Diagnostics.Process.Start(uninstallShortCut).WaitForExit();
+            Reports.StatusUpdate("Printer Components are Unistalled Successfully...", true);
+        }
+        else if (!File.Exists(uninstallShortCut))
+        {
+            Reports.StatusUpdate("Uninstall Printer Components Shortcut is not Found.", true);
+
         }
 
-        DateTime ActionStopTime = DateTime.Now;
-        string stepTime = (ActionStopTime - ActionStartTime).TotalSeconds.ToString();
-        test.Log(Status.Info, $"Step Time: {stepTime}");
-    }
-
-    public static string CaptureImage()
-    {
-        // Implement screenshot capture logic here
-        // Return the path to the captured screenshot
-        return "screenshotPath";
-    }
-
-    static DateTime ActionStartTime = DateTime.Now; // Example start time, adjust as needed
-    static class AutoConfig
-    {
-        public static bool CaptureScreenshotForEachAction = true; // Example config, adjust as needed
+        KillBrowserInstance();
+        FATrustDrivers.QuitWebDriver();
+        FATrustDrivers.Start(cleanSession, requireWindowFocus);
+        FATrustHelpers.ReleaseAllKeys();
+        //OpenVolPay(URL);
+        Thread.Sleep(5000);
     }
 }
+        
+  public static void StatusUpdate(string controlDescription, bool status, string controlType = "", string action = "", string property = "", string expectedValue = "", string actualValue = "", string errorMessage = "")
+  {
+      if (Support.bStartReporting)
+      {
+          try
+          {
+              UpdateDebugLog(controlDescription, controlType, action, property, expectedValue, actualValue, Result(status), errorMessage);
+              Assert.AreEqual(true, status, controlDescription);
+          }
+          catch { TestResult = false; }
+      }
+  }
+
+ public static void UpdateDebugLog(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
+ {            
+         XmlAttribute Screenattr = null;
+         XmlDocument doc = new XmlDocument();
+         doc.Load(debugLogFile);
+
+         XmlNode xNode = doc.SelectSingleNode("/testdetails/test[@name='" + TestName + "']");
+
+         if (!xNode.HasChildNodes)
+         {
+             XmlNode descNode = doc.CreateElement("description");
+             descNode.InnerText = TestDescription;
+             xNode.AppendChild(descNode);
+
+             // for PrintLog.exe
+             string testDesc = "\t" + TestDescription;
+             string TestDescBorder = new String('*', testDesc.Length + 2);
+             PrintLog(TestDescBorder + Environment.NewLine + "* " + testDesc + Environment.NewLine + TestDescBorder);
+
+             XmlDocument docSummary = new XmlDocument();
+             docSummary.Load(SummaryLog);
+
+             XmlNode testNode = docSummary.DocumentElement.SelectSingleNode("/tests/codedui/sDesc");
+
+             XmlNode parNode = testNode.ParentNode;
+             parNode.RemoveChild(testNode);
+
+             XmlNode sDesc = docSummary.CreateElement("description");
+             sDesc.InnerText = TestDescription;
+             parNode.AppendChild(sDesc);
+
+             docSummary.Save(SummaryLog);
+         }
+
+         if (previousTestStep != testStep)
+         {
+             TestSteps.Add(testStep);
+             testStep = testStep.Replace("'", "").Replace(ExpectedResult, " ");
+             Reports.testStepNumber = Reports.testStepNumber + 1;
+
+             XmlNode tStep = doc.CreateElement("teststep");
+
+             XmlAttribute teststepdescattr = doc.CreateAttribute("description");
+             teststepdescattr.Value = Reports.testStepNumber + ". " + testStep;
+             XmlAttribute testStepNumber = doc.CreateAttribute("stepnumber");
+             testStepNumber.Value = Reports.testStepNumber.ToString();
+
+             PrintLog(Reports.testStepNumber + ". " + testStep);     // for PrintLog.exe 
+
+             previousTestStep = testStep;
+
+             tStep.Attributes.Append(teststepdescattr);
+             tStep.Attributes.Append(testStepNumber);
+
+             xNode = xNode.AppendChild(tStep);
+         }
+         else
+         {
+             xNode = doc.SelectSingleNode("/testdetails/test[@name='" + TestName + "']/teststep[@description='" + testStepNumber + ". " + testStep + "']");
+         }
+
+         XmlNode stmtNode = doc.CreateElement("dbg");
+
+         XmlAttribute Controlattr = doc.CreateAttribute("Control");
+         Controlattr.Value = Control;
+
+         XmlAttribute ControlTypeattr = doc.CreateAttribute("ControlType");
+         ControlTypeattr.Value = ControlType;
+
+         XmlAttribute Methodattr = doc.CreateAttribute("Method");
+         Methodattr.Value = Method;
+
+         XmlAttribute Propertyattr = doc.CreateAttribute("Property");
+         Propertyattr.Value = Property;
+
+         XmlAttribute Valueattr = doc.CreateAttribute("Value");
+         Valueattr.Value = Value;
+
+         XmlAttribute AValueattr = doc.CreateAttribute("AValue");
+         AValueattr.Value = AValue;
+
+         XmlAttribute Resultattr = doc.CreateAttribute("Result");
+         Resultattr.Value = Result;
+
+         XmlAttribute Errorattr = doc.CreateAttribute("Error");
+         Errorattr.Value = Error;
+
+         if(AutoConfig.CaptureScreenshotForEachAction)
+         {
+             CaptureImage();
+             Screenattr = doc.CreateAttribute("Screenshot");
+             Screenattr.Value = screenshotPath;
+             screenshotPath = "";
+         }
+         
+         else
+         {
+         if (Resultattr.Value == "fail")
+         {
+             CaptureImage();
+             Screenattr = doc.CreateAttribute("Screenshot");
+             Screenattr.Value = screenshotPath;
+             screenshotPath = "";
+         }
+
+         else
+         {
+             Screenattr = doc.CreateAttribute("Screenshot");
+         }
+         
+         }
+
+         ActionStopTime = DateTime.Now;
+         XmlAttribute stepTimeattr = doc.CreateAttribute("stepTime");
+         if (ControlType != "")
+             stepTimeattr.Value = ((int)((ActionStopTime - ActionStartTime).TotalSeconds)).ToString();
+         else
+             stepTimeattr.Value = "";
+
+         stmtNode.Attributes.Append(Controlattr);
+         stmtNode.Attributes.Append(ControlTypeattr);
+         stmtNode.Attributes.Append(Methodattr);
+         stmtNode.Attributes.Append(Propertyattr);
+         stmtNode.Attributes.Append(Valueattr);
+         stmtNode.Attributes.Append(AValueattr);
+         stmtNode.Attributes.Append(Resultattr);
+         stmtNode.Attributes.Append(Errorattr);
+         stmtNode.Attributes.Append(stepTimeattr);
+         stmtNode.Attributes.Append(Screenattr);
+
+         xNode.AppendChild(stmtNode);
+
+         doc.Save(debugLogFile);
+    
+ }
