@@ -125,3 +125,21 @@ class Program
         throw new Exception(message);
     }
 }
+
+public static void CaptureScreenshot()
+{
+
+    try
+    {
+        testStatus = false;
+        if (!testStatus)
+        {
+            ExtentTest.CreateNode("Screenshot").Log(Status.Fail, ExtentTest.AddScreenCaptureFromBase64String(ScreenshotLocation).ToString());
+        }
+    }
+    catch (Exception ex)
+    {
+
+        throw ex;
+    }
+}
