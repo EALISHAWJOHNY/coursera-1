@@ -126,18 +126,23 @@ class Program
     }
 }
 
-public static void CaptureScreenshot()
+public static string CaptureScreenshot()
 {
     try
     {
-        // Capture screenshot and convert to Base64 string
-        ITakesScreenshot screenshotDriver = driver as ITakesScreenshot;
-        Screenshot screenshot = screenshotDriver.GetScreenshot();
-        string base64Screenshot = screenshot.AsBase64EncodedString;
-
-        // Log screenshot in Extent Report
-        ExtentTest test = extent.CreateTest("Screenshot Node");
-        test.Log(Status.Fail, "Screenshot:", MediaEntityBuilder.CreateScreenCaptureFromBase64String(base64Screenshot).Build());
+        using (Bitmap bmp = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
+        {
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen(0, 0, 0, 0, Screen.PrimaryScreen.Bounds.Size);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    bmp.Save(ms, ImageFormat.Png);
+                    byte[] imageArray = ms.ToArray();
+                    return Convert.ToBase64String(imageArray);
+                }
+            }
+        }
     }
     catch (Exception ex)
     {
