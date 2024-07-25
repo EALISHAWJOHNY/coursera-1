@@ -192,3 +192,63 @@ public class ExtentReportExample {
         currentStep.info(info);
     }
 }
+
+ public static ExtentTest CaptureScreenshot(IWebDriver webDriver)
+ {
+     try
+     {
+         //IWebDriver driver = new ChromeDriver();
+         // Capture screenshot and convert to Base64 string
+         ITakesScreenshot screenshotDriver =  webDriver as ITakesScreenshot;
+         Screenshot screenshot = screenshotDriver.GetScreenshot();
+         string base64Screenshot = screenshot.AsBase64EncodedString;
+
+         // Log screenshot in Extent Report
+         //ExtentTest test = ExtentTest.CreateNode("Screenshots");
+         return currentStep.Log(Status.Fail, "Screenshot:", MediaEntityBuilder.CreateScreenCaptureFromBase64String(base64Screenshot).Build());
+     }
+     catch (Exception ex)
+     {
+         throw ex;
+     }
+ }
+ public static void UpdateExtentLog(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
+ {
+     DateTime ActionStopTime = DateTime.Now;
+     //DateTime stoptime = DateTime.Now;
+     //DateTime ActionStopTime = DateTime.ParseExact(stoptime., "dd/MM/YYYY HH:mm:ss", CultureInfo.InvariantCulture);
+     string stepTime = (ActionStopTime - ActionStartTime).TotalSeconds.ToString();
+     string stepDetails;
+                 
+          stepDetails = $"<pre>" +
+                              $"<b>Control</b>: {Control}<br>" +
+                              $"<b>Type</b>: {ControlType}<br>" +
+                              $"<b>Action</b>: {Method}<br>" +
+                              $"<b>Property</b>: {Property}<br>" +
+                              $"<b>Expected Value</b>: {Value}<br>" +
+                              $"<b>Actual Value</b>: {AValue}<br>" +
+                              $"<b>Result</b>: {Result}<br>" +
+                              $"<b>Error</b>: {Error}<br> " +
+                              $"<b>Time</b>: {stepTime}<br></pre>";
+         if (Result != "fail")
+         {
+         
+             ExtentManager.LogInfo(Status.Pass, TestStep, stepDetails);
+         }
+         else
+         {                    
+           ExtentTest extentManager = ExtentManager.CaptureScreenshot(FATrustDrivers.WebDriver);
+            stepDetails = $"<pre>" +
+                              $"<b>Control</b>: {Control}<br>" +
+                              $"<b>Type</b>: {ControlType}<br>" +
+                              $"<b>Action</b>: {Method}<br>" +
+                              $"<b>Property</b>: {Property}<br>" +
+                              $"<b>Expected Value</b>: {Value}<br>" +
+                              $"<b>Actual Value</b>: {AValue}<br>" +
+                              $"<b>Result</b>: {Result}<br>" +
+                              $"<b>Error</b>: {Error}<br> " +
+                              $"<b>Time</b>: {stepTime}<br>" +
+                              $"<b>Screenshot</b>: {extentManager}<br></pre>";
+             ExtentManager.LogInfo(Status.Fail, TestStep, stepDetails);
+             //ExtentManager.CaptureScreenshot(FATrustDrivers.WebDriver);
+         }
