@@ -252,3 +252,26 @@ public class ExtentReportExample {
              ExtentManager.LogInfo(Status.Fail, TestStep, stepDetails);
              //ExtentManager.CaptureScreenshot(FATrustDrivers.WebDriver);
          }
+
+ [TestCleanup]
+ public virtual void CleanupTest()
+ {
+     var testOutcome = Reports.EndTest(TestContext);
+     ReportsBaseSetup.BaseAssemblyCleanup();
+     if ((testOutcome.Status == UnitTestOutcome.Failed) && !testAlreadyFailed)
+     {
+         FailTest(testOutcome.Message);
+     }
+     else
+     {
+         // Close Windows Driver
+         //FATrustDrivers.CloseWindowsDriver();
+         //FATrustDrivers.QuitWindowsDriver();
+
+         //// Close Web Driver
+         //FATrustDrivers.CloseWebDriver();
+         //FATrustDrivers.QuitWebDriver();
+         Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
+     }
+     Reports.PrintLog("------------------ Test Cleanup ------------------");
+ }
