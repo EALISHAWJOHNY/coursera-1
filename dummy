@@ -275,3 +275,184 @@ public class ExtentReportExample {
      }
      Reports.PrintLog("------------------ Test Cleanup ------------------");
  }
+
+    public abstract class MasterClass : ReportsBaseSetup
+    {
+        private static bool testAlreadyFailed = false;
+        public int testcaseno;
+        public static TestContext testContext { get; set; }
+        public static bool newTestInit = true;
+        public static bool Test = true;
+        public static int TestCnt = 1;
+
+        [AssemblyInitialize()]
+        public static void AssemblyInitialize(TestContext context)
+        {
+            MessageBox.Show("AssemblyInit " + context.TestName);
+        }
+
+        [TestInitialize]
+        public virtual void TestInitialize()
+        {
+            //BaseAssemblySetup();
+
+            testAlreadyFailed = false;
+
+            //Process.Start("taskkill", "/F /IM chromedriver.exe");
+            //Process.Start("taskkill", "/F /IM chrome*");
+            Thread.Sleep(6000);
+
+            TfsProperties.Initialize(TestContext);
+            AutoConfig.Initialize(TestContext); //initialize AutoConfig class
+
+            Reports.Initialize(TestContext);
+            if (newTestInit)
+            {
+                ReportsBaseSetup.BaseAssemblySetup();
+                newTestInit = false;
+            }
+
+            BaseTestInit(TestContext);
+            Reports.PrintLog(Environment.NewLine + "------------------ Initializing test method " + TestContext.TestName + " ------------------");
+            Support.bStartReporting = true;
+            StaticVariables.DownladedFile = "";
+
+            //Check Report folder and logs.txt file exists.
+            if (!Directory.Exists(@"C:\Reports"))
+            {
+                Directory.CreateDirectory(@"C:\Reports");
+            }
+
+            // Check logs.txt file exists.
+            if (!File.Exists(@"C:\Reports\log.txt"))
+            {
+                File.CreateText(@"C:\Reports\log.txt").Dispose();
+            }
+
+            CreateTestReportLink(); // create and attached a link to actual result on test agent
+            TestContext.AddResultFile(Reports.DEPLOYDIR + "\\TestResult.html");
+
+            //Close Chrome instance
+            if (AutoConfig.BrowserName == BrowserName.Chrome)
+            {
+                //Process.Start("taskkill", "/F /IM chromedriver.exe");
+                //Process.Start("taskkill", "/F /IM chrome*");
+            }
+            else if (AutoConfig.BrowserName == BrowserName.Edge)
+            {
+                Process.Start("taskkill", "/F /IM msedgedriver.exe");
+                Process.Start("taskkill", "/F /IM msedge*");
+            }
+            System.Threading.Thread.Sleep(10000);
+        }
+
+        public TestContext TestContext { get; set; }
+
+        private static void CreateTestReportLink()
+        {
+            string resultFilePath = Reports.DebugLogFile;
+            string testAgentName = Dns.GetHostName();   // get only host name portion of the test agent
+
+            if (AutoConfig.IsMtmRun || AutoConfig.IsRmRun)
+                resultFilePath = resultFilePath.Replace("C:", @"\\" + testAgentName);
+
+            string linkToReportFileContent = "<!DOCTYPE HTML><html lang=\"en-US\"><head><meta charset=\"UTF-8\">" +
+                                             "<meta http-equiv=\"refresh\" content=\"1;url=" + resultFilePath + "\">" +
+                                             "<script type=\"text/javascript\">window.location.href = \"" + resultFilePath + "\"</script>" +
+                                             "<title>Test Result</title></head><body>" +
+                                             "If you are not redirected automatically, please follow the link:<br>" +
+                                             "<a href='" + resultFilePath + "'>" + resultFilePath + "</a></body></html>";
+
+            File.WriteAllText(Reports.DEPLOYDIR + "\\TestResult.html", linkToReportFileContent);
+            File.WriteAllText(Reports.RUNRESULTDIR + "\\_TestSummary.html", linkToReportFileContent.Replace(resultFilePath, Reports.SummaryLogFile));
+        }
+
+        public static void FailTest(string errorMessage)
+        {
+            Support.Fail(errorMessage);
+            testAlreadyFailed = true;
+
+            //// Todo: Quit Appium Driver
+            //FATrustDrivers.CloseWindowsDriver();
+            //FATrustDrivers.QuitWindowsDriver();
+
+            ////// Todo: Quit Windows Driver
+            //FATrustDrivers.CloseWebDriver();
+            //FATrustDrivers.CloseWebDriver();
+            Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
+
+            Assert.Fail(errorMessage);
+        }
+
+
+        [TestCleanup]
+        public virtual void CleanupTest()
+         {
+            //if(testcaseno<=2)
+            //{
+            //    BaseTestInit(TestContext);
+            //}
+            //else
+            //{
+            var testOutcome = Reports.EndTest(TestContext);
+            //ReportsBaseSetup.BaseAssemblyCleanup();
+            if ((testOutcome.Status == UnitTestOutcome.Failed) && !testAlreadyFailed)
+            {
+                FailTest(testOutcome.Message);
+            }
+            else
+            {
+                // Close Windows Driver
+                //FATrustDrivers.CloseWindowsDriver();
+                //FATrustDrivers.QuitWindowsDriver();
+
+                //// Close Web Driver
+                //FATrustDrivers.CloseWebDriver();
+                //FATrustDrivers.QuitWebDriver();
+                Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
+            }
+            if (HtmlReportUtils.testsExecuted != TestCnt)
+            {
+                TestCnt++;
+            }
+            else
+            {
+                ExtentManager.EndReport();
+
+                //Generate and send HTML report via e-mail
+                HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
+                HtmlReportUtils reportUtils = new HtmlReportUtils();
+                reportUtils.InitHTMLLoggerRegression();
+                EmailSender.SendReportEmail(HtmlReportUtils.resultBody, HtmlReportUtils.reportConfig.EmailTitle);
+            }
+
+            Reports.PrintLog("------------------ Test Cleanup ------------------");
+            //}
+
+        }
+
+        [AssemblyCleanup]
+        public static void AssemblyCleanup(TestContext testContext)
+        {
+            try
+            {
+
+                //Save final Extent HTML report
+                ExtentManager.EndReport();
+
+                //Generate and send HTML report via e-mail
+                HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
+                HtmlReportUtils reportUtils = new HtmlReportUtils();
+                reportUtils.InitHTMLLoggerRegression();
+                EmailSender.SendReportEmail(HtmlReportUtils.resultBody, HtmlReportUtils.reportConfig.EmailTitle);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
+
+
+    }
+}
