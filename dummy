@@ -575,3 +575,321 @@ namespace YourNamespace
             }
 
         }
+ public static void Initialize(TestContext tContext)
+ {
+     TestSteps = new List<string>();
+     OverallErrorMessage = "";
+     TestResult = true;
+     TestName = tContext.TestName;
+     deployDirectory = tContext.DeploymentDirectory;
+     string sTime = DateTime.Now.ToString().Replace("/", "").Replace(":", "").Replace(" ", "");
+     resultfile = TestName + "_" + sTime + ".xml";
+     testDescription = "TEST SUMMARY MISSING";
+     testStep = "Test Step Missing";
+     testStepNumber = 0;
+     previousTestStep = "";
+     testSequence = testSequence + 1;
+     testAgentName = (AutoConfig.IsMtmRun || AutoConfig.IsRmRun) ? TfsProperties.AgentName ?? "Not available" : Environment.MachineName;
+
+     testId = testSequence.ToString();
+
+     //if (TfsProperties.TestCaseId != null)
+     //{
+     //    testId = testSequence.ToString() + " / " + TfsProperties.TestCaseId;
+     //}
+     //else
+     //{
+     //    testId = testSequence.ToString();
+     //}
+
+     if (previousTestClassName != tContext.FullyQualifiedTestClassName)
+     {
+         if (AutoConfig.IsMtmRun || AutoConfig.IsRmRun)
+         {
+             buildNumber = TfsProperties.BuildNumber ?? "";
+             testPlanId = TfsProperties.TestPlanId ?? "";
+         }
+
+         previousTestClassName = tContext.FullyQualifiedTestClassName;
+         _resultsdir = @Support.ReadAppSettings("appSettings", "RESULTSDIR").TrimEnd('\\');
+         if (!Directory.Exists(_resultsdir))
+         {
+             Directory.CreateDirectory(_resultsdir);
+         }
+
+         testMethodResultFolder = tContext.FullyQualifiedTestClassName + "_" + DateTime.Now.ToString("MMddyyyyHHmmss");
+         if (TfsProperties.TestRunId != null)
+             testMethodResultFolder = testMethodResultFolder + "_" + TfsProperties.TestRunId;
+
+         _resultsdir = _resultsdir + "\\" + testMethodResultFolder;
+         if (!Directory.Exists(_resultsdir))
+         {
+             if (TfsProperties.TestRunId == null)
+             {
+                 testSequence = 1;
+                 testId = testSequence.ToString();
+             }
+         }
+         CreateSummaryLog();
+         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.Summary.xsl", _resultsdir + "\\Summary.xsl");
+         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.Details.xsl", _resultsdir + "\\Details.xsl");
+         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.dbgstyle.css", _resultsdir + "\\dbgstyle.css");
+     }
+     else
+     {
+         Directory.CreateDirectory(_resultsdir + "\\Screenshots\\" + TestName);
+         debugLogFile = _resultsdir + "\\" + resultfile;
+         CreateTestNode();
+         CreateDebugLog();
+     }
+ }
+
+ ///<summary>
+ ///<para>Updates Result of Test Method in the Reports. This must be called as part of Test Clean up.</para>
+ ///<para>Example: Reports.UpdateResult(TestContext);</para>
+ ///</summary>
+ public static TestOutcome EndTest(TestContext tContext)
+ {
+     var outcome = new TestOutcome();
+     var currentTestOutcome = tContext.CurrentTestOutcome;            
+     if (currentTestOutcome == UnitTestOutcome.Passed && TestResult) //TestResult needs to be changed with UnitTestOutcome instead of Boolean
+         outcome.Status = UnitTestOutcome.Passed;
+     else
+         outcome.Status = UnitTestOutcome.Failed;
+
+     #region XML stuff
+     XmlDocument doc = new XmlDocument();
+     doc.Load(SummaryLog);
+
+     doc.SelectSingleNode("tests/codedui[@name='" + TestName + "']/status").InnerText = "complete";
+
+     XmlNode XNode = doc.SelectSingleNode("/tests/codedui[@name='" + TestName + "']");
+
+     XmlNode tResult = doc.CreateElement("result");
+     tResult.InnerText = outcome.Status.ToString();
+     XNode.AppendChild(tResult);
+
+     endTime = DateTime.Now;
+     XmlNode eTime = doc.CreateElement("endtime");
+     eTime.InnerText = endTime.ToString();
+     XNode.AppendChild(eTime);
+
+     XmlNode rTime = doc.CreateElement("runtime");
+     rTime.InnerText = ((int)((endTime - startTime).TotalSeconds)).ToString();
+     XNode.AppendChild(rTime);
+
+     doc.Save(SummaryLog);
+     #endregion
+
+     if (outcome.Status == UnitTestOutcome.Failed)
+         outcome.Message = string.IsNullOrEmpty(OverallErrorMessage) ? DefaultErrorMessage : OverallErrorMessage;
+
+     return outcome;
+ }
+
+ public static void Fail(string errorMessage)
+ {
+     OverallErrorMessage = errorMessage;
+     //UpdateDebugLog("Error Occured", "", "Fail", "", "", "", Result(false), errorMessage);
+     UpdateExtentLog("Error Occured", "", "Fail", "", "", "", Result(false), errorMessage);
+     TestResult = false;
+ }
+
+ ///<summary>
+ /// Need to stop using this.
+ ///</summary>
+ public static string Result(bool iResult)
+ {
+     if (iResult)
+         return "pass";
+     else
+         return "fail";
+ }
+
+ private static void CreateTestNode()
+ {
+     XmlDocument doc = new XmlDocument();
+     doc.Load(SummaryLog);
+
+     XmlNode xNode = doc.GetElementsByTagName("tests")[0];
+
+     XmlNode testNode = doc.CreateElement("codedui");
+     XmlAttribute Valueattr = doc.CreateAttribute("name");
+     Valueattr.Value = TestName;
+     testNode.Attributes.Append(Valueattr);
+     xNode.AppendChild(testNode);
+
+     XmlNode stestid = doc.CreateElement("testid");
+     stestid.InnerText = testId;
+     testNode.AppendChild(stestid);
+
+     XmlNode sDesc = doc.CreateElement("sDesc");
+     sDesc.InnerText = "description";
+     testNode.AppendChild(sDesc);
+
+     startTime = DateTime.Now;
+     XmlNode stTime = doc.CreateElement("starttime");
+     stTime.InnerText = startTime.ToString();
+     testNode.AppendChild(stTime);
+
+     XmlNode sStatus = doc.CreateElement("status");
+     sStatus.InnerText = "InProgress";
+     testNode.AppendChild(sStatus);
+
+     XmlNode sFile = doc.CreateElement("file");
+     sFile.InnerText = resultfile;
+     testNode.AppendChild(sFile);
+
+     doc.Save(SummaryLog);
+ }
+
+ private static void CreateSummaryLog()
+ {
+     string sTime = DateTime.Now.ToString().Replace("/", "").Replace(":", "").Replace(" ", "");
+     Directory.CreateDirectory(_resultsdir + "\\Screenshots\\" + TestName);
+     summaryLogFile = "TESTSUMMARY_" + sTime + ".xml";
+     SummaryLog = _resultsdir + "\\" + summaryLogFile;
+
+     XmlDocument doc = new XmlDocument();
+     FileStream rfile = new FileStream(SummaryLog, FileMode.Create);
+
+     XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+     doc.AppendChild(docNode);
+
+     XmlProcessingInstruction xProcess = doc.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"Summary.xsl\"");
+     doc.AppendChild(xProcess);
+
+     XmlNode productsNode = doc.CreateElement("tests");
+
+     var nameAttribute = doc.CreateAttribute("name");
+     nameAttribute.Value = previousTestClassName;
+     productsNode.Attributes.Append(nameAttribute);
+
+     var osversionAttribute = doc.CreateAttribute("osversion");
+     osversionAttribute.Value = GetOSFriendlyName();
+     productsNode.Attributes.Append(osversionAttribute);
+
+     var broserNameAttribute = doc.CreateAttribute("browsername");
+     broserNameAttribute.Value = AutoConfig.ApplicationName.ToString();
+     productsNode.Attributes.Append(broserNameAttribute);
+
+     var runtypeAttribute = doc.CreateAttribute("runtype");
+     runtypeAttribute.Value = AutoConfig.IsMtmRun ? "MTM Run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run";
+     productsNode.Attributes.Append(runtypeAttribute);
+
+     var testplanAttribute = doc.CreateAttribute("testplan");
+     testplanAttribute.Value = testPlanId;
+     productsNode.Attributes.Append(testplanAttribute);
+
+     var agentnameAttribute = doc.CreateAttribute("agentname");
+     agentnameAttribute.Value = testAgentName;
+     productsNode.Attributes.Append(agentnameAttribute);
+
+     var buildnumberAttribute = doc.CreateAttribute("buildnumber");
+     buildnumberAttribute.Value = buildNumber;
+     productsNode.Attributes.Append(buildnumberAttribute);
+
+     doc.AppendChild(productsNode);
+
+     XmlNode testNode = doc.CreateElement("codedui");
+     XmlAttribute Valueattr = doc.CreateAttribute("name");
+     Valueattr.Value = TestName;
+     testNode.Attributes.Append(Valueattr);
+     productsNode.AppendChild(testNode);
+
+     XmlNode stestid = doc.CreateElement("testid");
+     stestid.InnerText = testId;
+     testNode.AppendChild(stestid);
+
+     XmlNode sDesc = doc.CreateElement("sDesc");
+     sDesc.InnerText = "description";
+     testNode.AppendChild(sDesc);
+
+     startTime = DateTime.Now;
+     XmlNode stTime = doc.CreateElement("starttime");
+     stTime.InnerText = startTime.ToString();
+     testNode.AppendChild(stTime);
+
+     XmlNode sStatus = doc.CreateElement("status");
+     sStatus.InnerText = "InProgress";
+     testNode.AppendChild(sStatus);
+
+     XmlNode sFile = doc.CreateElement("file");
+     sFile.InnerText = resultfile;
+     testNode.AppendChild(sFile);
+
+     doc.Save(rfile);
+     rfile.Close();
+     debugLogFile = _resultsdir + "\\" + resultfile;
+     CreateDebugLog();
+ }
+
+ private static void CreateDebugLog()
+ {
+     XmlDocument doc = new XmlDocument();
+     FileStream rfile = new FileStream(debugLogFile, FileMode.Create);
+
+     XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+     doc.AppendChild(docNode);
+
+     XmlProcessingInstruction xProcess = doc.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"Details.xsl\"");
+     doc.AppendChild(xProcess);
+
+     XmlNode testDetails = doc.CreateElement("testdetails");
+     doc.AppendChild(testDetails);
+
+     XmlNode testNode = doc.CreateElement("test");
+
+     // Test case name.
+     XmlAttribute nameattr = doc.CreateAttribute("name");
+     nameattr.Value = TestName;
+     testNode.Attributes.Append(nameattr);
+
+     // OS version.
+     XmlAttribute osVersionAttribute = doc.CreateAttribute("osversion");
+     osVersionAttribute.Value = GetOSFriendlyName();
+     testNode.Attributes.Append(osVersionAttribute);
+
+     // Browser name.
+     XmlAttribute browserName = doc.CreateAttribute("browsername");
+     browserName.Value = AutoConfig.ApplicationName.ToString();
+     testNode.Attributes.Append(browserName);
+
+     // Run type (local vs MTM).
+     XmlAttribute runtype = doc.CreateAttribute("runtype");
+     runtype.InnerText = AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run";
+     testNode.Attributes.Append(runtype);
+
+     // Agent name.
+     XmlAttribute agentNameAttr = doc.CreateAttribute("agentname");
+     agentNameAttr.InnerText = testAgentName;
+     testNode.Attributes.Append(agentNameAttr);
+
+     // Build number (from build definition).
+     XmlAttribute buildNumberAttr = doc.CreateAttribute("buildnumber");
+     buildNumberAttr.InnerText = buildNumber;
+     testNode.Attributes.Append(buildNumberAttr);
+
+     // Test plan name.
+     XmlAttribute planNode = doc.CreateAttribute("testplan");
+     planNode.InnerText = testPlanId;
+     testNode.Attributes.Append(planNode);
+
+     testDetails.AppendChild(testNode);
+     doc.Save(rfile);
+     rfile.Close();
+ }
+
+ public static void StatusUpdate(string controlDescription, bool status, string controlType = "", string action = "", string property = "", string expectedValue = "", string actualValue = "", string errorMessage = "")
+ {           
+     if (Support.bStartReporting)
+     {
+         try
+         {
+             //UpdateDebugLog(controlDescription, controlType, action, property, expectedValue, actualValue, Result(status), errorMessage);
+             UpdateExtentLog(controlDescription, controlType, action, property, expectedValue, actualValue, Result(status), errorMessage);
+             Assert.AreEqual(true, status, controlDescription);
+         }
+         catch { TestResult = false; }
+     }
+ }
