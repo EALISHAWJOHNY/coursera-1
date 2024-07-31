@@ -862,34 +862,37 @@ namespace YourNamespace
 
      // Agent name.
      XmlAttribute agentNameAttr = doc.CreateAttribute("agentname");
-     agentNameAttr.InnerText = testAgentName;
-     testNode.Attributes.Append(agentNameAttr);
+private static ExtentReports extent;
+private static ExtentTest currentTest;
+private static ExtentHtmlReporter htmlReporter;
+private static string testName;
+private static string debugLogFile;
 
-     // Build number (from build definition).
-     XmlAttribute buildNumberAttr = doc.CreateAttribute("buildnumber");
-     buildNumberAttr.InnerText = buildNumber;
-     testNode.Attributes.Append(buildNumberAttr);
+public static void InitializeExtentReports(string reportPath)
+{
+    htmlReporter = new ExtentHtmlReporter(reportPath);
+    extent = new ExtentReports();
+    extent.AttachReporter(htmlReporter);
 
-     // Test plan name.
-     XmlAttribute planNode = doc.CreateAttribute("testplan");
-     planNode.InnerText = testPlanId;
-     testNode.Attributes.Append(planNode);
+    extent.AddSystemInfo("Host Name", Environment.MachineName);
+    extent.AddSystemInfo("Environment", "QA");
+    extent.AddSystemInfo("User Name", Environment.UserName);
+}
 
-     testDetails.AppendChild(testNode);
-     doc.Save(rfile);
-     rfile.Close();
- }
+public static void StartTest(string testName)
+{
+    currentTest = extent.CreateTest(testName);
+    debugLogFile = $"{testName}_debug.log"; // Just an example, replace with actual logic
+    CreateDebugLog();
+}
 
- public static void StatusUpdate(string controlDescription, bool status, string controlType = "", string action = "", string property = "", string expectedValue = "", string actualValue = "", string errorMessage = "")
- {           
-     if (Support.bStartReporting)
-     {
-         try
-         {
-             //UpdateDebugLog(controlDescription, controlType, action, property, expectedValue, actualValue, Result(status), errorMessage);
-             UpdateExtentLog(controlDescription, controlType, action, property, expectedValue, actualValue, Result(status), errorMessage);
-             Assert.AreEqual(true, status, controlDescription);
-         }
-         catch { TestResult = false; }
-     }
- }
+private static void CreateDebugLog()
+{
+    currentTest.Info("Starting test: " + testName);
+    currentTest.Info("OS Version: " + GetOSFriendlyName());
+    currentTest.Info("Browser: " + AutoConfig.ApplicationName.ToString());
+    currentTest.Info("Run Type: " + (AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run"));
+    currentTest.Info("Agent Name: " + testAgentName);
+    currentTest.Info("Build Number: " + buildNumber);
+    currentTest.Info("Test Plan: " + testPlanId);
+}
