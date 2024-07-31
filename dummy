@@ -490,3 +490,88 @@ namespace YourNamespace
         }
     }
 }
+
+
+    [TestClass]
+    //[TestFixture]
+    public class DBIQRegressionWireTestcases : MasterClass
+    {
+        public static string info;
+        public static ExtentReports extent;
+        private static AventStack.ExtentReports.ExtentReports ExtentReport;
+        public static ExtentTest ExtentTest;
+        [TestMethod]
+        public void VerifyInternationalWire()
+        {
+            
+            Amount amount = null;
+            SubmittedTemplateInformation TemplateInfo = new SubmittedTemplateInformation();
+            BeneficiaryInformation beneficiaryInformation = null;
+
+            try
+            {
+                
+                Reports.TestDescription = "Verify International Wire.";
+                
+
+                //Opening Digital Banking Application
+
+                Reports.TestStep = "Open Digital Bank Application and login to it.";
+                //ExtentManager.LogInfo("Open Digital Bank Application and login to it.");
+
+                PageOperations.DBIQLoginPage.OpenBottomLine();
+                PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr1_Name, AutoConfig.BottomLineUsr1_Pwd, AutoConfig.BottomLineUsr1_Key);
+               
+
+                //Click on Transfers menu and Select Payment centre
+                Reports.TestStep = "Click on Transfers menu and Select Payment centre. ";
+                //ExtentManager.LogInfo("Click on Transfers menu and Select Payment centre. ");
+                PageOperations.DBIQPaymentCenterPage.ClickOnTranferMenu();
+                PageOperations.DBIQPaymentCenterPage.ClickOnPaymentCenter();
+                Reports.ControlStep = Reports.TestStep;
+
+                //Click on Add a new Template.
+                Reports.TestStep = "Click on Add a new Template.";
+                //ExtentManager.LogInfo("Click on Add a new Template.");
+                PageOperations.DBIQPaymentCenterPage.ClickonAddaNewTemplate();
+                Reports.ControlStep = Reports.TestStep;
+
+                //Select Template Type
+                Reports.TestStep = "Select Template Type.";
+                PageOperations.DBIQPaymentCenterPage.SelectATemplateType(TemplateType.InternationalWire);
+                PageOperations.DBIQPaymentCenterPage.ClickOnContinueButton();
+
+                //Select Template information.
+                Reports.TestStep = "Dataset is created and entered for Template Information section of New Federal Tax Wire Template page";
+                TemplateInformation templateInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateTemplateInformation();
+                PageOperations.DBIQNewWireInternationalTemplatePage.SetTemplateInformation(templateInformation);
+
+                Reports.TestStep = "Data is created and entered for Debit Account section of New Federal Tax Wire Template page";
+                OriginatorInformation originatorInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateOrginatorInformation();
+                PageOperations.DBIQNewWireInternationalTemplatePage.SetOrginatorInformation(originatorInformation);
+
+                Reports.TestStep = "Dataset is created and entered for Tax Payer Information section of New Federal Tax Wire Template page";
+                BeneficiaryInformation taxPayerInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateBeneficiaryInformation();
+                PageOperations.DBIQNewWireInternationalTemplatePage.SetBeneficiaryInformation(taxPayerInformation, "International Wire");
+
+                Reports.TestStep = "Create Intermediary Bank Information";
+                IntermediaryBankInformation intermedbankinfo = PageOperations.DBIQNewWireInternationalTemplatePage.CrtIntermediaryBnkInfoForInternationalWireTmplt();
+
+                Reports.TestStep = "Set Intermediary Bank Information";
+                PageOperations.DBIQNewWireInternationalTemplatePage.SetIntermediaryBnkInfoForInternationalWireTmplt(intermedbankinfo);
+
+                Reports.TestStep = "Data created and entered into Credit amount text box";
+                amount = PageOperations.DBIQNewWireInternationalTemplatePage.CreateCreditAmt();
+                PageOperations.DBIQNewWireInternationalTemplatePage.SetAmount(amount);
+                TemplateInfo.Amount = amount.CreditAmount;
+                TemplateInfo.BeneficiaryName = taxPayerInformation.Name;
+
+                Reports.TestStep = "Verify New Internalional wire template can be saved by clicking Save button";
+                PageOperations.DBIQNewWireInternationalTemplatePage.ClickOnSaveBtn();
+            }
+            catch (Exception ex)
+            {
+                FailTest(ex.Message);
+            }
+
+        }
