@@ -276,6 +276,17 @@ public class ExtentReportExample {
      Reports.PrintLog("------------------ Test Cleanup ------------------");
  }
 
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+using AventStack.ExtentReports;
+using AventStack.ExtentReports.Reporter;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Threading;
+
+namespace YourNamespace
+{
     public abstract class MasterClass : ReportsBaseSetup
     {
         private static bool testAlreadyFailed = false;
@@ -285,27 +296,48 @@ public class ExtentReportExample {
         public static bool Test = true;
         public static int TestCnt = 1;
 
+        private static ExtentReports _extent;
+        private static ExtentHtmlReporter _htmlReporter;
+        private ExtentTest _test;
+
+        public TestContext TestContext { get; set; }
+
         [AssemblyInitialize()]
         public static void AssemblyInitialize(TestContext context)
         {
-            MessageBox.Show("AssemblyInit " + context.TestName);
+            // Can be used to set up common resources for all test classes if needed
+        }
+
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
+        {
+            testContext = context;
+
+            // Setup the ExtentReports instance and attach the HTML reporter
+            string reportPath = Path.Combine(Directory.GetCurrentDirectory(), "TestReports", $"ExtentReport_{context.FullyQualifiedTestClassName}.html");
+            Directory.CreateDirectory(Path.GetDirectoryName(reportPath));
+            _htmlReporter = new ExtentHtmlReporter(reportPath);
+            _extent = new ExtentReports();
+            _extent.AttachReporter(_htmlReporter);
+
+            // Optional: add system or environment information
+            _extent.AddSystemInfo("Host Name", Dns.GetHostName());
+            _extent.AddSystemInfo("Environment", "QA");
+            _extent.AddSystemInfo("User Name", "TestUser");
+
+            MessageBox.Show("ClassInitialize " + context.TestName);
         }
 
         [TestInitialize]
         public virtual void TestInitialize()
         {
-            //BaseAssemblySetup();
-
             testAlreadyFailed = false;
-
-            //Process.Start("taskkill", "/F /IM chromedriver.exe");
-            //Process.Start("taskkill", "/F /IM chrome*");
             Thread.Sleep(6000);
 
             TfsProperties.Initialize(TestContext);
-            AutoConfig.Initialize(TestContext); //initialize AutoConfig class
-
+            AutoConfig.Initialize(TestContext);
             Reports.Initialize(TestContext);
+
             if (newTestInit)
             {
                 ReportsBaseSetup.BaseAssemblySetup();
@@ -317,22 +349,20 @@ public class ExtentReportExample {
             Support.bStartReporting = true;
             StaticVariables.DownladedFile = "";
 
-            //Check Report folder and logs.txt file exists.
+            // Ensure necessary directories and files exist
             if (!Directory.Exists(@"C:\Reports"))
             {
                 Directory.CreateDirectory(@"C:\Reports");
             }
 
-            // Check logs.txt file exists.
             if (!File.Exists(@"C:\Reports\log.txt"))
             {
                 File.CreateText(@"C:\Reports\log.txt").Dispose();
             }
 
-            CreateTestReportLink(); // create and attached a link to actual result on test agent
+            CreateTestReportLink();
             TestContext.AddResultFile(Reports.DEPLOYDIR + "\\TestResult.html");
 
-            //Close Chrome instance
             if (AutoConfig.BrowserName == BrowserName.Chrome)
             {
                 //Process.Start("taskkill", "/F /IM chromedriver.exe");
@@ -343,15 +373,17 @@ public class ExtentReportExample {
                 Process.Start("taskkill", "/F /IM msedgedriver.exe");
                 Process.Start("taskkill", "/F /IM msedge*");
             }
-            System.Threading.Thread.Sleep(10000);
-        }
 
-        public TestContext TestContext { get; set; }
+            Thread.Sleep(10000);
+
+            // Start a new ExtentTest for the test method
+            _test = _extent.CreateTest(TestContext.TestName);
+        }
 
         private static void CreateTestReportLink()
         {
             string resultFilePath = Reports.DebugLogFile;
-            string testAgentName = Dns.GetHostName();   // get only host name portion of the test agent
+            string testAgentName = Dns.GetHostName(); // get only host name portion of the test agent
 
             if (AutoConfig.IsMtmRun || AutoConfig.IsRmRun)
                 resultFilePath = resultFilePath.Replace("C:", @"\\" + testAgentName);
@@ -372,45 +404,24 @@ public class ExtentReportExample {
             Support.Fail(errorMessage);
             testAlreadyFailed = true;
 
-            //// Todo: Quit Appium Driver
-            //FATrustDrivers.CloseWindowsDriver();
-            //FATrustDrivers.QuitWindowsDriver();
-
-            ////// Todo: Quit Windows Driver
-            //FATrustDrivers.CloseWebDriver();
-            //FATrustDrivers.CloseWebDriver();
-            Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
+            Support.CloseAllProcessStartingWith("AcroRd"); // close all instances of Adobe Reader
 
             Assert.Fail(errorMessage);
         }
 
-
         [TestCleanup]
         public virtual void CleanupTest()
-         {
-            //if(testcaseno<=2)
-            //{
-            //    BaseTestInit(TestContext);
-            //}
-            //else
-            //{
+        {
             var testOutcome = Reports.EndTest(TestContext);
-            //ReportsBaseSetup.BaseAssemblyCleanup();
             if ((testOutcome.Status == UnitTestOutcome.Failed) && !testAlreadyFailed)
             {
                 FailTest(testOutcome.Message);
             }
             else
             {
-                // Close Windows Driver
-                //FATrustDrivers.CloseWindowsDriver();
-                //FATrustDrivers.QuitWindowsDriver();
-
-                //// Close Web Driver
-                //FATrustDrivers.CloseWebDriver();
-                //FATrustDrivers.QuitWebDriver();
-                Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
+                Support.CloseAllProcessStartingWith("AcroRd"); // close all instances of Adobe Reader
             }
+
             if (HtmlReportUtils.testsExecuted != TestCnt)
             {
                 TestCnt++;
@@ -418,8 +429,6 @@ public class ExtentReportExample {
             else
             {
                 ExtentManager.EndReport();
-
-                //Generate and send HTML report via e-mail
                 HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
                 HtmlReportUtils reportUtils = new HtmlReportUtils();
                 reportUtils.InitHTMLLoggerRegression();
@@ -427,20 +436,42 @@ public class ExtentReportExample {
             }
 
             Reports.PrintLog("------------------ Test Cleanup ------------------");
-            //}
 
+            // Log the end of the test to the ExtentTest
+            _test.Log(Status.Info, "Test cleanup completed.");
+
+            // Update test result in ExtentTest
+            switch (TestContext.CurrentTestOutcome)
+            {
+                case UnitTestOutcome.Failed:
+                    _test.Fail("Test failed.");
+                    break;
+                case UnitTestOutcome.Inconclusive:
+                    _test.Skip("Test inconclusive.");
+                    break;
+                case UnitTestOutcome.Passed:
+                    _test.Pass("Test passed.");
+                    break;
+                default:
+                    _test.Warning("Test ended with unexpected status.");
+                    break;
+            }
         }
 
-        [AssemblyCleanup]
-        public static void AssemblyCleanup(TestContext testContext)
+        [ClassCleanup]
+        public static void ClassCleanup()
         {
             try
             {
+                // Flush the report for the class
+                if (_extent != null)
+                {
+                    _extent.Flush();
+                }
 
-                //Save final Extent HTML report
-                ExtentManager.EndReport();
+                // Additional cleanup if needed
 
-                //Generate and send HTML report via e-mail
+                // Optionally, generate and send the HTML report via e-mail
                 HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
                 HtmlReportUtils reportUtils = new HtmlReportUtils();
                 reportUtils.InitHTMLLoggerRegression();
@@ -448,11 +479,14 @@ public class ExtentReportExample {
             }
             catch (Exception ex)
             {
-
-                throw ex;
+                throw new Exception("Error during class cleanup: " + ex.Message, ex);
             }
         }
 
-
+        [AssemblyCleanup]
+        public static void AssemblyCleanup()
+        {
+            // Optional: Any global cleanup after all classes/tests have run
+        }
     }
 }
