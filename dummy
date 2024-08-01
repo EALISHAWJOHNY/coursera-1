@@ -896,3 +896,14 @@ private static void CreateDebugLog()
     currentTest.Info("Build Number: " + buildNumber);
     currentTest.Info("Test Plan: " + testPlanId);
 }
+
+$"<pre>" +
+                                     $"<b>Control</b>: {Control} |<br>" +
+                                     $"<b>Type</b>: {ControlType} |<br>" +
+                                     $"<b>Action</b>: {Method} |<br>" +
+                                     $"<b>Property</b>: {Property} |<br>" +
+                                     $"<b>Expected Value</b>: {Value} |<br>" +
+                                     $"<b>Actual Value</b>: {AValue} |<br>" +
+                                     $"<b>Result</b>: {Result} |<br>" +
+                                     $"<b>Error</b>: {Error} |<br>" +
+                                     $"<b>Time</b>: {stepTime}<br></pre>";
