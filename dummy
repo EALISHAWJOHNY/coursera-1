@@ -907,44 +907,65 @@ $"<pre>" +
                                      $"<b>Result</b>: {Result} |<br>" +
                                      $"<b>Error</b>: {Error} |<br>" +
                                      $"<b>Time</b>: {stepTime}<br></pre>";
-"<html> \n" +
-                         "   <body align=\"center\">\n" +
-                         "    <table width=\"75%\" border=\"1px solid #aaa\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#fff;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\"><tbody><tr style=\"border-bottom:0\"><td style=\"font-weight:bold; font-size:20px;color:#5284b5;border:0;padding:8px;border-right:0\">" + reportConfig.ReportName + "</td><td><img src=cid:fai width=\"170\" height=\"90\"/></td></tr></tbody></table><br>  \n" +
-                         "\t\n" +
-                         "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
-                         "\t<tbody>\n" +
-                         "\t<tr style=\"border-top:1px solid #aaa\">\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa;border-left:1px solid #aaa\">Date Tested</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Build</th>\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Environment</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests</th>\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests Executed</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Passed</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Failed</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ffffff;border-top:1px solid #aaa;border-right:1px solid #aaa;border-bottom:1px solid #aaa\" rowspan=\"2\"><div>\n" +
-                         "\t   <img src = \"cid:ringplot\" align=\"right\"/>\n" +
-                         "\t </div></th>\t\n" +
-                         "\t</tr>\n" +
-                         "\t\n" +
-                         "\t<tr>\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa;border-left:1px solid #aaa\">" + DateTime.Now.ToString("dd-MMM-yyyy") + "</td>\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.AppVersion + "</td>\t\n" +
-                         "\t\t<td style=\"padding:17px;color:#000000;border-right:3px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.Environment + "</td>\t\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (totalTests.ToString()) + "</td>\t\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsExecuted.ToString()) + "</td>\t\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsPassed.ToString()) + "</td>\t\n" +
-                         "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsFailed.ToString()) + "</td>\t\n" +
-                          "\t</tr>\n" +
-                         "\t</tbody>\n" +
-                         "\t</table>\n" +
-                         "\t<br>  \n" +
-                         "\t \n" +
+        resultBody.Append("<html> \n" +
+                 "   <body align=\"center\">\n" +
+                 "    <table width=\"75%\" border=\"1px solid #aaa\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#fff;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\"><tbody><tr style=\"border-bottom:0\"><td style=\"font-weight:bold; font-size:20px;color:#5284b5;border:0;padding:8px;border-right:0\">" + reportConfig.ReportName + "</td><td><img src=cid:fai width=\"170\" height=\"90\"/></td></tr></tbody></table><br>  \n" +
+                 "\t\n" +
+                 "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
+                 "\t<tbody>\n" +
+                 "\t<tr style=\"border-top:1px solid #aaa\">\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa;border-left:1px solid #aaa\">Date Tested</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Build</th>\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Environment</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests</th>\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests Executed</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Passed</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Failed</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ffffff;border-top:1px solid #aaa;border-right:1px solid #aaa;border-bottom:1px solid #aaa\" rowspan=\"2\"><div>\n" +
+                 "\t   <img src = \"cid:ringplot\" align=\"right\"/>\n" +
+                 "\t </div></th>\t\n" +
+                 "\t</tr>\n" +
+                 "\t\n" +
+                 "\t<tr>\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa;border-left:1px solid #aaa\">" + DateTime.Now.ToString("dd-MMM-yyyy") + "</td>\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.AppVersion + "</td>\t\n" +
+                 "\t\t<td style=\"padding:17px;color:#000000;border-right:3px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.Environment + "</td>\t\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (totalTests.ToString()) + "</td>\t\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsExecuted.ToString()) + "</td>\t\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsPassed.ToString()) + "</td>\t\n" +
+                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsFailed.ToString()) + "</td>\t\n" +
+                  "\t</tr>\n" +
+                 "\t</tbody>\n" +
+                 "\t</table>\n" +
+                 "\t<br>  \n" +
+                 "\t \n" +
 
-                         "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
-                         "\t<tbody>\n" +
-                         "\t<tr>\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Module</th>\t\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Sub Module</th>\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Passed</th>\n" +
-                         "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Failed</th>\t\n" +
-                         "\t</tr>\n"
+                 "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
+                 "\t<tbody>\n" +
+                 "\t<tr>\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Module</th>\t\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Sub Module</th>\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Passed</th>\n" +
+                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Failed</th>\t\n" +
+                 "\t</tr>\n");
+
+        UpdateFinalModuleListToBePrinted();
+        foreach (var val in ListModules)
+        {
+            AppendComponent(val.Key, val.Value, "\t<tr>\n");
+        }
+
+        resultBody.Append("</tbody>\n" +
+            "\t</table>\n" +
+            "\t<br>  \n" +
+            "\t\n" +
+            "   </body>\n" +
+            "</html>");
+    }
+    catch (Exception)
+    {
+
+        throw;
+    }
+
+}
