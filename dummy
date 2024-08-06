@@ -1,971 +1,131 @@
-using AventStack.ExtentReports;
-using AventStack.ExtentReports.Reporter;
-using System;
+previousTestClassName = tContext.FullyQualifiedTestClassName;
+testMethodResultFolder = tContext.FullyQualifiedTestClassName + "_" + DateTime.Now.ToString("MMddyyyyHHmmss");
+HtmlReportUtils.reportConfig = ExtractReportConfig();
+reportPath = @Support.ReadAppSettings("appSettings", "RESULTSDIR").TrimEnd('\\') + @"\" + testMethodResultFolder + ".html";
+tContext.AddResultFile(Reports.RUNRESULTDIR + testMethodResultFolder + ".html");
 
-class Program
+var htmlReporter = new ExtentV3HtmlReporter(reportPath);
+
+htmlReporter.Config.ReportName = "Digital Banking NextGen Automation Report";
+htmlReporter.Config.Theme = Theme.Standard;
+htmlReporter.Config.DocumentTitle = "Digital Banking NextGen Automation Test Reports";
+htmlReporter.Config.EnableTimeline = true;
+htmlReporter.Config.Encoding = "UTF-8";
+ExtentReport = new AventStack.ExtentReports.ExtentReports();
+
+osVersion = GetOSFriendlyName();
+
+ExtentReport.AddSystemInfo("Test name :", tContext.FullyQualifiedTestClassName);
+ExtentReport.AddSystemInfo("OS Version :", osVersion);
+ExtentReport.AddSystemInfo("Application Name :", AutoConfig.ApplicationName.ToString());
+ExtentReport.AddSystemInfo("Run Type :", AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run");
+ExtentReport.AddSystemInfo("Test Plan :", testPlanId);
+ExtentReport.AddSystemInfo("Test Agent :", Environment.MachineName);
+ExtentReport.AddSystemInfo("Build No. :", buildNumber);
+ExtentReport.AttachReporter(htmlReporter);
+File.WriteAllText(reportPath, ExtentReport.ToString());
+BaseTestInit(tContext);
+ExtentReport.Flush();
+
+public static ExtentTest InitTestReport(TestContext testContext)
 {
-    static ExtentReports extent;
-    static ExtentTest test;
-    static DateTime ActionStartTime;
-    static class AutoConfig
+
+    try
     {
-        public static bool CaptureScreenshotForEachAction = true; // Example config, adjust as needed
+        if (AutoConfig.extentReport == "ON")
+        {
+            ExtentTest = ExtentReport.CreateTest(TestName, testContext.FullyQualifiedTestClassName);
+        }
+        return ExtentTest;
+    }
+    catch (Exception ex)
+    {
+
+        throw ex;
     }
 
-    static void Main(string[] args)
+}
+
+
+[TestClass]
+//[TestFixture]
+public class DBIQRegressionWireTestcases : MasterClass
+{
+
+    public static string info;
+    [TestMethod]
+    [DisplayName("Verify International Wire.")]
+    public void VerifyInternationalWire()
     {
-        var htmlReporter = new ExtentHtmlReporter("extentReport.html");
-        extent = new ExtentReports();
-        extent.AttachReporter(htmlReporter);
-
-        test = extent.CreateTest("Sample Test");
-
-        // Example call to verify international wire
-        VerifyInternationalWire();
-        
-        extent.Flush();
-    }
-
-    static void VerifyInternationalWire()
-    {
+        //TestCnt++;
         Amount amount = null;
         SubmittedTemplateInformation TemplateInfo = new SubmittedTemplateInformation();
         BeneficiaryInformation beneficiaryInformation = null;
-
+        Reports.TestDescription = "Verify International Wire.";
         try
         {
-            Reports.TestDescription = "Verify International Wire.";
-            LogStepDetails("Open Digital Bank Application", "Application", "Open", "Visibility", "Visible", "Visible", "pass", "");
+            
+            
+
+            
+            //Opening Digital Banking Application
+
+            Reports.TestStep = "Open Digital Bank Application and login to it.";
+            //ExtentManager.LogInfo("Open Digital Bank Application and login to it.");
 
             PageOperations.DBIQLoginPage.OpenBottomLine();
-            LogStepDetails("Login to Digital Bank Application", "Login", "Enter", "Credentials", "Correct", "Correct", "pass", "");
+            PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr4_Name, AutoConfig.BottomLineUsr4_Pwd, AutoConfig.BottomLineUsr4_Key);
+           
 
-            PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr2_Name, AutoConfig.BottomLineUsr2_Pwd, AutoConfig.BottomLineUsr2_Key);
-            LogStepDetails("Click on Transfers menu and Select Payment centre", "Menu", "Click", "Visibility", "Visible", "Visible", "pass", "");
-
+            //Click on Transfers menu and Select Payment centre
+            Reports.TestStep = "Click on Transfers menu and Select Payment centre. ";
+            //ExtentManager.LogInfo("Click on Transfers menu and Select Payment centre. ");
             PageOperations.DBIQPaymentCenterPage.ClickOnTranferMenu();
             PageOperations.DBIQPaymentCenterPage.ClickOnPaymentCenter();
-            LogStepDetails("Click on Add a new Template", "Button", "Click", "Visibility", "Visible", "Visible", "pass", "");
+            Reports.ControlStep = Reports.TestStep;
 
+            //Click on Add a new Template.
+            Reports.TestStep = "Click on Add a new Template.";
+            //ExtentManager.LogInfo("Click on Add a new Template.");
             PageOperations.DBIQPaymentCenterPage.ClickonAddaNewTemplate();
-            LogStepDetails("Select Template Type", "Dropdown", "Select", "TemplateType", "InternationalWire", "InternationalWire", "pass", "");
+            Reports.ControlStep = Reports.TestStep;
 
+            //Select Template Type
+            Reports.TestStep = "Select Template Type.";
             PageOperations.DBIQPaymentCenterPage.SelectATemplateType(TemplateType.InternationalWire);
             PageOperations.DBIQPaymentCenterPage.ClickOnContinueButton();
-            LogStepDetails("Dataset is created and entered for Template Information", "Form", "Enter", "Data", "Valid", "Valid", "pass", "");
 
+            //Select Template information.
+            Reports.TestStep = "Dataset is created and entered for Template Information section of New Federal Tax Wire Template page";
             TemplateInformation templateInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateTemplateInformation();
             PageOperations.DBIQNewWireInternationalTemplatePage.SetTemplateInformation(templateInformation);
-            LogStepDetails("Data is created and entered for Debit Account", "Form", "Enter", "Data", "Valid", "Valid", "pass", "");
 
+            Reports.TestStep = "Data is created and entered for Debit Account section of New Federal Tax Wire Template page";
             OriginatorInformation originatorInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateOrginatorInformation();
             PageOperations.DBIQNewWireInternationalTemplatePage.SetOrginatorInformation(originatorInformation);
-            LogStepDetails("Dataset is created and entered for Tax Payer Information", "Form", "Enter", "Data", "Valid", "Valid", "pass", "");
 
+            Reports.TestStep = "Dataset is created and entered for Tax Payer Information section of New Federal Tax Wire Template page";
             BeneficiaryInformation taxPayerInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateBeneficiaryInformation();
             PageOperations.DBIQNewWireInternationalTemplatePage.SetBeneficiaryInformation(taxPayerInformation, "International Wire");
-            LogStepDetails("Create Intermediary Bank Information", "Form", "Create", "Data", "Valid", "Valid", "pass", "");
 
+            Reports.TestStep = "Create Intermediary Bank Information";
             IntermediaryBankInformation intermedbankinfo = PageOperations.DBIQNewWireInternationalTemplatePage.CrtIntermediaryBnkInfoForInternationalWireTmplt();
-            LogStepDetails("Set Intermediary Bank Information", "Form", "Set", "Data", "Valid", "Valid", "pass", "");
 
+            Reports.TestStep = "Set Intermediary Bank Information";
             PageOperations.DBIQNewWireInternationalTemplatePage.SetIntermediaryBnkInfoForInternationalWireTmplt(intermedbankinfo);
-            LogStepDetails("Data created and entered into Credit amount text box", "Textbox", "Enter", "Amount", "Valid", "Valid", "pass", "");
 
+            Reports.TestStep = "Data created and entered into Credit amount text box";
             amount = PageOperations.DBIQNewWireInternationalTemplatePage.CreateCreditAmt();
             PageOperations.DBIQNewWireInternationalTemplatePage.SetAmount(amount);
             TemplateInfo.Amount = amount.CreditAmount;
             TemplateInfo.BeneficiaryName = taxPayerInformation.Name;
-            LogStepDetails("Verify New International wire template can be saved", "Button", "Click", "Visibility", "Visible", "Visible", "pass", "");
 
+            Reports.TestStep = "Verify New Internalional wire template can be saved by clicking Save button";
             PageOperations.DBIQNewWireInternationalTemplatePage.ClickOnSaveBtn();
         }
         catch (Exception ex)
         {
-            FailTest(ex.Message);
+            Reports.Warning(ex.Message);
         }
+
     }
-
-    public static void LogStepDetails(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
-    {
-        string stepDetails = $"<table><tr>" +
-                             $"<td>Control: {Control}</td>" +
-                             $"<td>Type: {ControlType}</td>" +
-                             $"<td>Action: {Method}</td>" +
-                             $"<td>Property: {Property}</td>" +
-                             $"<td>Exp. Value: {Value}</td>" +
-                             $"<td>Act. Value: {AValue}</td>" +
-                             $"<td>Result: {Result}</td>" +
-                             $"<td>Error: {Error}</td></tr></table>";
-
-        test.Log(Status.Info, stepDetails);
-
-        if (AutoConfig.CaptureScreenshotForEachAction || Result == "fail")
-        {
-            string screenshotPath = CaptureImage();
-            test.AddScreenCaptureFromPath(screenshotPath);
-        }
-
-        DateTime ActionStopTime = DateTime.Now;
-        string stepTime = (ActionStopTime - ActionStartTime).TotalSeconds.ToString();
-        test.Log(Status.Info, $"Time: {stepTime} seconds");
-    }
-
-    public static string CaptureImage()
-    {
-        // Implement screenshot capture logic here
-        // Return the path to the captured screenshot
-        return "screenshotPath";
-    }
-
-    public static void FailTest(string message)
-    {
-        test.Log(Status.Fail, message);
-        extent.Flush();
-        throw new Exception(message);
-    }
-}
-
-public static string CaptureScreenshot()
-{
-    try
-    {
-        using (Bitmap bmp = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height))
-        {
-            using (Graphics g = Graphics.FromImage(bmp))
-            {
-                g.CopyFromScreen(0, 0, 0, 0, Screen.PrimaryScreen.Bounds.Size);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    bmp.Save(ms, ImageFormat.Png);
-                    byte[] imageArray = ms.ToArray();
-                    return Convert.ToBase64String(imageArray);
-                }
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        throw ex;
-    }
-}
-import com.aventstack.extentreports.ExtentReports;
-import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
-import com.aventstack.extentreports.markuputils.MarkupHelper;
-import com.aventstack.extentreports.markuputils.ExtentColor;
-
-public class ExtentReportExample {
-    private static ExtentReports extent;
-    private static ExtentTest test;
-    private static ExtentTest currentStep;
-
-    public static void main(String[] args) {
-        // Initialize the HtmlReporter
-        ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter("extent.html");
-
-        // Initialize ExtentReports and attach the HtmlReporter
-        extent = new ExtentReports();
-        extent.attachReporter(htmlReporter);
-
-        // Create a test
-        test = extent.createTest("My Test");
-
-        // Log information under the same test step name
-        logInfo("Step 1", "First line of information");
-        logInfo("Step 1", "Second line of information");
-        logInfo("Step 1", "Third line of information");
-
-        // Log information under a different test step name
-        logInfo("Step 2", "First line of information");
-        logInfo("Step 2", "Second line of information");
-        logInfo("Step 2", "Third line of information");
-
-        // Finalize the report
-        extent.flush();
-    }
-
-    private static void logInfo(String stepName, String info) {
-        if (currentStep == null || !currentStep.getModel().getName().equals(stepName)) {
-            currentStep = test.createNode(stepName);
-        }
-        currentStep.info(info);
-    }
-}
-
- public static ExtentTest CaptureScreenshot(IWebDriver webDriver)
- {
-     try
-     {
-         //IWebDriver driver = new ChromeDriver();
-         // Capture screenshot and convert to Base64 string
-         ITakesScreenshot screenshotDriver =  webDriver as ITakesScreenshot;
-         Screenshot screenshot = screenshotDriver.GetScreenshot();
-         string base64Screenshot = screenshot.AsBase64EncodedString;
-
-         // Log screenshot in Extent Report
-         //ExtentTest test = ExtentTest.CreateNode("Screenshots");
-         return currentStep.Log(Status.Fail, "Screenshot:", MediaEntityBuilder.CreateScreenCaptureFromBase64String(base64Screenshot).Build());
-     }
-     catch (Exception ex)
-     {
-         throw ex;
-     }
- }
- public static void UpdateExtentLog(string Control, string ControlType, string Method, string Property, string Value, string AValue, string Result, string Error)
- {
-     DateTime ActionStopTime = DateTime.Now;
-     //DateTime stoptime = DateTime.Now;
-     //DateTime ActionStopTime = DateTime.ParseExact(stoptime., "dd/MM/YYYY HH:mm:ss", CultureInfo.InvariantCulture);
-     string stepTime = (ActionStopTime - ActionStartTime).TotalSeconds.ToString();
-     string stepDetails;
-                 
-          stepDetails = $"<pre>" +
-                              $"<b>Control</b>: {Control}<br>" +
-                              $"<b>Type</b>: {ControlType}<br>" +
-                              $"<b>Action</b>: {Method}<br>" +
-                              $"<b>Property</b>: {Property}<br>" +
-                              $"<b>Expected Value</b>: {Value}<br>" +
-                              $"<b>Actual Value</b>: {AValue}<br>" +
-                              $"<b>Result</b>: {Result}<br>" +
-                              $"<b>Error</b>: {Error}<br> " +
-                              $"<b>Time</b>: {stepTime}<br></pre>";
-         if (Result != "fail")
-         {
-         
-             ExtentManager.LogInfo(Status.Pass, TestStep, stepDetails);
-         }
-         else
-         {                    
-           ExtentTest extentManager = ExtentManager.CaptureScreenshot(FATrustDrivers.WebDriver);
-            stepDetails = $"<pre>" +
-                              $"<b>Control</b>: {Control}<br>" +
-                              $"<b>Type</b>: {ControlType}<br>" +
-                              $"<b>Action</b>: {Method}<br>" +
-                              $"<b>Property</b>: {Property}<br>" +
-                              $"<b>Expected Value</b>: {Value}<br>" +
-                              $"<b>Actual Value</b>: {AValue}<br>" +
-                              $"<b>Result</b>: {Result}<br>" +
-                              $"<b>Error</b>: {Error}<br> " +
-                              $"<b>Time</b>: {stepTime}<br>" +
-                              $"<b>Screenshot</b>: {extentManager}<br></pre>";
-             ExtentManager.LogInfo(Status.Fail, TestStep, stepDetails);
-             //ExtentManager.CaptureScreenshot(FATrustDrivers.WebDriver);
-         }
-
- [TestCleanup]
- public virtual void CleanupTest()
- {
-     var testOutcome = Reports.EndTest(TestContext);
-     ReportsBaseSetup.BaseAssemblyCleanup();
-     if ((testOutcome.Status == UnitTestOutcome.Failed) && !testAlreadyFailed)
-     {
-         FailTest(testOutcome.Message);
-     }
-     else
-     {
-         // Close Windows Driver
-         //FATrustDrivers.CloseWindowsDriver();
-         //FATrustDrivers.QuitWindowsDriver();
-
-         //// Close Web Driver
-         //FATrustDrivers.CloseWebDriver();
-         //FATrustDrivers.QuitWebDriver();
-         Support.CloseAllProcessStartingWith("AcroRd"); //close all instances of Adobe Reader
-     }
-     Reports.PrintLog("------------------ Test Cleanup ------------------");
- }
-
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-using AventStack.ExtentReports;
-using AventStack.ExtentReports.Reporter;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Threading;
-
-namespace YourNamespace
-{
-    public abstract class MasterClass : ReportsBaseSetup
-    {
-        private static bool testAlreadyFailed = false;
-        public int testcaseno;
-        public static TestContext testContext { get; set; }
-        public static bool newTestInit = true;
-        public static bool Test = true;
-        public static int TestCnt = 1;
-
-        private static ExtentReports _extent;
-        private static ExtentHtmlReporter _htmlReporter;
-        private ExtentTest _test;
-
-        public TestContext TestContext { get; set; }
-
-        [AssemblyInitialize()]
-        public static void AssemblyInitialize(TestContext context)
-        {
-            // Can be used to set up common resources for all test classes if needed
-        }
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
-        {
-            testContext = context;
-
-            // Setup the ExtentReports instance and attach the HTML reporter
-            string reportPath = Path.Combine(Directory.GetCurrentDirectory(), "TestReports", $"ExtentReport_{context.FullyQualifiedTestClassName}.html");
-            Directory.CreateDirectory(Path.GetDirectoryName(reportPath));
-            _htmlReporter = new ExtentHtmlReporter(reportPath);
-            _extent = new ExtentReports();
-            _extent.AttachReporter(_htmlReporter);
-
-            // Optional: add system or environment information
-            _extent.AddSystemInfo("Host Name", Dns.GetHostName());
-            _extent.AddSystemInfo("Environment", "QA");
-            _extent.AddSystemInfo("User Name", "TestUser");
-
-            MessageBox.Show("ClassInitialize " + context.TestName);
-        }
-
-        [TestInitialize]
-        public virtual void TestInitialize()
-        {
-            testAlreadyFailed = false;
-            Thread.Sleep(6000);
-
-            TfsProperties.Initialize(TestContext);
-            AutoConfig.Initialize(TestContext);
-            Reports.Initialize(TestContext);
-
-            if (newTestInit)
-            {
-                ReportsBaseSetup.BaseAssemblySetup();
-                newTestInit = false;
-            }
-
-            BaseTestInit(TestContext);
-            Reports.PrintLog(Environment.NewLine + "------------------ Initializing test method " + TestContext.TestName + " ------------------");
-            Support.bStartReporting = true;
-            StaticVariables.DownladedFile = "";
-
-            // Ensure necessary directories and files exist
-            if (!Directory.Exists(@"C:\Reports"))
-            {
-                Directory.CreateDirectory(@"C:\Reports");
-            }
-
-            if (!File.Exists(@"C:\Reports\log.txt"))
-            {
-                File.CreateText(@"C:\Reports\log.txt").Dispose();
-            }
-
-            CreateTestReportLink();
-            TestContext.AddResultFile(Reports.DEPLOYDIR + "\\TestResult.html");
-
-            if (AutoConfig.BrowserName == BrowserName.Chrome)
-            {
-                //Process.Start("taskkill", "/F /IM chromedriver.exe");
-                //Process.Start("taskkill", "/F /IM chrome*");
-            }
-            else if (AutoConfig.BrowserName == BrowserName.Edge)
-            {
-                Process.Start("taskkill", "/F /IM msedgedriver.exe");
-                Process.Start("taskkill", "/F /IM msedge*");
-            }
-
-            Thread.Sleep(10000);
-
-            // Start a new ExtentTest for the test method
-            _test = _extent.CreateTest(TestContext.TestName);
-        }
-
-        private static void CreateTestReportLink()
-        {
-            string resultFilePath = Reports.DebugLogFile;
-            string testAgentName = Dns.GetHostName(); // get only host name portion of the test agent
-
-            if (AutoConfig.IsMtmRun || AutoConfig.IsRmRun)
-                resultFilePath = resultFilePath.Replace("C:", @"\\" + testAgentName);
-
-            string linkToReportFileContent = "<!DOCTYPE HTML><html lang=\"en-US\"><head><meta charset=\"UTF-8\">" +
-                                             "<meta http-equiv=\"refresh\" content=\"1;url=" + resultFilePath + "\">" +
-                                             "<script type=\"text/javascript\">window.location.href = \"" + resultFilePath + "\"</script>" +
-                                             "<title>Test Result</title></head><body>" +
-                                             "If you are not redirected automatically, please follow the link:<br>" +
-                                             "<a href='" + resultFilePath + "'>" + resultFilePath + "</a></body></html>";
-
-            File.WriteAllText(Reports.DEPLOYDIR + "\\TestResult.html", linkToReportFileContent);
-            File.WriteAllText(Reports.RUNRESULTDIR + "\\_TestSummary.html", linkToReportFileContent.Replace(resultFilePath, Reports.SummaryLogFile));
-        }
-
-        public static void FailTest(string errorMessage)
-        {
-            Support.Fail(errorMessage);
-            testAlreadyFailed = true;
-
-            Support.CloseAllProcessStartingWith("AcroRd"); // close all instances of Adobe Reader
-
-            Assert.Fail(errorMessage);
-        }
-
-        [TestCleanup]
-        public virtual void CleanupTest()
-        {
-            var testOutcome = Reports.EndTest(TestContext);
-            if ((testOutcome.Status == UnitTestOutcome.Failed) && !testAlreadyFailed)
-            {
-                FailTest(testOutcome.Message);
-            }
-            else
-            {
-                Support.CloseAllProcessStartingWith("AcroRd"); // close all instances of Adobe Reader
-            }
-
-            if (HtmlReportUtils.testsExecuted != TestCnt)
-            {
-                TestCnt++;
-            }
-            else
-            {
-                ExtentManager.EndReport();
-                HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
-                HtmlReportUtils reportUtils = new HtmlReportUtils();
-                reportUtils.InitHTMLLoggerRegression();
-                EmailSender.SendReportEmail(HtmlReportUtils.resultBody, HtmlReportUtils.reportConfig.EmailTitle);
-            }
-
-            Reports.PrintLog("------------------ Test Cleanup ------------------");
-
-            // Log the end of the test to the ExtentTest
-            _test.Log(Status.Info, "Test cleanup completed.");
-
-            // Update test result in ExtentTest
-            switch (TestContext.CurrentTestOutcome)
-            {
-                case UnitTestOutcome.Failed:
-                    _test.Fail("Test failed.");
-                    break;
-                case UnitTestOutcome.Inconclusive:
-                    _test.Skip("Test inconclusive.");
-                    break;
-                case UnitTestOutcome.Passed:
-                    _test.Pass("Test passed.");
-                    break;
-                default:
-                    _test.Warning("Test ended with unexpected status.");
-                    break;
-            }
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            try
-            {
-                // Flush the report for the class
-                if (_extent != null)
-                {
-                    _extent.Flush();
-                }
-
-                // Additional cleanup if needed
-
-                // Optionally, generate and send the HTML report via e-mail
-                HtmlReportUtils.testsPassed = HtmlReportUtils.testsExecuted - HtmlReportUtils.testsFailed;
-                HtmlReportUtils reportUtils = new HtmlReportUtils();
-                reportUtils.InitHTMLLoggerRegression();
-                EmailSender.SendReportEmail(HtmlReportUtils.resultBody, HtmlReportUtils.reportConfig.EmailTitle);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error during class cleanup: " + ex.Message, ex);
-            }
-        }
-
-        [AssemblyCleanup]
-        public static void AssemblyCleanup()
-        {
-            // Optional: Any global cleanup after all classes/tests have run
-        }
-    }
-}
-
-
-    [TestClass]
-    //[TestFixture]
-    public class DBIQRegressionWireTestcases : MasterClass
-    {
-        public static string info;
-        public static ExtentReports extent;
-        private static AventStack.ExtentReports.ExtentReports ExtentReport;
-        public static ExtentTest ExtentTest;
-        [TestMethod]
-        public void VerifyInternationalWire()
-        {
-            
-            Amount amount = null;
-            SubmittedTemplateInformation TemplateInfo = new SubmittedTemplateInformation();
-            BeneficiaryInformation beneficiaryInformation = null;
-
-            try
-            {
-                
-                Reports.TestDescription = "Verify International Wire.";
-                
-
-                //Opening Digital Banking Application
-
-                Reports.TestStep = "Open Digital Bank Application and login to it.";
-                //ExtentManager.LogInfo("Open Digital Bank Application and login to it.");
-
-                PageOperations.DBIQLoginPage.OpenBottomLine();
-                PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr1_Name, AutoConfig.BottomLineUsr1_Pwd, AutoConfig.BottomLineUsr1_Key);
-               
-
-                //Click on Transfers menu and Select Payment centre
-                Reports.TestStep = "Click on Transfers menu and Select Payment centre. ";
-                //ExtentManager.LogInfo("Click on Transfers menu and Select Payment centre. ");
-                PageOperations.DBIQPaymentCenterPage.ClickOnTranferMenu();
-                PageOperations.DBIQPaymentCenterPage.ClickOnPaymentCenter();
-                Reports.ControlStep = Reports.TestStep;
-
-                //Click on Add a new Template.
-                Reports.TestStep = "Click on Add a new Template.";
-                //ExtentManager.LogInfo("Click on Add a new Template.");
-                PageOperations.DBIQPaymentCenterPage.ClickonAddaNewTemplate();
-                Reports.ControlStep = Reports.TestStep;
-
-                //Select Template Type
-                Reports.TestStep = "Select Template Type.";
-                PageOperations.DBIQPaymentCenterPage.SelectATemplateType(TemplateType.InternationalWire);
-                PageOperations.DBIQPaymentCenterPage.ClickOnContinueButton();
-
-                //Select Template information.
-                Reports.TestStep = "Dataset is created and entered for Template Information section of New Federal Tax Wire Template page";
-                TemplateInformation templateInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateTemplateInformation();
-                PageOperations.DBIQNewWireInternationalTemplatePage.SetTemplateInformation(templateInformation);
-
-                Reports.TestStep = "Data is created and entered for Debit Account section of New Federal Tax Wire Template page";
-                OriginatorInformation originatorInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateOrginatorInformation();
-                PageOperations.DBIQNewWireInternationalTemplatePage.SetOrginatorInformation(originatorInformation);
-
-                Reports.TestStep = "Dataset is created and entered for Tax Payer Information section of New Federal Tax Wire Template page";
-                BeneficiaryInformation taxPayerInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateBeneficiaryInformation();
-                PageOperations.DBIQNewWireInternationalTemplatePage.SetBeneficiaryInformation(taxPayerInformation, "International Wire");
-
-                Reports.TestStep = "Create Intermediary Bank Information";
-                IntermediaryBankInformation intermedbankinfo = PageOperations.DBIQNewWireInternationalTemplatePage.CrtIntermediaryBnkInfoForInternationalWireTmplt();
-
-                Reports.TestStep = "Set Intermediary Bank Information";
-                PageOperations.DBIQNewWireInternationalTemplatePage.SetIntermediaryBnkInfoForInternationalWireTmplt(intermedbankinfo);
-
-                Reports.TestStep = "Data created and entered into Credit amount text box";
-                amount = PageOperations.DBIQNewWireInternationalTemplatePage.CreateCreditAmt();
-                PageOperations.DBIQNewWireInternationalTemplatePage.SetAmount(amount);
-                TemplateInfo.Amount = amount.CreditAmount;
-                TemplateInfo.BeneficiaryName = taxPayerInformation.Name;
-
-                Reports.TestStep = "Verify New Internalional wire template can be saved by clicking Save button";
-                PageOperations.DBIQNewWireInternationalTemplatePage.ClickOnSaveBtn();
-            }
-            catch (Exception ex)
-            {
-                FailTest(ex.Message);
-            }
-
-        }
- public static void Initialize(TestContext tContext)
- {
-     TestSteps = new List<string>();
-     OverallErrorMessage = "";
-     TestResult = true;
-     TestName = tContext.TestName;
-     deployDirectory = tContext.DeploymentDirectory;
-     string sTime = DateTime.Now.ToString().Replace("/", "").Replace(":", "").Replace(" ", "");
-     resultfile = TestName + "_" + sTime + ".xml";
-     testDescription = "TEST SUMMARY MISSING";
-     testStep = "Test Step Missing";
-     testStepNumber = 0;
-     previousTestStep = "";
-     testSequence = testSequence + 1;
-     testAgentName = (AutoConfig.IsMtmRun || AutoConfig.IsRmRun) ? TfsProperties.AgentName ?? "Not available" : Environment.MachineName;
-
-     testId = testSequence.ToString();
-
-     //if (TfsProperties.TestCaseId != null)
-     //{
-     //    testId = testSequence.ToString() + " / " + TfsProperties.TestCaseId;
-     //}
-     //else
-     //{
-     //    testId = testSequence.ToString();
-     //}
-
-     if (previousTestClassName != tContext.FullyQualifiedTestClassName)
-     {
-         if (AutoConfig.IsMtmRun || AutoConfig.IsRmRun)
-         {
-             buildNumber = TfsProperties.BuildNumber ?? "";
-             testPlanId = TfsProperties.TestPlanId ?? "";
-         }
-
-         previousTestClassName = tContext.FullyQualifiedTestClassName;
-         _resultsdir = @Support.ReadAppSettings("appSettings", "RESULTSDIR").TrimEnd('\\');
-         if (!Directory.Exists(_resultsdir))
-         {
-             Directory.CreateDirectory(_resultsdir);
-         }
-
-         testMethodResultFolder = tContext.FullyQualifiedTestClassName + "_" + DateTime.Now.ToString("MMddyyyyHHmmss");
-         if (TfsProperties.TestRunId != null)
-             testMethodResultFolder = testMethodResultFolder + "_" + TfsProperties.TestRunId;
-
-         _resultsdir = _resultsdir + "\\" + testMethodResultFolder;
-         if (!Directory.Exists(_resultsdir))
-         {
-             if (TfsProperties.TestRunId == null)
-             {
-                 testSequence = 1;
-                 testId = testSequence.ToString();
-             }
-         }
-         CreateSummaryLog();
-         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.Summary.xsl", _resultsdir + "\\Summary.xsl");
-         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.Details.xsl", _resultsdir + "\\Details.xsl");
-         Support.GetEmbeddedFile("FATrust.DNA.Framework", "XSL.dbgstyle.css", _resultsdir + "\\dbgstyle.css");
-     }
-     else
-     {
-         Directory.CreateDirectory(_resultsdir + "\\Screenshots\\" + TestName);
-         debugLogFile = _resultsdir + "\\" + resultfile;
-         CreateTestNode();
-         CreateDebugLog();
-     }
- }
-
- ///<summary>
- ///<para>Updates Result of Test Method in the Reports. This must be called as part of Test Clean up.</para>
- ///<para>Example: Reports.UpdateResult(TestContext);</para>
- ///</summary>
- public static TestOutcome EndTest(TestContext tContext)
- {
-     var outcome = new TestOutcome();
-     var currentTestOutcome = tContext.CurrentTestOutcome;            
-     if (currentTestOutcome == UnitTestOutcome.Passed && TestResult) //TestResult needs to be changed with UnitTestOutcome instead of Boolean
-         outcome.Status = UnitTestOutcome.Passed;
-     else
-         outcome.Status = UnitTestOutcome.Failed;
-
-     #region XML stuff
-     XmlDocument doc = new XmlDocument();
-     doc.Load(SummaryLog);
-
-     doc.SelectSingleNode("tests/codedui[@name='" + TestName + "']/status").InnerText = "complete";
-
-     XmlNode XNode = doc.SelectSingleNode("/tests/codedui[@name='" + TestName + "']");
-
-     XmlNode tResult = doc.CreateElement("result");
-     tResult.InnerText = outcome.Status.ToString();
-     XNode.AppendChild(tResult);
-
-     endTime = DateTime.Now;
-     XmlNode eTime = doc.CreateElement("endtime");
-     eTime.InnerText = endTime.ToString();
-     XNode.AppendChild(eTime);
-
-     XmlNode rTime = doc.CreateElement("runtime");
-     rTime.InnerText = ((int)((endTime - startTime).TotalSeconds)).ToString();
-     XNode.AppendChild(rTime);
-
-     doc.Save(SummaryLog);
-     #endregion
-
-     if (outcome.Status == UnitTestOutcome.Failed)
-         outcome.Message = string.IsNullOrEmpty(OverallErrorMessage) ? DefaultErrorMessage : OverallErrorMessage;
-
-     return outcome;
- }
-
- public static void Fail(string errorMessage)
- {
-     OverallErrorMessage = errorMessage;
-     //UpdateDebugLog("Error Occured", "", "Fail", "", "", "", Result(false), errorMessage);
-     UpdateExtentLog("Error Occured", "", "Fail", "", "", "", Result(false), errorMessage);
-     TestResult = false;
- }
-
- ///<summary>
- /// Need to stop using this.
- ///</summary>
- public static string Result(bool iResult)
- {
-     if (iResult)
-         return "pass";
-     else
-         return "fail";
- }
-
- private static void CreateTestNode()
- {
-     XmlDocument doc = new XmlDocument();
-     doc.Load(SummaryLog);
-
-     XmlNode xNode = doc.GetElementsByTagName("tests")[0];
-
-     XmlNode testNode = doc.CreateElement("codedui");
-     XmlAttribute Valueattr = doc.CreateAttribute("name");
-     Valueattr.Value = TestName;
-     testNode.Attributes.Append(Valueattr);
-     xNode.AppendChild(testNode);
-
-     XmlNode stestid = doc.CreateElement("testid");
-     stestid.InnerText = testId;
-     testNode.AppendChild(stestid);
-
-     XmlNode sDesc = doc.CreateElement("sDesc");
-     sDesc.InnerText = "description";
-     testNode.AppendChild(sDesc);
-
-     startTime = DateTime.Now;
-     XmlNode stTime = doc.CreateElement("starttime");
-     stTime.InnerText = startTime.ToString();
-     testNode.AppendChild(stTime);
-
-     XmlNode sStatus = doc.CreateElement("status");
-     sStatus.InnerText = "InProgress";
-     testNode.AppendChild(sStatus);
-
-     XmlNode sFile = doc.CreateElement("file");
-     sFile.InnerText = resultfile;
-     testNode.AppendChild(sFile);
-
-     doc.Save(SummaryLog);
- }
-
- private static void CreateSummaryLog()
- {
-     string sTime = DateTime.Now.ToString().Replace("/", "").Replace(":", "").Replace(" ", "");
-     Directory.CreateDirectory(_resultsdir + "\\Screenshots\\" + TestName);
-     summaryLogFile = "TESTSUMMARY_" + sTime + ".xml";
-     SummaryLog = _resultsdir + "\\" + summaryLogFile;
-
-     XmlDocument doc = new XmlDocument();
-     FileStream rfile = new FileStream(SummaryLog, FileMode.Create);
-
-     XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-     doc.AppendChild(docNode);
-
-     XmlProcessingInstruction xProcess = doc.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"Summary.xsl\"");
-     doc.AppendChild(xProcess);
-
-     XmlNode productsNode = doc.CreateElement("tests");
-
-     var nameAttribute = doc.CreateAttribute("name");
-     nameAttribute.Value = previousTestClassName;
-     productsNode.Attributes.Append(nameAttribute);
-
-     var osversionAttribute = doc.CreateAttribute("osversion");
-     osversionAttribute.Value = GetOSFriendlyName();
-     productsNode.Attributes.Append(osversionAttribute);
-
-     var broserNameAttribute = doc.CreateAttribute("browsername");
-     broserNameAttribute.Value = AutoConfig.ApplicationName.ToString();
-     productsNode.Attributes.Append(broserNameAttribute);
-
-     var runtypeAttribute = doc.CreateAttribute("runtype");
-     runtypeAttribute.Value = AutoConfig.IsMtmRun ? "MTM Run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run";
-     productsNode.Attributes.Append(runtypeAttribute);
-
-     var testplanAttribute = doc.CreateAttribute("testplan");
-     testplanAttribute.Value = testPlanId;
-     productsNode.Attributes.Append(testplanAttribute);
-
-     var agentnameAttribute = doc.CreateAttribute("agentname");
-     agentnameAttribute.Value = testAgentName;
-     productsNode.Attributes.Append(agentnameAttribute);
-
-     var buildnumberAttribute = doc.CreateAttribute("buildnumber");
-     buildnumberAttribute.Value = buildNumber;
-     productsNode.Attributes.Append(buildnumberAttribute);
-
-     doc.AppendChild(productsNode);
-
-     XmlNode testNode = doc.CreateElement("codedui");
-     XmlAttribute Valueattr = doc.CreateAttribute("name");
-     Valueattr.Value = TestName;
-     testNode.Attributes.Append(Valueattr);
-     productsNode.AppendChild(testNode);
-
-     XmlNode stestid = doc.CreateElement("testid");
-     stestid.InnerText = testId;
-     testNode.AppendChild(stestid);
-
-     XmlNode sDesc = doc.CreateElement("sDesc");
-     sDesc.InnerText = "description";
-     testNode.AppendChild(sDesc);
-
-     startTime = DateTime.Now;
-     XmlNode stTime = doc.CreateElement("starttime");
-     stTime.InnerText = startTime.ToString();
-     testNode.AppendChild(stTime);
-
-     XmlNode sStatus = doc.CreateElement("status");
-     sStatus.InnerText = "InProgress";
-     testNode.AppendChild(sStatus);
-
-     XmlNode sFile = doc.CreateElement("file");
-     sFile.InnerText = resultfile;
-     testNode.AppendChild(sFile);
-
-     doc.Save(rfile);
-     rfile.Close();
-     debugLogFile = _resultsdir + "\\" + resultfile;
-     CreateDebugLog();
- }
-
- private static void CreateDebugLog()
- {
-     XmlDocument doc = new XmlDocument();
-     FileStream rfile = new FileStream(debugLogFile, FileMode.Create);
-
-     XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-     doc.AppendChild(docNode);
-
-     XmlProcessingInstruction xProcess = doc.CreateProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"Details.xsl\"");
-     doc.AppendChild(xProcess);
-
-     XmlNode testDetails = doc.CreateElement("testdetails");
-     doc.AppendChild(testDetails);
-
-     XmlNode testNode = doc.CreateElement("test");
-
-     // Test case name.
-     XmlAttribute nameattr = doc.CreateAttribute("name");
-     nameattr.Value = TestName;
-     testNode.Attributes.Append(nameattr);
-
-     // OS version.
-     XmlAttribute osVersionAttribute = doc.CreateAttribute("osversion");
-     osVersionAttribute.Value = GetOSFriendlyName();
-     testNode.Attributes.Append(osVersionAttribute);
-
-     // Browser name.
-     XmlAttribute browserName = doc.CreateAttribute("browsername");
-     browserName.Value = AutoConfig.ApplicationName.ToString();
-     testNode.Attributes.Append(browserName);
-
-     // Run type (local vs MTM).
-     XmlAttribute runtype = doc.CreateAttribute("runtype");
-     runtype.InnerText = AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run";
-     testNode.Attributes.Append(runtype);
-
-     // Agent name.
-     XmlAttribute agentNameAttr = doc.CreateAttribute("agentname");
-private static ExtentReports extent;
-private static ExtentTest currentTest;
-private static ExtentHtmlReporter htmlReporter;
-private static string testName;
-private static string debugLogFile;
-
-public static void InitializeExtentReports(string reportPath)
-{
-    htmlReporter = new ExtentHtmlReporter(reportPath);
-    extent = new ExtentReports();
-    extent.AttachReporter(htmlReporter);
-
-    extent.AddSystemInfo("Host Name", Environment.MachineName);
-    extent.AddSystemInfo("Environment", "QA");
-    extent.AddSystemInfo("User Name", Environment.UserName);
-}
-
-public static void StartTest(string testName)
-{
-    currentTest = extent.CreateTest(testName);
-    debugLogFile = $"{testName}_debug.log"; // Just an example, replace with actual logic
-    CreateDebugLog();
-}
-
-private static void CreateDebugLog()
-{
-    currentTest.Info("Starting test: " + testName);
-    currentTest.Info("OS Version: " + GetOSFriendlyName());
-    currentTest.Info("Browser: " + AutoConfig.ApplicationName.ToString());
-    currentTest.Info("Run Type: " + (AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run"));
-    currentTest.Info("Agent Name: " + testAgentName);
-    currentTest.Info("Build Number: " + buildNumber);
-    currentTest.Info("Test Plan: " + testPlanId);
-}
-
-$"<pre>" +
-                                     $"<b>Control</b>: {Control} |<br>" +
-                                     $"<b>Type</b>: {ControlType} |<br>" +
-                                     $"<b>Action</b>: {Method} |<br>" +
-                                     $"<b>Property</b>: {Property} |<br>" +
-                                     $"<b>Expected Value</b>: {Value} |<br>" +
-                                     $"<b>Actual Value</b>: {AValue} |<br>" +
-                                     $"<b>Result</b>: {Result} |<br>" +
-                                     $"<b>Error</b>: {Error} |<br>" +
-                                     $"<b>Time</b>: {stepTime}<br></pre>";
-        resultBody.Append("<html> \n" +
-                 "   <body align=\"center\">\n" +
-                 "    <table width=\"75%\" border=\"1px solid #aaa\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#fff;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\"><tbody><tr style=\"border-bottom:0\"><td style=\"font-weight:bold; font-size:20px;color:#5284b5;border:0;padding:8px;border-right:0\">" + reportConfig.ReportName + "</td><td><img src=cid:fai width=\"170\" height=\"90\"/></td></tr></tbody></table><br>  \n" +
-                 "\t\n" +
-                 "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
-                 "\t<tbody>\n" +
-                 "\t<tr style=\"border-top:1px solid #aaa\">\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa;border-left:1px solid #aaa\">Date Tested</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Build</th>\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Environment</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests</th>\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Tests Executed</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Passed</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-top:1px solid #aaa;border-right:1px solid #aaa\">Total Failed</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ffffff;border-top:1px solid #aaa;border-right:1px solid #aaa;border-bottom:1px solid #aaa\" rowspan=\"2\"><div>\n" +
-                 "\t   <img src = \"cid:ringplot\" align=\"right\"/>\n" +
-                 "\t </div></th>\t\n" +
-                 "\t</tr>\n" +
-                 "\t\n" +
-                 "\t<tr>\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa;border-left:1px solid #aaa\">" + DateTime.Now.ToString("dd-MMM-yyyy") + "</td>\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.AppVersion + "</td>\t\n" +
-                 "\t\t<td style=\"padding:17px;color:#000000;border-right:3px solid #aaa;border-bottom:1px solid #aaa\">" + reportConfig.Environment + "</td>\t\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (totalTests.ToString()) + "</td>\t\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsExecuted.ToString()) + "</td>\t\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsPassed.ToString()) + "</td>\t\n" +
-                 "\t\t<td style=\"padding:8px;color:#000000;border-right:1px solid #aaa;border-bottom:1px solid #aaa\">" + (testsFailed.ToString()) + "</td>\t\n" +
-                  "\t</tr>\n" +
-                 "\t</tbody>\n" +
-                 "\t</table>\n" +
-                 "\t<br>  \n" +
-                 "\t \n" +
-
-                 "\t<table width=\"75%\" style=\"padding:8px;background:#ced6de;color:#5284b5;border:1px solid #aaa;border-bottom:1px solid #aaa;border-collapse:collapse; background:#ced6de;font-family:verdana;font-size:13px;font-weight:normal;width:845px;margin:0 auto;text-align:center;background:#FDFFFF;\">\n" +
-                 "\t<tbody>\n" +
-                 "\t<tr>\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Module</th>\t\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Sub Module</th>\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Passed</th>\n" +
-                 "\t\t<th style=\"padding:8px;background:#ced6de;color:#5284b5;border-right:1px solid #aaa;border-bottom:1px solid #aaa;\">Tests Failed</th>\t\n" +
-                 "\t</tr>\n");
-
-        UpdateFinalModuleListToBePrinted();
-        foreach (var val in ListModules)
-        {
-            AppendComponent(val.Key, val.Value, "\t<tr>\n");
-        }
-
-        resultBody.Append("</tbody>\n" +
-            "\t</table>\n" +
-            "\t<br>  \n" +
-            "\t\n" +
-            "   </body>\n" +
-            "</html>");
-    }
-    catch (Exception)
-    {
-
-        throw;
-    }
-
-}
