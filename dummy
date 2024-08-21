@@ -1,22 +1,34 @@
-from django.shortcuts import render
-from django.core.files.storage import FileSystemStorage
-from django.http import JsonResponse
-import os
-from django.conf import settings
+<form method="POST" enctype="multipart/form-data" action="{% url 'your_url_name' %}">
+    {% csrf_token %}
+    <div>
+        <label for="file1">Upload File 1:</label>
+        <input type="file" name="file1" id="file1">
+    </div>
+    <div>
+        <label for="file2">Upload File 2:</label>
+        <input type="file" name="file2" id="file2">
+    </div>
+    <button type="submit">Upload</button>
+</form>
 
 def accounts(request):
     if request.method == 'POST':
         try:
+            # Debugging: Print out the files in the request
+            print("FILES:", request.FILES)
+            print("file1:", request.FILES.get('file1'))
+            print("file2:", request.FILES.get('file2'))
+
             # Define the specific folders
-            source_folder = os.path.join(settings.BASE_DIR, 'data/input/source/')
-            destination_folder = os.path.join(settings.BASE_DIR, 'data/input/destination/')
+            source_folder = os.path.join(settings.BASE_DIR, 'account/data/input_data/source_file/')
+            target_folder = os.path.join(settings.BASE_DIR, 'account/data/input_data/target_file/')
 
             # Ensure both folders exist
             if not os.path.exists(source_folder):
                 os.makedirs(source_folder)
                 
-            if not os.path.exists(destination_folder):
-                os.makedirs(destination_folder)
+            if not os.path.exists(target_folder):
+                os.makedirs(target_folder)
 
             # Initialize file paths
             saved_path1 = None
@@ -27,22 +39,28 @@ def accounts(request):
                 file1 = request.FILES['file1']
                 fs1 = FileSystemStorage(location=source_folder)
                 name1 = fs1.save(file1.name, file1)
-                saved_path1 = fs1.url(name1)
+                saved_path1 = fs1.path(name1)
 
-            # Save the second file in the destination folder
+            # Save the second file in the target folder
             if 'file2' in request.FILES:
                 file2 = request.FILES['file2']
-                fs2 = FileSystemStorage(location=destination_folder)
+                fs2 = FileSystemStorage(location=target_folder)
                 name2 = fs2.save(file2.name, file2)
-                saved_path2 = fs2.url(name2)
+                saved_path2 = fs2.path(name2)
 
-            # Return a JSON response with success and paths
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Files successfully uploaded.',
-                'file1_path': saved_path1,
-                'file2_path': saved_path2
-            })
+            # Check if the paths are generated correctly
+            if saved_path1 and saved_path2:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Files successfully uploaded.',
+                    'file1_path': saved_path1,
+                    'file2_path': saved_path2
+                })
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Files were not uploaded correctly.'
+                })
 
         except Exception as e:
             # If there's an error, return a JSON response with an error message
