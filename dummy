@@ -11,7 +11,7 @@
                 <div class="bs-stepper-header" role="tablist">
                     <!-- Stepper steps -->
                     <div class="step" data-target="#step-1">
-                        <button type="button" class="step-trigger active" role="tab" id="stepper-trigger-1" aria-controls="step-1">
+                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-1" aria-controls="step-1">
                             <span class="bs-stepper-circle">1</span>
                             <span class="bs-stepper-label">Step 1: Select First File</span>
                         </button>
@@ -62,9 +62,20 @@
 </div>
 
 <script>
+    // Initialize the stepper
     var stepper = new Stepper(document.querySelector('#stepper'), {
         linear: false, // Change to true if you want to enforce step order
         animation: true
+    });
+    
+    // Automatically move to the next step when "Next" is clicked
+    function goToNextStep() {
+        stepper.next();
+    }
+
+    // Attach event listeners to the "Next" buttons
+    document.querySelectorAll('.btn-primary').forEach(button => {
+        button.addEventListener('click', goToNextStep);
     });
 </script>
 {% endblock %}
