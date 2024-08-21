@@ -4,7 +4,7 @@
 <div class="container mt-5">
     <div class="card">
         <div class="card-header">
-            <h4>Horizontal Stepper for File Upload</h4>
+            <h4>File Upload - Step-by-Step</h4>
         </div>
         <div class="card-body">
             <div id="stepper" class="bs-stepper">
@@ -13,21 +13,21 @@
                     <div class="step" data-target="#step-1">
                         <button type="button" class="step-trigger" role="tab" id="stepper-trigger-1" aria-controls="step-1">
                             <span class="bs-stepper-circle">1</span>
-                            <span class="bs-stepper-label">Upload File 1</span>
+                            <span class="bs-stepper-label">Step 1: Select First File</span>
                         </button>
                     </div>
                     <div class="line"></div>
                     <div class="step" data-target="#step-2">
                         <button type="button" class="step-trigger" role="tab" id="stepper-trigger-2" aria-controls="step-2">
                             <span class="bs-stepper-circle">2</span>
-                            <span class="bs-stepper-label">Upload File 2</span>
+                            <span class="bs-stepper-label">Step 2: Select Second File</span>
                         </button>
                     </div>
                     <div class="line"></div>
                     <div class="step" data-target="#step-3">
                         <button type="button" class="step-trigger" role="tab" id="stepper-trigger-3" aria-controls="step-3">
                             <span class="bs-stepper-circle">3</span>
-                            <span class="bs-stepper-label">Review & Submit</span>
+                            <span class="bs-stepper-label">Step 3: Confirm & Upload</span>
                         </button>
                     </div>
                 </div>
@@ -37,14 +37,14 @@
                         {% csrf_token %}
                         <div id="step-1" class="content" role="tabpanel" aria-labelledby="stepper-trigger-1">
                             <div class="form-group">
-                                <label for="file1">Upload File 1:</label>
+                                <label for="file1">Choose first file</label>
                                 <input type="file" class="form-control" name="file1" id="file1">
                             </div>
                             <button class="btn btn-primary" type="button" onclick="stepper.next()">Next</button>
                         </div>
                         <div id="step-2" class="content" role="tabpanel" aria-labelledby="stepper-trigger-2">
                             <div class="form-group">
-                                <label for="file2">Upload File 2:</label>
+                                <label for="file2">Choose second file</label>
                                 <input type="file" class="form-control" name="file2" id="file2">
                             </div>
                             <button class="btn btn-primary" type="button" onclick="stepper.next()">Next</button>
@@ -69,14 +69,46 @@
 </script>
 {% endblock %}
 
-<!-- Bootstrap CSS -->
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<!-- bs-stepper CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bs-stepper/dist/css/bs-stepper.min.css" rel="stylesheet">
-
-<!-- Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<!-- bs-stepper JS -->
-<script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
+<style>
+    .bs-stepper-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .bs-stepper-header .step {
+        flex: 1;
+        text-align: center;
+    }
+    .bs-stepper-header .step:not(:last-child) {
+        margin-right: 10px;
+    }
+    .bs-stepper-header .line {
+        height: 2px;
+        width: 100%;
+        background-color: #e0e0e0;
+        margin: 0 10px;
+        flex: 1;
+    }
+    .bs-stepper-circle {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 50%;
+        display: inline-block;
+        text-align: center;
+    }
+    .bs-stepper-label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+    .bs-stepper-content .content {
+        padding: 20px 0;
+    }
+    .bs-stepper-content .content .btn {
+        margin-top: 20px;
+    }
+</style>
