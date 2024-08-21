@@ -1,131 +1,66 @@
-previousTestClassName = tContext.FullyQualifiedTestClassName;
-testMethodResultFolder = tContext.FullyQualifiedTestClassName + "_" + DateTime.Now.ToString("MMddyyyyHHmmss");
-HtmlReportUtils.reportConfig = ExtractReportConfig();
-reportPath = @Support.ReadAppSettings("appSettings", "RESULTSDIR").TrimEnd('\\') + @"\" + testMethodResultFolder + ".html";
-tContext.AddResultFile(Reports.RUNRESULTDIR + testMethodResultFolder + ".html");
+{% extends 'base.html' %}
 
-var htmlReporter = new ExtentV3HtmlReporter(reportPath);
+{% block title %}Home{% endblock %}
 
-htmlReporter.Config.ReportName = "Digital Banking NextGen Automation Report";
-htmlReporter.Config.Theme = Theme.Standard;
-htmlReporter.Config.DocumentTitle = "Digital Banking NextGen Automation Test Reports";
-htmlReporter.Config.EnableTimeline = true;
-htmlReporter.Config.Encoding = "UTF-8";
-ExtentReport = new AventStack.ExtentReports.ExtentReports();
-
-osVersion = GetOSFriendlyName();
-
-ExtentReport.AddSystemInfo("Test name :", tContext.FullyQualifiedTestClassName);
-ExtentReport.AddSystemInfo("OS Version :", osVersion);
-ExtentReport.AddSystemInfo("Application Name :", AutoConfig.ApplicationName.ToString());
-ExtentReport.AddSystemInfo("Run Type :", AutoConfig.IsMtmRun ? "MTM run" : AutoConfig.IsRmRun ? "RM Run" : "Local Run");
-ExtentReport.AddSystemInfo("Test Plan :", testPlanId);
-ExtentReport.AddSystemInfo("Test Agent :", Environment.MachineName);
-ExtentReport.AddSystemInfo("Build No. :", buildNumber);
-ExtentReport.AttachReporter(htmlReporter);
-File.WriteAllText(reportPath, ExtentReport.ToString());
-BaseTestInit(tContext);
-ExtentReport.Flush();
-
-public static ExtentTest InitTestReport(TestContext testContext)
-{
-
-    try
-    {
-        if (AutoConfig.extentReport == "ON")
-        {
-            ExtentTest = ExtentReport.CreateTest(TestName, testContext.FullyQualifiedTestClassName);
-        }
-        return ExtentTest;
-    }
-    catch (Exception ex)
-    {
-
-        throw ex;
-    }
-
-}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Accounts</h5>
+                <p class="card-text">Manage your accounts here.</p>
+                <a href="{% url 'accounts' %}" class="btn btn-primary">Go to Accounts</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Synonyms</h5>
+                <p class="card-text">Manage your synonyms here.</p>
+                <a href="#" class="btn btn-primary">Go to Synonyms</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Templates</h5>
+                <p class="card-text">Manage your templates here.</p>
+                <a href="#" class="btn btn-primary">Go to Templates</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
 
-[TestClass]
-//[TestFixture]
-public class DBIQRegressionWireTestcases : MasterClass
-{
+{% extends 'base.html' %}
 
-    public static string info;
-    [TestMethod]
-    [DisplayName("Verify International Wire.")]
-    public void VerifyInternationalWire()
-    {
-        //TestCnt++;
-        Amount amount = null;
-        SubmittedTemplateInformation TemplateInfo = new SubmittedTemplateInformation();
-        BeneficiaryInformation beneficiaryInformation = null;
-        Reports.TestDescription = "Verify International Wire.";
-        try
-        {
-            
-            
+{% block title %}Accounts{% endblock %}
 
-            
-            //Opening Digital Banking Application
+{% block content %}
+<h2>Upload File</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="file">Choose file</label>
+        <input type="file" class="form-control-file" id="file" name="file">
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+{% endblock %}
 
-            Reports.TestStep = "Open Digital Bank Application and login to it.";
-            //ExtentManager.LogInfo("Open Digital Bank Application and login to it.");
+from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
 
-            PageOperations.DBIQLoginPage.OpenBottomLine();
-            PageOperations.DBIQLoginPage.LoginToBottomLine(AutoConfig.BottomLineCompany_Name, AutoConfig.BottomLineUsr4_Name, AutoConfig.BottomLineUsr4_Pwd, AutoConfig.BottomLineUsr4_Key);
-           
-
-            //Click on Transfers menu and Select Payment centre
-            Reports.TestStep = "Click on Transfers menu and Select Payment centre. ";
-            //ExtentManager.LogInfo("Click on Transfers menu and Select Payment centre. ");
-            PageOperations.DBIQPaymentCenterPage.ClickOnTranferMenu();
-            PageOperations.DBIQPaymentCenterPage.ClickOnPaymentCenter();
-            Reports.ControlStep = Reports.TestStep;
-
-            //Click on Add a new Template.
-            Reports.TestStep = "Click on Add a new Template.";
-            //ExtentManager.LogInfo("Click on Add a new Template.");
-            PageOperations.DBIQPaymentCenterPage.ClickonAddaNewTemplate();
-            Reports.ControlStep = Reports.TestStep;
-
-            //Select Template Type
-            Reports.TestStep = "Select Template Type.";
-            PageOperations.DBIQPaymentCenterPage.SelectATemplateType(TemplateType.InternationalWire);
-            PageOperations.DBIQPaymentCenterPage.ClickOnContinueButton();
-
-            //Select Template information.
-            Reports.TestStep = "Dataset is created and entered for Template Information section of New Federal Tax Wire Template page";
-            TemplateInformation templateInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateTemplateInformation();
-            PageOperations.DBIQNewWireInternationalTemplatePage.SetTemplateInformation(templateInformation);
-
-            Reports.TestStep = "Data is created and entered for Debit Account section of New Federal Tax Wire Template page";
-            OriginatorInformation originatorInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateOrginatorInformation();
-            PageOperations.DBIQNewWireInternationalTemplatePage.SetOrginatorInformation(originatorInformation);
-
-            Reports.TestStep = "Dataset is created and entered for Tax Payer Information section of New Federal Tax Wire Template page";
-            BeneficiaryInformation taxPayerInformation = PageOperations.DBIQNewWireInternationalTemplatePage.CreateBeneficiaryInformation();
-            PageOperations.DBIQNewWireInternationalTemplatePage.SetBeneficiaryInformation(taxPayerInformation, "International Wire");
-
-            Reports.TestStep = "Create Intermediary Bank Information";
-            IntermediaryBankInformation intermedbankinfo = PageOperations.DBIQNewWireInternationalTemplatePage.CrtIntermediaryBnkInfoForInternationalWireTmplt();
-
-            Reports.TestStep = "Set Intermediary Bank Information";
-            PageOperations.DBIQNewWireInternationalTemplatePage.SetIntermediaryBnkInfoForInternationalWireTmplt(intermedbankinfo);
-
-            Reports.TestStep = "Data created and entered into Credit amount text box";
-            amount = PageOperations.DBIQNewWireInternationalTemplatePage.CreateCreditAmt();
-            PageOperations.DBIQNewWireInternationalTemplatePage.SetAmount(amount);
-            TemplateInfo.Amount = amount.CreditAmount;
-            TemplateInfo.BeneficiaryName = taxPayerInformation.Name;
-
-            Reports.TestStep = "Verify New Internalional wire template can be saved by clicking Save button";
-            PageOperations.DBIQNewWireInternationalTemplatePage.ClickOnSaveBtn();
-        }
-        catch (Exception ex)
-        {
-            Reports.Warning(ex.Message);
-        }
-
-    }
+def accounts(request):
+    if request.method == 'POST' and request.FILES['file']:
+        uploaded_file = request.FILES['file']
+        fs = FileSystemStorage()
+        name = fs.save(uploaded_file.name, uploaded_file)
+        url = fs.url(name)
+        return render(request, 'accounts.html', {
+            'url': url
+        })
+    return render(request, 'accounts.html')
