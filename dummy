@@ -1,66 +1,105 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Accounts - Step-by-Step{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Accounts</h5>
-                <p class="card-text">Manage your accounts here.</p>
-                <a href="{% url 'accounts' %}" class="btn btn-primary">Go to Accounts</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Synonyms</h5>
-                <p class="card-text">Manage your synonyms here.</p>
-                <a href="#" class="btn btn-primary">Go to Synonyms</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Templates</h5>
-                <p class="card-text">Manage your templates here.</p>
-                <a href="#" class="btn btn-primary">Go to Templates</a>
-            </div>
-        </div>
-    </div>
+<h2>File Upload - Step-by-Step</h2>
+
+<!-- Step indicators -->
+<div class="steps mb-4">
+    <div class="step active">Step 1: Select First File</div>
+    <div class="step">Step 2: Select Second File</div>
+    <div class="step">Step 3: Confirm & Upload</div>
 </div>
+
+<!-- Step 1: Upload first file -->
+<div id="step1" class="step-content active">
+    <form id="form1" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="file1">Choose first file</label>
+            <input type="file" class="form-control-file" id="file1" name="file1">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="showStep(2)">Next</button>
+    </form>
+</div>
+
+<!-- Step 2: Upload second file -->
+<div id="step2" class="step-content">
+    <form id="form2" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="file2">Choose second file</label>
+            <input type="file" class="form-control-file" id="file2" name="file2">
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="showStep(1)">Back</button>
+        <button type="button" class="btn btn-primary" onclick="showStep(3)">Next</button>
+    </form>
+</div>
+
+<!-- Step 3: Confirm and Upload -->
+<div id="step3" class="step-content">
+    <form id="form3" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h4>Confirm your files and upload</h4>
+        <button type="button" class="btn btn-secondary" onclick="showStep(2)">Back</button>
+        <button type="submit" class="btn btn-success">Upload</button>
+    </form>
+</div>
+
+{% if url1 or url2 %}
+    <h3>Uploaded Files</h3>
+    <ul>
+        {% if url1 %}
+            <li><a href="{{ url1 }}" target="_blank">First File</a></li>
+        {% endif %}
+        {% if url2 %}
+            <li><a href="{{ url2 }}" target="_blank">Second File</a></li>
+        {% endif %}
+    </ul>
+{% endif %}
+
+<style>
+    .steps {
+        display: flex;
+        justify-content: space-around;
+    }
+    .step {
+        padding: 10px;
+        border-bottom: 3px solid lightgray;
+        width: 30%;
+        text-align: center;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .step.active {
+        border-bottom: 3px solid #007bff;
+    }
+    .step-content {
+        display: none;
+    }
+    .step-content.active {
+        display: block;
+    }
+</style>
+
+<script>
+    function showStep(step) {
+        document.querySelectorAll('.step-content').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        document.querySelector('#step' + step).classList.add('active');
+
+        document.querySelectorAll('.step').forEach(function(el, index) {
+            if (index < step) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+    }
+
+    // Start by showing step 1
+    showStep(1);
+</script>
 {% endblock %}
-
-
-{% extends 'base.html' %}
-
-{% block title %}Accounts{% endblock %}
-
-{% block content %}
-<h2>Upload File</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="file">Choose file</label>
-        <input type="file" class="form-control-file" id="file" name="file">
-    </div>
-    <button type="submit" class="btn btn-primary">Upload</button>
-</form>
-{% endblock %}
-
-from django.shortcuts import render
-from django.core.files.storage import FileSystemStorage
-
-def accounts(request):
-    if request.method == 'POST' and request.FILES['file']:
-        uploaded_file = request.FILES['file']
-        fs = FileSystemStorage()
-        name = fs.save(uploaded_file.name, uploaded_file)
-        url = fs.url(name)
-        return render(request, 'accounts.html', {
-            'url': url
-        })
-    return render(request, 'accounts.html')
