@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload with Stepper</title>
+    <title>Horizontal Stepper</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- bs-stepper CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bs-stepper/dist/css/bs-stepper.min.css" rel="stylesheet">
 </head>
 <body>
     {% block content %}
@@ -15,61 +17,65 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- bs-stepper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
 </body>
 </html>
 
+
+{% extends 'base.html' %}
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="card">
         <div class="card-header">
-            <h4>File Upload with Stepper</h4>
+            <h4>Horizontal Stepper for File Upload</h4>
         </div>
         <div class="card-body">
             <div id="stepper" class="bs-stepper">
                 <div class="bs-stepper-header" role="tablist">
-                    <!-- your steps here -->
+                    <!-- Stepper steps -->
                     <div class="step" data-target="#step-1">
-                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-1">
+                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-1" aria-controls="step-1">
                             <span class="bs-stepper-circle">1</span>
                             <span class="bs-stepper-label">Upload File 1</span>
                         </button>
                     </div>
                     <div class="line"></div>
                     <div class="step" data-target="#step-2">
-                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-2">
+                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-2" aria-controls="step-2">
                             <span class="bs-stepper-circle">2</span>
                             <span class="bs-stepper-label">Upload File 2</span>
                         </button>
                     </div>
                     <div class="line"></div>
                     <div class="step" data-target="#step-3">
-                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-3">
+                        <button type="button" class="step-trigger" role="tab" id="stepper-trigger-3" aria-controls="step-3">
                             <span class="bs-stepper-circle">3</span>
                             <span class="bs-stepper-label">Review & Submit</span>
                         </button>
                     </div>
                 </div>
                 <div class="bs-stepper-content">
-                    <!-- your steps content here -->
+                    <!-- Stepper content -->
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <div id="step-1" class="content" role="tabpanel">
+                        <div id="step-1" class="content" role="tabpanel" aria-labelledby="stepper-trigger-1">
                             <div class="form-group">
                                 <label for="file1">Upload File 1:</label>
                                 <input type="file" class="form-control" name="file1" id="file1">
                             </div>
-                            <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                            <button class="btn btn-primary" type="button" onclick="stepper.next()">Next</button>
                         </div>
-                        <div id="step-2" class="content" role="tabpanel">
+                        <div id="step-2" class="content" role="tabpanel" aria-labelledby="stepper-trigger-2">
                             <div class="form-group">
                                 <label for="file2">Upload File 2:</label>
                                 <input type="file" class="form-control" name="file2" id="file2">
                             </div>
-                            <button class="btn btn-primary" onclick="stepper.next()">Next</button>
+                            <button class="btn btn-primary" type="button" onclick="stepper.next()">Next</button>
                         </div>
-                        <div id="step-3" class="content" role="tabpanel">
+                        <div id="step-3" class="content" role="tabpanel" aria-labelledby="stepper-trigger-3">
                             <div class="form-group">
                                 <button type="submit" class="btn btn-success">Submit</button>
                             </div>
@@ -81,6 +87,14 @@
     </div>
 </div>
 
+<script>
+    var stepper = new Stepper(document.querySelector('#stepper'), {
+        linear: false, // Change to true if you want to enforce step order
+        animation: true
+    });
+</script>
+{% endblock %}
+
 <!-- BS Stepper JS -->
 <script src="https://cdn.jsdelivr.net/npm/bs-stepper/dist/js/bs-stepper.min.js"></script>
 <script>
@@ -91,6 +105,12 @@
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 from django.http import JsonResponse, HttpResponse
+import os
+from django.conf import settings
+
+from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
+from django.http import HttpResponse
 import os
 from django.conf import settings
 
