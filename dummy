@@ -303,3 +303,192 @@ Traceback (most recent call last):
   File "C:\Users\EJOHNY\AppData\Roaming\Python\Python312\site-packages\formtools\wizard\views.py", line 191, in get_initkwargs  
     raise NoFileStorageConfigured(
 formtools.wizard.storage.exceptions.NoFileStorageConfigured: You need to define 'file_storage' in your wizard view in order to handle file uploads.
+
+
+# polls/views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def file_upload_view(request):
+    if request.method == 'POST':
+        source_file = request.FILES['source_file']
+        target_file = request.FILES['target_file']
+
+        # Define the paths for saving the files in the Accounts app
+        accounts_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Accounts', 'data', 'input')
+
+        source_path = os.path.join(accounts_dir, 'sourcefile', source_file.name)
+        target_path = os.path.join(accounts_dir, 'targetfile', target_file.name)
+
+        # Save the files to the specified locations
+        with open(source_path, 'wb+') as destination:
+            for chunk in source_file.chunks():
+                destination.write(chunk)
+
+        with open(target_path, 'wb+') as destination:
+            for chunk in target_file.chunks():
+                destination.write(chunk)
+
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+import wx
+import requests
+
+class FileUploadFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(FileUploadFrame, self).__init__(*args, **kw)
+        
+        panel = wx.Panel(self)
+
+        self.source_file_path = ""
+        self.target_file_path = ""
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        
+        # Step 1: Select Source File
+        source_file_btn = wx.Button(panel, label="Select Source File")
+        source_file_btn.Bind(wx.EVT_BUTTON, self.on_select_source_file)
+        vbox.Add(source_file_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        # Step 2: Select Target File
+        target_file_btn = wx.Button(panel, label="Select Target File")
+        target_file_btn.Bind(wx.EVT_BUTTON, self.on_select_target_file)
+        vbox.Add(target_file_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        # Step 3: Submit Files
+        submit_btn = wx.Button(panel, label="Submit Files")
+        submit_btn.Bind(wx.EVT_BUTTON, self.on_submit_files)
+        vbox.Add(submit_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        panel.SetSizer(vbox)
+        self.SetTitle('File Upload Wizard')
+        self.Centre()
+
+    def on_select_source_file(self, event):
+        with wx.FileDialog(self, "Select Source File", wildcard="All files (*.*)|*.*", 
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            self.source_file_path = file_dialog.GetPath()
+            wx.MessageBox(f"Source File Selected: {self.source_file_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+
+    def on_select_target_file(self, event):
+        with wx.FileDialog(self, "Select Target File", wildcard="All files (*.*)|*.*", 
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            self.target_file_path = file_dialog.GetPath()
+            wx.MessageBox(f"Target File Selected: {self.target_file_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+
+    def on_submit_files(self, event):
+        if not self.source_file_path or not self.target_file_path:
+            wx.MessageBox("Please select both files before submitting.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        # Send files to the Django backend using HTTP POST
+        files = {
+            'source_file': open(self.source_file_path, 'rb'),
+            'target_file': open(self.target_file_path, 'rb')
+        }
+        try:
+            response = requests.post('http://localhost:8000/polls/upload/', files=files)
+            if response.status_code == 200:
+                wx.MessageBox("Files uploaded successfully!", "Success", wx.OK | wx.ICON_INFORMATION)
+            else:
+                wx.MessageBox(f"Failed to upload files. Status Code: {response.status_code}", "Error", wx.OK | wx.ICON_ERROR)
+        except Exception as e:
+            wx.MessageBox(f"An error occurred: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
+
+def main():
+    app = wx.App()
+    frame = FileUploadFrame(None)
+    frame.Show()
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()
+
+
+
+import wx
+import requests
+
+class FileUploadFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(FileUploadFrame, self).__init__(*args, **kw)
+        
+        panel = wx.Panel(self)
+
+        self.source_file_path = ""
+        self.target_file_path = ""
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        
+        # Step 1: Select Source File
+        source_file_btn = wx.Button(panel, label="Select Source File")
+        source_file_btn.Bind(wx.EVT_BUTTON, self.on_select_source_file)
+        vbox.Add(source_file_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        # Step 2: Select Target File
+        target_file_btn = wx.Button(panel, label="Select Target File")
+        target_file_btn.Bind(wx.EVT_BUTTON, self.on_select_target_file)
+        vbox.Add(target_file_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        # Step 3: Submit Files
+        submit_btn = wx.Button(panel, label="Submit Files")
+        submit_btn.Bind(wx.EVT_BUTTON, self.on_submit_files)
+        vbox.Add(submit_btn, flag=wx.EXPAND|wx.ALL, border=5)
+
+        panel.SetSizer(vbox)
+        self.SetTitle('File Upload Wizard')
+        self.Centre()
+
+    def on_select_source_file(self, event):
+        with wx.FileDialog(self, "Select Source File", wildcard="All files (*.*)|*.*", 
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            self.source_file_path = file_dialog.GetPath()
+            wx.MessageBox(f"Source File Selected: {self.source_file_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+
+    def on_select_target_file(self, event):
+        with wx.FileDialog(self, "Select Target File", wildcard="All files (*.*)|*.*", 
+                           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+
+            self.target_file_path = file_dialog.GetPath()
+            wx.MessageBox(f"Target File Selected: {self.target_file_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+
+    def on_submit_files(self, event):
+        if not self.source_file_path or not self.target_file_path:
+            wx.MessageBox("Please select both files before submitting.", "Error", wx.OK | wx.ICON_ERROR)
+            return
+
+        # Send files to the Django backend using HTTP POST
+        files = {
+            'source_file': open(self.source_file_path, 'rb'),
+            'target_file': open(self.target_file_path, 'rb')
+        }
+        try:
+            response = requests.post('http://localhost:8000/polls/upload/', files=files)
+            if response.status_code == 200:
+                wx.MessageBox("Files uploaded successfully!", "Success", wx.OK | wx.ICON_INFORMATION)
+            else:
+                wx.MessageBox(f"Failed to upload files. Status Code: {response.status_code}", "Error", wx.OK | wx.ICON_ERROR)
+        except Exception as e:
+            wx.MessageBox(f"An error occurred: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
+
+def main():
+    app = wx.App()
+    frame = FileUploadFrame(None)
+    frame.Show()
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()
