@@ -151,5 +151,4 @@ def upload_files(self, event, source_path, target_path):
 
 SKIPPED_ACCOUNTS_FILE_PATH="data\\output_data\\Skipped-Records.csv"
 SOURCE_ACCOUNTS_GNRTD_PATH="data\\output_data\\SRC_Accounts.dsv"
-TARGET_ACCOUNTS_PATH="data\\input_data\\target\\Target Data Extract - Accounts 3.19 - Copy.csv"
 ACCOUNTS_FINAL_REPORT_FILE_PATH="data\\output_data\\Final-Report.xlsx"
