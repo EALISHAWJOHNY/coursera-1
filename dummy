@@ -354,3 +354,11 @@ def upload_files(request):
     except Exception as e:
         logger.error(f"Unexpected error in upload_files view: {str(e)}")
         return JsonResponse({'message': f'Server encountered an error: {str(e)}'}, status=500)
+
+
+POST request does not contain required files.
+Bad Request: /Accounts/upload/
+[23/Aug/2024 16:33:58] "GET /Accounts/upload/ HTTP/1.1" 400 38
+Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
+Internal Server Error: /Accounts/upload/
+[23/Aug/2024 16:33:58] "POST /Accounts/upload/ HTTP/1.1" 500 87
