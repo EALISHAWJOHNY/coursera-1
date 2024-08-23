@@ -207,16 +207,61 @@ class MyFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(MyFrame, self).__init__(*args, **kw)
 
-        # UI setup omitted for brevity
+        panel = wx.Panel(self)
+
+        # Layout components
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        # Accounts Card
+        accounts_btn = wx.Button(panel, label="Accounts")
+        accounts_btn.Bind(wx.EVT_BUTTON, self.show_file_upload_panel)
+        vbox.Add(accounts_btn, flag=wx.EXPAND|wx.ALL, border=10)
+
+        # Templates Card
+        templates_btn = wx.Button(panel, label="Templates")
+        vbox.Add(templates_btn, flag=wx.EXPAND|wx.ALL, border=10)
+
+        # Synonyms Card
+        synonyms_btn = wx.Button(panel, label="Synonyms")
+        vbox.Add(synonyms_btn, flag=wx.EXPAND|wx.ALL, border=10)
+
+        # Standalone Card
+        standalone_btn = wx.Button(panel, label="Standalone")
+        vbox.Add(standalone_btn, flag=wx.EXPAND|wx.ALL, border=10)
+
+        panel.SetSizer(vbox)
+
+        self.file_upload_panel = None
+
+    def show_file_upload_panel(self, event):
+        # Create a new panel for file uploads
+        if self.file_upload_panel:
+            self.file_upload_panel.Destroy()
         
+        self.file_upload_panel = wx.Panel(self)
+        file_vbox = wx.BoxSizer(wx.VERTICAL)
+
+        source_file_picker = wx.FilePickerCtrl(self.file_upload_panel, message="Select Source File")
+        file_vbox.Add(source_file_picker, flag=wx.EXPAND|wx.ALL, border=10)
+
+        target_file_picker = wx.FilePickerCtrl(self.file_upload_panel, message="Select Target File")
+        file_vbox.Add(target_file_picker, flag=wx.EXPAND|wx.ALL, border=10)
+
+        upload_btn = wx.Button(self.file_upload_panel, label="Upload Files")
         upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
+        file_vbox.Add(upload_btn, flag=wx.EXPAND|wx.ALL, border=10)
+
+        self.file_upload_panel.SetSizer(file_vbox)
+        self.file_upload_panel.Layout()
+        self.GetSizer().Add(self.file_upload_panel, 1, flag=wx.EXPAND|wx.ALL, border=10)
+        self.Layout()
 
     def upload_files(self, event, source_path, target_path):
         url = "http://localhost:8000/accounts/upload/"
         
         session = requests.Session()
-        session.get(url)
-        csrftoken = session.cookies['csrftoken']
+        session.get(url)  # Load the initial page to get the CSRF token
+        csrftoken = session.cookies.get('csrftoken')
 
         files = {
             'sourcefile': open(source_path, 'rb'),
@@ -224,25 +269,26 @@ class MyFrame(wx.Frame):
         }
         headers = {'X-CSRFToken': csrftoken}
 
-        response = session.post(url, files=files, headers=headers)
+        try:
+            response = session.post(url, files=files, headers=headers)
 
-        if response.status_code == 200:
-            try:
+            if response.status_code == 200:
                 data = response.json()
                 message = data.get('message', 'No message returned')
-                
+
                 if wx.MessageBox(message + "\nWould you like to download the output files?", "Success", wx.OK | wx.CANCEL | wx.ICON_INFORMATION) == wx.OK:
                     webbrowser.open_new_tab("http://localhost:8000" + data['skipped_url'])
                     webbrowser.open_new_tab("http://localhost:8000" + data['source_url'])
                     webbrowser.open_new_tab("http://localhost:8000" + data['final_report_url'])
-            except requests.exceptions.JSONDecodeError:
-                wx.MessageBox('Error: Received invalid JSON response', "Error", wx.OK | wx.ICON_ERROR)
-        else:
-            wx.MessageBox(f'Error: Server returned status code {response.status_code}', "Error", wx.OK | wx.ICON_ERROR)
+            else:
+                wx.MessageBox(f'Error: Server returned status code {response.status_code}', "Error", wx.OK | wx.ICON_ERROR)
+        except requests.exceptions.RequestException as e:
+            wx.MessageBox(f'Request failed: {str(e)}', "Error", wx.OK | wx.ICON_ERROR)
+        except Exception as e:
+            wx.MessageBox(f'Unexpected error: {str(e)}', "Error", wx.OK | wx.ICON_ERROR)
 
 if __name__ == "__main__":
     app = wx.App(False)
     frame = MyFrame(None, title="My Application", size=(400, 300))
     frame.Show(True)
     app.MainLoop()
-
