@@ -33,3 +33,64 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('Accounts.urls')),
 ]
+
+
+import wx
+import requests
+
+class MainFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MainFrame, self).__init__(*args, **kw)
+
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        accounts_btn = wx.Button(panel, label="Accounts")
+        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
+
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
+
+        panel.SetSizer(sizer)
+        self.Show()
+
+    def on_accounts(self, event):
+        self.redirect_to_upload_section()
+
+    def redirect_to_upload_section(self):
+        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
+        panel = wx.Panel(upload_frame)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        source_label = wx.StaticText(panel, label="Source File:")
+        source_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(source_label, 0, wx.ALL, 5)
+        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        target_label = wx.StaticText(panel, label="Target File:")
+        target_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(target_label, 0, wx.ALL, 5)
+        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        upload_btn = wx.Button(panel, label="Upload Files")
+        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
+
+        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
+
+        panel.SetSizer(sizer)
+        upload_frame.Show()
+
+    def upload_files(self, event, source_path, target_path):
+        url = "http://localhost:8000/accounts/upload/"
+        files = {
+            'sourcefile': open(source_path, 'rb'),
+            'targetfile': open(target_path, 'rb')
+        }
+        response = requests.post(url, files=files)
+
+        wx.MessageBox(response.json()['message'], "Info", wx.OK | wx.ICON_INFORMATION)
+
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MainFrame(None, title="Main Window", size=(300, 200))
+    app.MainLoop()
