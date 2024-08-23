@@ -152,3 +152,49 @@ def upload_files(self, event, source_path, target_path):
 SKIPPED_ACCOUNTS_FILE_PATH="data\\output_data\\Skipped-Records.csv"
 SOURCE_ACCOUNTS_GNRTD_PATH="data\\output_data\\SRC_Accounts.dsv"
 ACCOUNTS_FINAL_REPORT_FILE_PATH="data\\output_data\\Final-Report.xlsx"
+
+
+
+import os
+from django.http import JsonResponse, FileResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+
+@csrf_exempt
+def upload_files(request):
+    if request.method == 'POST' and 'sourcefile' in request.FILES and 'targetfile' in request.FILES:
+        sourcefile = request.FILES['sourcefile']
+        targetfile = request.FILES['targetfile']
+
+        fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
+        fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
+
+        source_path = fs_source.save(sourcefile.name, sourcefile)
+        target_path = fs_target.save(targetfile.name, targetfile)
+
+        # Call main.py script to process files
+        main_script_path = os.path.join(settings.BASE_DIR, 'main.py')
+        subprocess.run(['python', main_script_path], check=True)
+
+        return JsonResponse({
+            'message': 'Files processed successfully!',
+            'skipped_url': '/accounts/download_skipped/',
+            'source_url': '/accounts/download_source/',
+            'final_report_url': '/accounts/download_final_report/'
+        })
+    
+    return JsonResponse({'message': 'Failed to upload files.'})
+
+def download_skipped(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Skipped-Records.csv')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Skipped-Records.csv')
+
+def download_source(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/SRC_Accounts.dsv')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='SRC_Accounts.dsv')
+
+def download_final_report(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Final-Report.xlsx')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Final-Report.xlsx')
+
