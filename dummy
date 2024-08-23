@@ -292,3 +292,65 @@ if __name__ == "__main__":
     frame = MyFrame(None, title="My Application", size=(400, 300))
     frame.Show(True)
     app.MainLoop()
+
+
+
+import os
+import subprocess
+import logging
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def upload_files(request):
+    try:
+        if request.method == 'POST' and 'sourcefile' in request.FILES and 'targetfile' in request.FILES:
+            sourcefile = request.FILES['sourcefile']
+            targetfile = request.FILES['targetfile']
+
+            fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
+            fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
+
+            # Save files to the specified locations
+            source_path = fs_source.save(sourcefile.name, sourcefile)
+            target_path = fs_target.save(targetfile.name, targetfile)
+
+            logger.info(f"Saved source file at: {source_path}")
+            logger.info(f"Saved target file at: {target_path}")
+
+            # Call the processing script
+            try:
+                python_exec = os.path.join(settings.BASE_DIR, 'venv/bin/python')  # Adjust this to your Python environment
+                main_script_path = os.path.join(settings.BASE_DIR, 'Accounts/main.py')
+                
+                # Execute the script
+                subprocess.run([python_exec, main_script_path], check=True)
+                
+                # Return the response with download URLs
+                return JsonResponse({
+                    'message': 'Files processed successfully!',
+                    'skipped_url': '/accounts/download_skipped/',
+                    'source_url': '/accounts/download_source/',
+                    'final_report_url': '/accounts/download_final_report/'
+                })
+
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Subprocess error: {str(e)}")
+                return JsonResponse({'message': f'Error in processing files: {str(e)}'}, status=500)
+
+            except Exception as e:
+                logger.error(f"Unexpected error in subprocess: {str(e)}")
+                return JsonResponse({'message': f'Unexpected error: {str(e)}'}, status=500)
+        
+        else:
+            logger.warning("POST request does not contain required files.")
+            return JsonResponse({'message': 'Failed to upload files.'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Unexpected error in upload_files view: {str(e)}")
+        return JsonResponse({'message': f'Server encountered an error: {str(e)}'}, status=500)
