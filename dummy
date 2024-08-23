@@ -16,3 +16,11 @@ def upload_files(request):
         return JsonResponse({'message': 'Files uploaded successfully!'})
 
     return JsonResponse({'message': 'Failed to upload files.'})
+
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('upload/', views.upload_files, name='upload_files'),
+]
