@@ -94,3 +94,30 @@ if __name__ == "__main__":
     app = wx.App(False)
     frame = MainFrame(None, title="Main Window", size=(300, 200))
     app.MainLoop()
+
+
+ File "C:\src\DataMigration(rnd)\venv\Lib\site-packages\requests\models.py", line 974, in json
+    return complexjson.loads(self.text, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python312\Lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\src\DataMigration(rnd)\myapplication\gui.py", line 41, in <lambda>
+    upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\src\DataMigration(rnd)\myapplication\gui.py", line 54, in upload_files
+    wx.MessageBox(response.json()['message'], "Info", wx.OK | wx.ICON_INFORMATION)
+                  ^^^^^^^^^^^^^^^
+  File "C:\src\DataMigration(rnd)\venv\Lib\site-packages\requests\models.py", line 978, in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
