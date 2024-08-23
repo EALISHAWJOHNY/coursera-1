@@ -121,3 +121,30 @@ Traceback (most recent call last):
   File "C:\src\DataMigration(rnd)\venv\Lib\site-packages\requests\models.py", line 978, in json
     raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
 requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+
+
+def upload_files(self, event, source_path, target_path):
+    url = "http://localhost:8000/accounts/upload/"
+    files = {
+        'sourcefile': open(source_path, 'rb'),
+        'targetfile': open(target_path, 'rb')
+    }
+    
+    try:
+        response = requests.post(url, files=files)
+        
+        # Check if the response status code is 200 (OK)
+        if response.status_code == 200:
+            try:
+                message = response.json().get('message', 'No message returned')
+            except requests.exceptions.JSONDecodeError:
+                message = 'Error: Received invalid JSON response'
+        else:
+            message = f'Error: Server returned status code {response.status_code}'
+
+    except requests.exceptions.RequestException as e:
+        message = f'Request failed: {e}'
+
+    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
+
