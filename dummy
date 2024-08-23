@@ -198,3 +198,51 @@ def download_final_report(request):
     file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Final-Report.xlsx')
     return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Final-Report.xlsx')
 
+
+import wx
+import requests
+import webbrowser
+
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MyFrame, self).__init__(*args, **kw)
+
+        # UI setup omitted for brevity
+        
+        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
+
+    def upload_files(self, event, source_path, target_path):
+        url = "http://localhost:8000/accounts/upload/"
+        
+        session = requests.Session()
+        session.get(url)
+        csrftoken = session.cookies['csrftoken']
+
+        files = {
+            'sourcefile': open(source_path, 'rb'),
+            'targetfile': open(target_path, 'rb')
+        }
+        headers = {'X-CSRFToken': csrftoken}
+
+        response = session.post(url, files=files, headers=headers)
+
+        if response.status_code == 200:
+            try:
+                data = response.json()
+                message = data.get('message', 'No message returned')
+                
+                if wx.MessageBox(message + "\nWould you like to download the output files?", "Success", wx.OK | wx.CANCEL | wx.ICON_INFORMATION) == wx.OK:
+                    webbrowser.open_new_tab("http://localhost:8000" + data['skipped_url'])
+                    webbrowser.open_new_tab("http://localhost:8000" + data['source_url'])
+                    webbrowser.open_new_tab("http://localhost:8000" + data['final_report_url'])
+            except requests.exceptions.JSONDecodeError:
+                wx.MessageBox('Error: Received invalid JSON response', "Error", wx.OK | wx.ICON_ERROR)
+        else:
+            wx.MessageBox(f'Error: Server returned status code {response.status_code}', "Error", wx.OK | wx.ICON_ERROR)
+
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MyFrame(None, title="My Application", size=(400, 300))
+    frame.Show(True)
+    app.MainLoop()
+
