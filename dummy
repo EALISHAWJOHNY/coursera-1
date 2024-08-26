@@ -1,101 +1,24 @@
-import wx
-import requests
-import webbrowser
-from helpers.logging.logger import Logger
-from helpers.constants import ACCOUNTS_LOG_FILE_PATH
-from Accounts.final_report_generator.report_generator import ReportGenerator
-from Accounts.source_data_mapping.helper import Helper
-
-
-class MyFrame(wx.Frame):
-    def __init__(self, *args, **kw):
-        super(MyFrame, self).__init__(*args, **kw)
-
-        panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        accounts_btn = wx.Button(panel, label="Accounts")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
-
-        panel.SetSizer(sizer)
-        self.Show()
-
-    def on_accounts(self, event):
-        self.redirect_to_upload_section()
-
-    def redirect_to_upload_section(self):
-        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
-        panel = wx.Panel(upload_frame)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        source_label = wx.StaticText(panel, label="Source File:")
-        source_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(source_label, 0, wx.ALL, 5)
-        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        target_label = wx.StaticText(panel, label="Target File:")
-        target_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(target_label, 0, wx.ALL, 5)
-        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        upload_btn = wx.Button(panel, label="Upload Files")
-        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
-
-        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
-
-        panel.SetSizer(sizer)
-        upload_frame.Show()
-
-    def upload_files(self, event, source_path, target_path):
-        url = "http://127.0.0.1:8000/Accounts/upload/"
-        files = {
-            'sourcefile': open(source_path, 'rb'),
-            'targetfile': open(target_path, 'rb')
-        }
-        
-        try:
-            response = requests.post(url, files=files)
-            
-            # Check if the response status code is 200 (OK)
-            if response.status_code == 200:
-                try:
-                    message = response.json().get('message', 'No message returned')
-                except requests.exceptions.JSONDecodeError:
-                    message = 'Error: Received invalid JSON response'
-            else:
-                message = f'Error: Server returned status code {response.status_code}'
-
-        except requests.exceptions.RequestException as e:
-             message = f'Request failed: {e}'
-
-        wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
-
-def main():
-    '''entry point of the accounts processing workflow'''
+def upload_files(self, event, source_path, target_path):
+    url = "http://127.0.0.1:8000/Accounts/upload/"
+    files = {
+        'sourcefile': open(source_path, 'rb'),
+        'targetfile': open(target_path, 'rb')
+    }
+    
     try:
-        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
-        helper = Helper()
-        final_report_generator = ReportGenerator()
-        gfx_input_data = helper.read_input(logger)
-        mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
-        helper.generate_target_file(logger,mapped_records)
-        final_report_generator.process_dataframes(logger)
-    except FileNotFoundError as e:
-        logger.error(f"File not found : {e}")
-    except IOError as e:
-        logger.error(f"An unexpected error occured while writing to the file : {e}")
-    except Exception as e:
-        logger.error(f"An unexpected error occured: {e}")
-if __name__ == "__main__":
-    app = wx.App(False)
-    frame = MyFrame(None, title="My Application", size=(400, 300))
-    frame.Show(True)
-    app.MainLoop()
+        response = requests.post(url, files=files)
+        
+        if response.status_code == 200:
+            try:
+                message = response.json().get('message', 'No message returned')
+            except requests.exceptions.JSONDecodeError:
+                message = 'Error: Received invalid JSON response'
+        else:
+            message = f'Error: Server returned status code {response.status_code}'
+            server_response = response.text  # Capture server response for more context
+            message += f"\nServer Response: {server_response}"
 
+    except requests.exceptions.RequestException as e:
+        message = f'Request failed: {e}'
 
-Subprocess error: Command '['C:\\src\\DataMigration(rnd)\\venv\\Scripts\\python.exe', 'C:\\src\\DataMigration(rnd)\\myapplication\\Accounts\\main.py']' returned non-zero exit status 1.
-Internal Server Error: /Accounts/upload/
-[26/Aug/2024 10:35:52] "POST /Accounts/upload/ HTTP/1.1" 500 228
+    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
