@@ -1,310 +1,28 @@
-from django.shortcuts import render
-from django.core.files.storage import FileSystemStorage
-from django.http import JsonResponse
-
-def upload_files(request):
-    if request.method == 'POST' and 'sourcefile' in request.FILES and 'targetfile' in request.FILES:
-        sourcefile = request.FILES['sourcefile']
-        targetfile = request.FILES['targetfile']
-        
-        fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
-        fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
-
-        fs_source.save(sourcefile.name, sourcefile)
-        fs_target.save(targetfile.name, targetfile)
-        
-        return JsonResponse({'message': 'Files uploaded successfully!'})
-
-    return JsonResponse({'message': 'Failed to upload files.'})
-
-
-from django.urls import path
-from . import views
-
-urlpatterns = [
-    path('upload/', views.upload_files, name='upload_files'),
-]
-
-
-from django.contrib import admin
-from django.urls import include, path
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('accounts/', include('Accounts.urls')),
-]
-
-
-import wx
-import requests
-
-class MainFrame(wx.Frame):
-    def __init__(self, *args, **kw):
-        super(MainFrame, self).__init__(*args, **kw)
-
-        panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        accounts_btn = wx.Button(panel, label="Accounts")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
-
-        panel.SetSizer(sizer)
-        self.Show()
-
-    def on_accounts(self, event):
-        self.redirect_to_upload_section()
-
-    def redirect_to_upload_section(self):
-        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
-        panel = wx.Panel(upload_frame)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        source_label = wx.StaticText(panel, label="Source File:")
-        source_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(source_label, 0, wx.ALL, 5)
-        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        target_label = wx.StaticText(panel, label="Target File:")
-        target_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(target_label, 0, wx.ALL, 5)
-        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        upload_btn = wx.Button(panel, label="Upload Files")
-        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
-
-        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
-
-        panel.SetSizer(sizer)
-        upload_frame.Show()
-
-    def upload_files(self, event, source_path, target_path):
-        url = "http://localhost:8000/accounts/upload/"
-        files = {
-            'sourcefile': open(source_path, 'rb'),
-            'targetfile': open(target_path, 'rb')
-        }
-        response = requests.post(url, files=files)
-
-        wx.MessageBox(response.json()['message'], "Info", wx.OK | wx.ICON_INFORMATION)
-
-if __name__ == "__main__":
-    app = wx.App(False)
-    frame = MainFrame(None, title="Main Window", size=(300, 200))
-    app.MainLoop()
-
-
- File "C:\src\DataMigration(rnd)\venv\Lib\site-packages\requests\models.py", line 974, in json
-    return complexjson.loads(self.text, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python312\Lib\json\__init__.py", line 346, in loads
-    return _default_decoder.decode(s)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python312\Lib\json\decoder.py", line 337, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Program Files\Python312\Lib\json\decoder.py", line 355, in raw_decode
-    raise JSONDecodeError("Expecting value", s, err.value) from None
-json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\src\DataMigration(rnd)\myapplication\gui.py", line 41, in <lambda>
-    upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
-                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\src\DataMigration(rnd)\myapplication\gui.py", line 54, in upload_files
-    wx.MessageBox(response.json()['message'], "Info", wx.OK | wx.ICON_INFORMATION)
-                  ^^^^^^^^^^^^^^^
-  File "C:\src\DataMigration(rnd)\venv\Lib\site-packages\requests\models.py", line 978, in json
-    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
-requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-
-
-
-def upload_files(self, event, source_path, target_path):
-    url = "http://localhost:8000/accounts/upload/"
-    files = {
-        'sourcefile': open(source_path, 'rb'),
-        'targetfile': open(target_path, 'rb')
-    }
-    
-    try:
-        response = requests.post(url, files=files)
-        
-        # Check if the response status code is 200 (OK)
-        if response.status_code == 200:
-            try:
-                message = response.json().get('message', 'No message returned')
-            except requests.exceptions.JSONDecodeError:
-                message = 'Error: Received invalid JSON response'
-        else:
-            message = f'Error: Server returned status code {response.status_code}'
-
-    except requests.exceptions.RequestException as e:
-        message = f'Request failed: {e}'
-
-    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
-
-
-SKIPPED_ACCOUNTS_FILE_PATH="data\\output_data\\Skipped-Records.csv"
-SOURCE_ACCOUNTS_GNRTD_PATH="data\\output_data\\SRC_Accounts.dsv"
-ACCOUNTS_FINAL_REPORT_FILE_PATH="data\\output_data\\Final-Report.xlsx"
-
-
-
-import os
-from django.http import JsonResponse, FileResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
-
-@csrf_exempt
-def upload_files(request):
-    if request.method == 'POST' and 'sourcefile' in request.FILES and 'targetfile' in request.FILES:
-        sourcefile = request.FILES['sourcefile']
-        targetfile = request.FILES['targetfile']
-
-        fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
-        fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
-
-        source_path = fs_source.save(sourcefile.name, sourcefile)
-        target_path = fs_target.save(targetfile.name, targetfile)
-
-        # Call main.py script to process files
-        main_script_path = os.path.join(settings.BASE_DIR, 'main.py')
-        subprocess.run(['python', main_script_path], check=True)
-
-        return JsonResponse({
-            'message': 'Files processed successfully!',
-            'skipped_url': '/accounts/download_skipped/',
-            'source_url': '/accounts/download_source/',
-            'final_report_url': '/accounts/download_final_report/'
-        })
-    
-    return JsonResponse({'message': 'Failed to upload files.'})
-
-def download_skipped(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Skipped-Records.csv')
-    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Skipped-Records.csv')
-
-def download_source(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/SRC_Accounts.dsv')
-    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='SRC_Accounts.dsv')
-
-def download_final_report(request):
-    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Final-Report.xlsx')
-    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Final-Report.xlsx')
-
-
-import wx
-import requests
-import webbrowser
-
-class MyFrame(wx.Frame):
-    def __init__(self, *args, **kw):
-        super(MyFrame, self).__init__(*args, **kw)
-
-        panel = wx.Panel(self)
-
-        # Layout components
-        vbox = wx.BoxSizer(wx.VERTICAL)
-
-        # Accounts Card
-        accounts_btn = wx.Button(panel, label="Accounts")
-        accounts_btn.Bind(wx.EVT_BUTTON, self.show_file_upload_panel)
-        vbox.Add(accounts_btn, flag=wx.EXPAND|wx.ALL, border=10)
-
-        # Templates Card
-        templates_btn = wx.Button(panel, label="Templates")
-        vbox.Add(templates_btn, flag=wx.EXPAND|wx.ALL, border=10)
-
-        # Synonyms Card
-        synonyms_btn = wx.Button(panel, label="Synonyms")
-        vbox.Add(synonyms_btn, flag=wx.EXPAND|wx.ALL, border=10)
-
-        # Standalone Card
-        standalone_btn = wx.Button(panel, label="Standalone")
-        vbox.Add(standalone_btn, flag=wx.EXPAND|wx.ALL, border=10)
-
-        panel.SetSizer(vbox)
-
-        self.file_upload_panel = None
-
-    def show_file_upload_panel(self, event):
-        # Create a new panel for file uploads
-        if self.file_upload_panel:
-            self.file_upload_panel.Destroy()
-        
-        self.file_upload_panel = wx.Panel(self)
-        file_vbox = wx.BoxSizer(wx.VERTICAL)
-
-        source_file_picker = wx.FilePickerCtrl(self.file_upload_panel, message="Select Source File")
-        file_vbox.Add(source_file_picker, flag=wx.EXPAND|wx.ALL, border=10)
-
-        target_file_picker = wx.FilePickerCtrl(self.file_upload_panel, message="Select Target File")
-        file_vbox.Add(target_file_picker, flag=wx.EXPAND|wx.ALL, border=10)
-
-        upload_btn = wx.Button(self.file_upload_panel, label="Upload Files")
-        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_files(event, source_file_picker.GetPath(), target_file_picker.GetPath()))
-        file_vbox.Add(upload_btn, flag=wx.EXPAND|wx.ALL, border=10)
-
-        self.file_upload_panel.SetSizer(file_vbox)
-        self.file_upload_panel.Layout()
-        self.GetSizer().Add(self.file_upload_panel, 1, flag=wx.EXPAND|wx.ALL, border=10)
-        self.Layout()
-
-    def upload_files(self, event, source_path, target_path):
-        url = "http://localhost:8000/accounts/upload/"
-        
-        session = requests.Session()
-        session.get(url)  # Load the initial page to get the CSRF token
-        csrftoken = session.cookies.get('csrftoken')
-
-        files = {
-            'sourcefile': open(source_path, 'rb'),
-            'targetfile': open(target_path, 'rb')
-        }
-        headers = {'X-CSRFToken': csrftoken}
-
-        try:
-            response = session.post(url, files=files, headers=headers)
-
-            if response.status_code == 200:
-                data = response.json()
-                message = data.get('message', 'No message returned')
-
-                if wx.MessageBox(message + "\nWould you like to download the output files?", "Success", wx.OK | wx.CANCEL | wx.ICON_INFORMATION) == wx.OK:
-                    webbrowser.open_new_tab("http://localhost:8000" + data['skipped_url'])
-                    webbrowser.open_new_tab("http://localhost:8000" + data['source_url'])
-                    webbrowser.open_new_tab("http://localhost:8000" + data['final_report_url'])
-            else:
-                wx.MessageBox(f'Error: Server returned status code {response.status_code}', "Error", wx.OK | wx.ICON_ERROR)
-        except requests.exceptions.RequestException as e:
-            wx.MessageBox(f'Request failed: {str(e)}', "Error", wx.OK | wx.ICON_ERROR)
-        except Exception as e:
-            wx.MessageBox(f'Unexpected error: {str(e)}', "Error", wx.OK | wx.ICON_ERROR)
-
-if __name__ == "__main__":
-    app = wx.App(False)
-    frame = MyFrame(None, title="My Application", size=(400, 300))
-    frame.Show(True)
-    app.MainLoop()
-
-
-
+'''
+This module serves as an entry point for the accounts processing workflow
+The main function performs the following steps:
+1. Initailizes the logger
+2. Reads the source data from json file 
+3. Maps GFX to GPP
+4. Generates DSV report based on mapped data
+5. Processes dataframes to genrate the final report
+'''
+
+from helpers.logging.logger import Logger
+from helpers.constants import ACCOUNTS_LOG_FILE_PATH
+from Accounts.final_report_generator.report_generator import ReportGenerator
+from Accounts.source_data_mapping.helper import Helper
 import os
 import subprocess
 import logging
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 def upload_files(request):
@@ -325,11 +43,8 @@ def upload_files(request):
 
             # Call the processing script
             try:
-                python_exec = os.path.join(settings.BASE_DIR, 'venv/bin/python')  # Adjust this to your Python environment
-                main_script_path = os.path.join(settings.BASE_DIR, 'Accounts/main.py')
                 
-                # Execute the script
-                subprocess.run([python_exec, main_script_path], check=True)
+                main()
                 
                 # Return the response with download URLs
                 return JsonResponse({
@@ -355,10 +70,34 @@ def upload_files(request):
         logger.error(f"Unexpected error in upload_files view: {str(e)}")
         return JsonResponse({'message': f'Server encountered an error: {str(e)}'}, status=500)
 
+def download_skipped(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Skipped-Records.csv')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Skipped-Records.csv')
 
-POST request does not contain required files.
-Bad Request: /Accounts/upload/
-[23/Aug/2024 16:33:58] "GET /Accounts/upload/ HTTP/1.1" 400 38
-Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
-Internal Server Error: /Accounts/upload/
-[23/Aug/2024 16:33:58] "POST /Accounts/upload/ HTTP/1.1" 500 87
+def download_source(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/SRC_Accounts.dsv')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='SRC_Accounts.dsv')
+
+def download_final_report(request):
+    file_path = os.path.join(settings.BASE_DIR, 'Accounts/data/output_data/Final-Report.xlsx')
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Final-Report.xlsx')
+
+def main():
+    '''entry point of the accounts processing workflow'''
+    try:
+        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
+        helper = Helper()
+        final_report_generator = ReportGenerator()
+        gfx_input_data = helper.read_input(logger)
+        mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
+        helper.generate_target_file(logger,mapped_records)
+        final_report_generator.process_dataframes(logger)
+    except FileNotFoundError as e:
+        logger.error(f"File not found : {e}")
+    except IOError as e:
+        logger.error(f"An unexpected error occured while writing to the file : {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occured: {e}")
+
+if __name__ == "__main__":
+    upload_files()
