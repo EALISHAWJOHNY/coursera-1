@@ -1,33 +1,59 @@
 def show_download_window(self):
-    download_frame = wx.Frame(None, title="Download Files", size=(400, 300))
+    download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
     panel = wx.Panel(download_frame)
     sizer = wx.BoxSizer(wx.VERTICAL)
 
-    info_label = wx.StaticText(panel, label="Select locations to save the generated files:")
+    info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
     sizer.Add(info_label, 0, wx.ALL, 10)
 
-    # Paths to the generated files
+    # List of generated files with their corresponding paths and labels
     generated_files = {
-        "Final Report (Excel)": r"Accounts/output_data/Final_Report.xlsx",
-        "Skipped Records (CSV)": r"Accounts/output_data/Skipped-Records.csv",
-        "SRC Accounts (DSV)": r"Accounts/output_data/SRC_Accounts.dsv"
+        "Final Report (Excel)": ACCOUNT_FINAL_REPORT_PATH,
+        "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+        "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
     }
 
-    # Create file dialogs for each file
+    # Create a download button for each file
     for file_label, file_path in generated_files.items():
-        file_picker = wx.FileDialog(panel, message=f"Save {file_label} as...", defaultFile=file_path, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE)
-        if file_picker.ShowModal() == wx.ID_OK:
-            selected_path = file_picker.GetPath()
-            self.save_file(file_path, selected_path)
-        file_picker.Destroy()
+        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        label = wx.StaticText(panel, label=file_label)
+        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+        
+        download_btn = wx.Button(panel, label="Download")
+        file_sizer.Add(download_btn, 0, wx.ALL, 5)
+        
+        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label))
+        
+        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
+    panel.SetSizer(sizer)
     download_frame.Show()
 
-def save_file(self, src_path, dest_path):
-    try:
-        with open(src_path, 'rb') as src_file:
-            with open(dest_path, 'wb') as dest_file:
-                dest_file.write(src_file.read())
-        wx.MessageBox(f"File saved: {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
-    except IOError as e:
-        wx.MessageBox(f"Error saving file: {e}", "Error", wx.OK | wx.ICON_ERROR)
+def download_file(self, event, file_path, file_label):
+    # Show file save dialog
+    wildcard = ""
+    if file_label.endswith("(Excel)"):
+        wildcard = "Excel files (*.xlsx)|*.xlsx"
+    elif file_label.endswith("(CSV)"):
+        wildcard = "CSV files (*.csv)|*.csv"
+    elif file_label.endswith("(DSV)"):
+        wildcard = "DSV files (*.dsv)|*.dsv"
+    
+    save_dialog = wx.FileDialog(
+        None, message=f"Save {file_label}", 
+        defaultFile=file_path.split("/")[-1],
+        wildcard=wildcard, 
+        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    
+    if save_dialog.ShowModal() == wx.ID_OK:
+        dest_path = save_dialog.GetPath()
+        try:
+            with open(file_path, 'rb') as src_file:
+                with open(dest_path, 'wb') as dest_file:
+                    dest_file.write(src_file.read())
+            wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+        except IOError as e:
+            wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
+    
+    save_dialog.Destroy()
