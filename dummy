@@ -1,59 +1,95 @@
-def show_download_window(self):
-    download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-    panel = wx.Panel(download_frame)
-    sizer = wx.BoxSizer(wx.VERTICAL)
+import wx
+import requests
+from helpers.logging.logger import Logger
+from helpers.constants import ACCOUNT_FINAL_REPORT_PATH, SKIPPED_RECORDS_FILE_PATH, SOURCE_ACCOUNTS_GNRTD_PATH, ACCOUNTS_LOG_FILE_PATH
+from Accounts.final_report_generator.report_generator import ReportGenerator
+from Accounts.source_data_mapping.helper import Helper
 
-    info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
-    sizer.Add(info_label, 0, wx.ALL, 10)
 
-    # List of generated files with their corresponding paths and labels
-    generated_files = {
-        "Final Report (Excel)": ACCOUNT_FINAL_REPORT_PATH,
-        "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
-        "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
-    }
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MyFrame, self).__init__(*args, **kw)
+        # Initialization code...
 
-    # Create a download button for each file
-    for file_label, file_path in generated_files.items():
-        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    # Other methods...
+
+    def show_download_window(self):
+        self.download_count = 0  # Initialize download count
+        self.total_files = 3  # Total number of files to be downloaded
+
+        self.download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+        panel = wx.Panel(self.download_frame)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+        sizer.Add(info_label, 0, wx.ALL, 10)
+
+        # List of generated files with their corresponding paths and labels
+        generated_files = {
+            "Final Report (Excel)": ACCOUNT_FINAL_REPORT_PATH,
+            "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+            "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+        }
+
+        # Create a download button for each file
+        for file_label, file_path in generated_files.items():
+            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            label = wx.StaticText(panel, label=file_label)
+            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+            
+            download_btn = wx.Button(panel, label="Download")
+            file_sizer.Add(download_btn, 0, wx.ALL, 5)
+            
+            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label))
+            
+            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        panel.SetSizer(sizer)
+        self.download_frame.Show()
+
+    def download_file(self, event, file_path, file_label):
+        # Show file save dialog
+        wildcard = ""
+        if file_label.endswith("(Excel)"):
+            wildcard = "Excel files (*.xlsx)|*.xlsx"
+        elif file_label.endswith("(CSV)"):
+            wildcard = "CSV files (*.csv)|*.csv"
+        elif file_label.endswith("(DSV)"):
+            wildcard = "DSV files (*.dsv)|*.dsv"
         
-        label = wx.StaticText(panel, label=file_label)
-        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+        save_dialog = wx.FileDialog(
+            None, message=f"Save {file_label}", 
+            defaultFile=file_path.split("/")[-1],
+            wildcard=wildcard, 
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         
-        download_btn = wx.Button(panel, label="Download")
-        file_sizer.Add(download_btn, 0, wx.ALL, 5)
+        if save_dialog.ShowModal() == wx.ID_OK:
+            dest_path = save_dialog.GetPath()
+            try:
+                with open(file_path, 'rb') as src_file:
+                    with open(dest_path, 'wb') as dest_file:
+                        dest_file.write(src_file.read())
+                wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+                self.download_count += 1  # Increment download count
+                self.check_if_all_files_downloaded()
+            except IOError as e:
+                wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
         
-        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label))
-        
-        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+        save_dialog.Destroy()
 
-    panel.SetSizer(sizer)
-    download_frame.Show()
+    def check_if_all_files_downloaded(self):
+        if self.download_count >= self.total_files:
+            wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
+            self.download_frame.Destroy()  # Close the download window
+            self.Show()  # Redirect back to "My Application" window
 
-def download_file(self, event, file_path, file_label):
-    # Show file save dialog
-    wildcard = ""
-    if file_label.endswith("(Excel)"):
-        wildcard = "Excel files (*.xlsx)|*.xlsx"
-    elif file_label.endswith("(CSV)"):
-        wildcard = "CSV files (*.csv)|*.csv"
-    elif file_label.endswith("(DSV)"):
-        wildcard = "DSV files (*.dsv)|*.dsv"
-    
-    save_dialog = wx.FileDialog(
-        None, message=f"Save {file_label}", 
-        defaultFile=file_path.split("/")[-1],
-        wildcard=wildcard, 
-        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-    
-    if save_dialog.ShowModal() == wx.ID_OK:
-        dest_path = save_dialog.GetPath()
-        try:
-            with open(file_path, 'rb') as src_file:
-                with open(dest_path, 'wb') as dest_file:
-                    dest_file.write(src_file.read())
-            wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
-        except IOError as e:
-            wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
-    
-    save_dialog.Destroy()
+def main():
+    app = wx.App(False)
+    frame = MyFrame(None, title="My Application", size=(400, 300))
+    frame.Show(True)
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    main()
