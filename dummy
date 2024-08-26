@@ -94,3 +94,8 @@ if __name__ == "__main__":
     frame = MyFrame(None, title="My Application", size=(400, 300))
     frame.Show(True)
     app.MainLoop()
+
+
+Subprocess error: Command '['C:\\src\\DataMigration(rnd)\\venv\\Scripts\\python.exe', 'C:\\src\\DataMigration(rnd)\\myapplication\\Accounts\\main.py']' returned non-zero exit status 1.
+Internal Server Error: /Accounts/upload/
+[26/Aug/2024 10:35:52] "POST /Accounts/upload/ HTTP/1.1" 500 228
