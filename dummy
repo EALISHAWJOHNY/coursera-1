@@ -1,3 +1,9 @@
+wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: MessageBox(): argument 2 has unexpected type 'int'
+
+
+
 import wx
 import requests
 from helpers.logging.logger import Logger
