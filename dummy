@@ -1,16 +1,33 @@
-def main():
-    '''entry point of the accounts processing workflow'''
+def show_download_window(self):
+    download_frame = wx.Frame(None, title="Download Files", size=(400, 300))
+    panel = wx.Panel(download_frame)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+
+    info_label = wx.StaticText(panel, label="Select locations to save the generated files:")
+    sizer.Add(info_label, 0, wx.ALL, 10)
+
+    # Paths to the generated files
+    generated_files = {
+        "Final Report (Excel)": r"Accounts/output_data/Final_Report.xlsx",
+        "Skipped Records (CSV)": r"Accounts/output_data/Skipped-Records.csv",
+        "SRC Accounts (DSV)": r"Accounts/output_data/SRC_Accounts.dsv"
+    }
+
+    # Create file dialogs for each file
+    for file_label, file_path in generated_files.items():
+        file_picker = wx.FileDialog(panel, message=f"Save {file_label} as...", defaultFile=file_path, wildcard="All files (*.*)|*.*", style=wx.FD_SAVE)
+        if file_picker.ShowModal() == wx.ID_OK:
+            selected_path = file_picker.GetPath()
+            self.save_file(file_path, selected_path)
+        file_picker.Destroy()
+
+    download_frame.Show()
+
+def save_file(self, src_path, dest_path):
     try:
-        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
-        helper = Helper()
-        final_report_generator = ReportGenerator()
-        gfx_input_data = helper.read_input(logger)
-        mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
-        helper.generate_target_file(logger,mapped_records)
-        final_report_generator.process_dataframes(logger)
-    except FileNotFoundError as e:
-        logger.error(f"File not found : {e}")
+        with open(src_path, 'rb') as src_file:
+            with open(dest_path, 'wb') as dest_file:
+                dest_file.write(src_file.read())
+        wx.MessageBox(f"File saved: {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
     except IOError as e:
-        logger.error(f"An unexpected error occured while writing to the file : {e}")
-    except Exception as e:
-        logger.error(f"An unexpected error occured: {e}")
+        wx.MessageBox(f"Error saving file: {e}", "Error", wx.OK | wx.ICON_ERROR)
