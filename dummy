@@ -1,28 +1,16 @@
-def upload_files(self, event, source_path, target_path):
-    url = "http://127.0.0.1:8000/Accounts/upload/"
-    files = {
-        'sourcefile': open(source_path, 'rb'),
-        'targetfile': open(target_path, 'rb')
-    }
-    
+def main():
+    '''entry point of the accounts processing workflow'''
     try:
-        response = requests.post(url, files=files)
-        
-        if response.status_code == 200:
-            try:
-                message = response.json().get('message', 'No message returned')
-            except requests.exceptions.JSONDecodeError:
-                message = 'Error: Received invalid JSON response'
-        else:
-            message = f'Error: Server returned status code {response.status_code}'
-            server_response = response.text  # Capture server response for more context
-            message += f"\nServer Response: {server_response}"
-
-    except requests.exceptions.RequestException as e:
-        message = f'Request failed: {e}'
-
-    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
-
-
-python_exec = r'C:\src\DataMigration(rnd)\venv\Scripts\python.exe'
-                main_script_path = r'C:\src\DataMigration(rnd)\myapplication\Accounts\main.py'
+        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
+        helper = Helper()
+        final_report_generator = ReportGenerator()
+        gfx_input_data = helper.read_input(logger)
+        mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
+        helper.generate_target_file(logger,mapped_records)
+        final_report_generator.process_dataframes(logger)
+    except FileNotFoundError as e:
+        logger.error(f"File not found : {e}")
+    except IOError as e:
+        logger.error(f"An unexpected error occured while writing to the file : {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occured: {e}")
