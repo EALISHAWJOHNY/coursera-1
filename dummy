@@ -1,28 +1,18 @@
-'''
-This module serves as an entry point for the accounts processing workflow
-The main function performs the following steps:
-1. Initailizes the logger
-2. Reads the source data from json file 
-3. Maps GFX to GPP
-4. Generates DSV report based on mapped data
-5. Processes dataframes to genrate the final report
-'''
+def handle_file_uploads(sourcefile, targetfile):
+    """
+    Handle saving uploaded files to the correct locations.
+    """
+    fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
+    fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
 
-from helpers.logging.logger import Logger
-from helpers.constants import ACCOUNTS_LOG_FILE_PATH
-from Accounts.final_report_generator.report_generator import ReportGenerator
-from Accounts.source_data_mapping.helper import Helper
-import os
-import subprocess
-import logging
-from django.http import JsonResponse, FileResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
+    # Save files to the specified locations
+    source_path = fs_source.save(sourcefile.name, sourcefile)
+    target_path = fs_target.save(targetfile.name, targetfile)
 
-# Set up logging
-logger = logging.getLogger(__name__)
+    logger.info(f"Saved source file at: {source_path}")
+    logger.info(f"Saved target file at: {target_path}")
 
+    return source_path, target_path
 
 @csrf_exempt
 def upload_files(request):
@@ -31,21 +21,12 @@ def upload_files(request):
             sourcefile = request.FILES['sourcefile']
             targetfile = request.FILES['targetfile']
 
-            fs_source = FileSystemStorage(location='Accounts/data/input_data/source')
-            fs_target = FileSystemStorage(location='Accounts/data/input_data/target')
-
-            # Save files to the specified locations
-            source_path = fs_source.save(sourcefile.name, sourcefile)
-            target_path = fs_target.save(targetfile.name, targetfile)
-
-            logger.info(f"Saved source file at: {source_path}")
-            logger.info(f"Saved target file at: {target_path}")
+            # Handle the file uploads
+            handle_file_uploads(sourcefile, targetfile)
 
             # Call the processing script
             try:
-                
                 main()
-                
                 # Return the response with download URLs
                 return JsonResponse({
                     'message': 'Files processed successfully!',
@@ -83,21 +64,3 @@ def download_final_report(request):
     return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='Final-Report.xlsx')
 
 def main():
-    '''entry point of the accounts processing workflow'''
-    try:
-        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
-        helper = Helper()
-        final_report_generator = ReportGenerator()
-        gfx_input_data = helper.read_input(logger)
-        mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
-        helper.generate_target_file(logger,mapped_records)
-        final_report_generator.process_dataframes(logger)
-    except FileNotFoundError as e:
-        logger.error(f"File not found : {e}")
-    except IOError as e:
-        logger.error(f"An unexpected error occured while writing to the file : {e}")
-    except Exception as e:
-        logger.error(f"An unexpected error occured: {e}")
-
-if __name__ == "__main__":
-    upload_files()
