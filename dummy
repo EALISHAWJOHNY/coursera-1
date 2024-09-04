@@ -1,10 +1,15 @@
-source_df["OBI_6000"]=source_df["OBI_1_6000"].str.cat([source_df["OBI_2_6000"],source_df["OBI_3_6000"],source_df["OBI_3_6000"]],sep="").apply(self.remove_spaces)
-source_df["BBI_6500"]=source_df["BBI_1_6500"].str.cat([source_df["BBI_2_6500"],source_df["BBI_3_6500"],source_df["BBI_4_6500"],source_df["BBI_5_6500"],source_df["BBI_6_6500"]],sep="").apply(self.remove_spaces)  
+source_df["OBI_6000"] = source_df["OBI_1_6000"].astype(str).str.cat(
+    [source_df["OBI_2_6000"].astype(str), source_df["OBI_3_6000"].astype(str), source_df["OBI_3_6000"].astype(str)],
+    sep=""
+).apply(self.remove_spaces)
 
-ERROR - An unexpected error occured:'float' object is not iterable
-def remove_spaces(self,string):
-        spaceless_string=""
-        for i in string:
-            if i !=" ":
-                spaceless_string+=i
-        return spaceless_string
+source_df["BBI_6500"] = source_df["BBI_1_6500"].astype(str).str.cat(
+    [
+        source_df["BBI_2_6500"].astype(str), 
+        source_df["BBI_3_6500"].astype(str), 
+        source_df["BBI_4_6500"].astype(str), 
+        source_df["BBI_5_6500"].astype(str), 
+        source_df["BBI_6_6500"].astype(str)
+    ], 
+    sep=""
+).apply(self.remove_spaces)
