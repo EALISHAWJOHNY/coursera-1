@@ -1,166 +1,163 @@
-import wx
-import requests
-from helpers.logging.logger import Logger
-from helpers.constants import ACCOUNT_FINAL_REPORT_PATH, SKIPPED_RECORDS_FILE_PATH, SOURCE_ACCOUNTS_GNRTD_PATH, ACCOUNTS_LOG_FILE_PATH
-from Accounts.final_report_generator.report_generator import ReportGenerator
-from Accounts.source_data_mapping.helper import Helper
-
-class MyFrame(wx.Frame):
-    def __init__(self, *args, **kw):
-        super(MyFrame, self).__init__(*args, **kw)
-        panel = wx.Panel(self)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        accounts_btn = wx.Button(panel, label="Accounts")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
-
-        panel.SetSizer(sizer)
-        self.Show()
-
-    def on_accounts(self, event):
-        self.redirect_to_upload_section()
-
-    def redirect_to_upload_section(self):
-        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
-        panel = wx.Panel(upload_frame)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        source_label = wx.StaticText(panel, label="Source File:")
-        source_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(source_label, 0, wx.ALL, 5)
-        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        target_label = wx.StaticText(panel, label="Target File:")
-        target_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(target_label, 0, wx.ALL, 5)
-        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
-
-        upload_btn = wx.Button(panel, label="Upload Files")
-        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
-
-        upload_btn.Bind(wx.EVT_BUTTON, lambda event: self.upload_and_process_files(event, source_file_picker.GetPath(), target_file_picker.GetPath(), upload_frame))
-
-        panel.SetSizer(sizer)
-        upload_frame.Show()
-
-    def upload_and_process_files(self, event, source_path, target_path, upload_frame):
-        url = "http://127.0.0.1:8000/Accounts/upload/"
-        files = {
-            'sourcefile': open(source_path, 'rb'),
-            'targetfile': open(target_path, 'rb')
-        }
+import xml.etree.ElementTree as ET
+import pandas as pd
+def fetch_value_from_xml(logger,xml_string):
+    try:
+        root=ET.fromstring(xml_string)
         
-        try:
-            response = requests.post(url, files=files)
-            
-            if response.status_code == 200:
-                try:
-                    message = response.json().get('message', 'No message returned')
-                    # Call the main processing function after files are uploaded
-                    self.main_processing_function()
-                    upload_frame.Destroy()  # Close the upload window after processing
-                    self.show_download_window()
-                except requests.exceptions.JSONDecodeError:
-                    message = 'Error: Received invalid JSON response'
+        Msg=root.find('{http://fundtech.com/SCL/CommonTypes}Msg')
+        Pmnt=Msg.find('{http://fundtech.com/SCL/CommonTypes}Pmnt')
+        FED_FUNDS=Pmnt.find('{urn:fundtech:scl:FED_FUNDS}FED_FUNDS')
+    
+        #3100
+        Sender_Bank_3100=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Sender_Bank_3100')
+        if Sender_Bank_3100 is not None:
+            ABA_3100=Sender_Bank_3100.find('{urn:fundtech:scl:FED_FUNDS}ABA').text if Sender_Bank_3100.find('{urn:fundtech:scl:FED_FUNDS}ABA') is not None else ""
+        else:
+            ABA_3100=""
+    
+        #3400
+        Receiver_Bank_3400=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Receiver_Bank_3400')
+        if Receiver_Bank_3400 is not None:
+            ABA_3400=Receiver_Bank_3400.find('{urn:fundtech:scl:FED_FUNDS}ABA').text if Receiver_Bank_3400.find('{urn:fundtech:scl:FED_FUNDS}ABA') is not None else ""
+        else:
+            ABA_3400=""
+    
+        #BFC code
+        Business_Function_3600=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Business_Function_3600')
+        if Business_Function_3600 is not None:
+            BFC=Business_Function_3600.find('{urn:fundtech:scl:FED_FUNDS}Business_Function_Code').text if Business_Function_3600.find('{urn:fundtech:scl:FED_FUNDS}Business_Function_Code') is not None else ""
+        else:
+            BFC=""
+
+        #5400
+        Drawdown_Credit_Account_5400=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Drawdown_Credit_Account_5400')
+        if Drawdown_Credit_Account_5400 is not None:
+            CDTR_ACCT_5400=Drawdown_Credit_Account_5400.find('{urn:fundtech:scl:FED_FUNDS}ClrSysIdentifier').text if Drawdown_Credit_Account_5400.find('{urn:fundtech:scl:FED_FUNDS}ClrSysIdentifier') is not None else ""
+        else:
+            CDTR_ACCT_5400=""
+    
+        #4200
+        Beneficiary_4200=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Beneficiary_4200')
+        if Beneficiary_4200 is not None:
+            ACCOUNT_TYPE_4200=Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}AccountSchemeCode').text if Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}AccountSchemeCode') is not None else ""
+            ACCOUNT_4200=Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}Account').text if Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}Account') is not None else ""
+            NAME_4200=Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}Name',"").text if Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}Name',"") is not None else ""
+            Address_Details=Beneficiary_4200.find('{urn:fundtech:scl:FED_FUNDS}Address_Details')
+            if Address_Details is not None and Address_Details != "":
+                ADDRESS1_4200=Address_Details[0].text if len(Address_Details)>0 else ""
+                ADDRESS2_4200=Address_Details[1].text if len(Address_Details)>1 else ""
+                ADDRESS3_4200=Address_Details[2].text if len(Address_Details)>2 else ""
             else:
-                message = f'Error: Server returned status code {response.status_code}'
-        except requests.exceptions.RequestException as e:
-            message = f'Request failed: {e}'
-
-        wx.MessageBox(message, "Information", wx.OK | wx.ICON_INFORMATION)
-
-    def main_processing_function(self):
-        '''Entry point of the accounts processing workflow'''
+                ADDRESS1_4200=ADDRESS2_4200=ADDRESS3_4200=""
+        else:
+            ACCOUNT_TYPE_4200=ACCOUNT_4200=NAME_4200=ADDRESS1_4200=ADDRESS2_4200=ADDRESS3_4200=""
+            
+        #5000
+        Originator_5000_5010=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Originator_5000_5010')
+        if Originator_5000_5010 is not None:
+            ACCOUNT_5000=Originator_5000_5010.find('{urn:fundtech:scl:FED_FUNDS}Account').text if Originator_5000_5010.find('{urn:fundtech:scl:FED_FUNDS}Account') is not None else ""
+            NAME_5000=Originator_5000_5010.find('{urn:fundtech:scl:FED_FUNDS}Name').text if Originator_5000_5010.find('{urn:fundtech:scl:FED_FUNDS}Name') is not None else ""
+            Address_Details_5000=Originator_5000_5010.find('{urn:fundtech:scl:FED_FUNDS}Address_Details')
+            if Address_Details_5000 is not None and Address_Details_5000 != "":
+                ADDRESS1_5000=Address_Details_5000[0].text if len(Address_Details_5000)>0 else ""
+                ADDRESS2_5000=Address_Details_5000[1].text if len(Address_Details_5000)>1 else ""
+                ADDRESS3_5000=Address_Details_5000[2].text if len(Address_Details_5000)>2 else ""
+            else:
+                Address1_5000=Address2_5000=Address3_5000=""
+        else:
+            Account_5000=Name_5000=Address1_5000=Address2_5000=Address3_5000=""
+    
+        #4400
+        Drawdown_Debit_Account_4400=FED_FUNDS.find('{urn:fundtech:scl:FED_FUNDS}Drawdown_Debit_Account_4400')
+        if Drawdown_Debit_Account_4400 is not None:
+            
+            ACCOUNT_4400=Drawdown_Debit_Account_4400.find('{urn:fundtech:scl:FED_FUNDS}Account').text if Drawdown_Debit_Account_4400.find('{urn:fundtech:scl:FED_FUNDS}Account') is not None else ""
+            NAME_4400=Drawdown_Debit_Account_4400.find('{urn:fundtech:scl:FED_FUNDS}Name').text if Drawdown_Debit_Account_4400.find('{urn:fundtech:scl:FED_FUNDS}Name') is not None else ""
+            Address_Details_4400=Drawdown_Debit_Account_4400.find('{urn:fundtech:scl:FED_FUNDS}Address_Details')
+            if Address_Details_4400 is not None:
+                ADDRESS1_4400=Address_Details_4400[0].text if len(Address_Details_4400)>0 else ""
+                ADDRESS2_4400=Address_Details_4400[1].text if len(Address_Details_4400)>1 else ""
+                ADDRESS3_4400=Address_Details_4400[2].text if len(Address_Details_4400)>2 else ""
+            else:
+                ADDRESS1_4400=ADDRESS2_4400=ADDRESS3_4400=""
+        else:
+            
+            ACCOUNT_4400=NAME_4400=ADDRESS1_4400=ADDRESS2_4400=ADDRESS3_4400=""
+    
+    
+        #OBI_6000
+        OBI_6000_tags=FED_FUNDS.findall('{urn:fundtech:scl:FED_FUNDS}Originator_Beneficiary_Information_6000')
+        if OBI_6000_tags is not None:
+            OBI_1_6000=OBI_6000_tags[0].text if len(OBI_6000_tags)>0 else ""
+            OBI_2_6000=OBI_6000_tags[1].text if len(OBI_6000_tags)>1 else ""
+            Concatenated_OBI_6000=OBI_1_6000+OBI_2_6000
+            OBI_6000=remove_spaces(Concatenated_OBI_6000)
+        else:
+            OBI_6000=""
+        
+        #BBI_6500
         try:
-            logger = Logger(ACCOUNTS_LOG_FILE_PATH)
-            helper = Helper()
-            final_report_generator = ReportGenerator()
-            gfx_input_data = helper.read_input(logger)
-            mapped_records = helper.map_gfx_to_gpp(logger, gfx_input_data)
-            helper.generate_target_file(logger, mapped_records)
-            final_report_generator.process_dataframes(logger)
-        except FileNotFoundError as e:
-            logger.error(f"File not found: {e}")
-        except IOError as e:
-            logger.error(f"An unexpected error occurred while writing to the file: {e}")
-        except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
+            Extn=Msg.find('{http://fundtech.com/SCL/CommonTypes}Extn')
+            if Extn is not None:
+                XMLPersistentInfo=Extn.find('{http://fundtech.com/SCL/CommonTypes}XMLPersistentInfo')
+                if XMLPersistentInfo is not None:
+                    InstrNxtAgtOtherCodes=XMLPersistentInfo.find('{http://fundtech.com/SCL/CommonTypes}InstrNxtAgtOtherCodes')
+                    if InstrNxtAgtOtherCodes is not None:
+                        InstrNxtAgtOtherCode=InstrNxtAgtOtherCodes.findall('{http://fundtech.com/SCL/CommonTypes}InstrNxtAgtOtherCode')
+                        if InstrNxtAgtOtherCode is not None and len(InstrNxtAgtOtherCode)>0:
+                            bbi_1_6500=""
+                            bbi_2_6500=""
+                            bbi_3_6500=""
+                            if len(InstrNxtAgtOtherCode)>0:
+                                X_INSTR_NXT_AGT_OTHER_INF=InstrNxtAgtOtherCode[0].find('{http://fundtech.com/SCL/CommonTypes}X_INSTR_NXT_AGT_OTHER_INF')
+                                bbi_1_6500=X_INSTR_NXT_AGT_OTHER_INF.text if X_INSTR_NXT_AGT_OTHER_INF is not None else ""
+                            if len(InstrNxtAgtOtherCode)>1:
+                                X_INSTR_NXT_AGT_OTHER_INF=InstrNxtAgtOtherCode[1].find('{http://fundtech.com/SCL/CommonTypes}X_INSTR_NXT_AGT_OTHER_INF')
+                                bbi_2_6500=X_INSTR_NXT_AGT_OTHER_INF.text if X_INSTR_NXT_AGT_OTHER_INF is not None else ""
+                            if len(InstrNxtAgtOtherCode)>2:
+                                X_INSTR_NXT_AGT_OTHER_INF=InstrNxtAgtOtherCode[2].find('{http://fundtech.com/SCL/CommonTypes}X_INSTR_NXT_AGT_OTHER_INF')
+                                bbi_3_6500=X_INSTR_NXT_AGT_OTHER_INF.text if X_INSTR_NXT_AGT_OTHER_INF is not None else ""
+                            Concatenated_bbi_6500=bbi_1_6500+bbi_2_6500+bbi_3_6500
+                            BBI_6500=remove_spaces(Concatenated_bbi_6500)
+                        else:
+                            BBI_6500=""
+                    else:
+                        BBI_6500=""
+                else:
+                    BBI_6500=""
+            else:
+                BBI_6500=""
+                            
+        except:
+            BBI_6500=""
+    
+        #emopty records in target
+        CDTR_NM_5400=""
+        IBKIDTYPE_4000=""
+        ABA_4000=""
+        BIC_4000=""
+        NAME_4000=""
+        ADDRESS1_4000=ADDRESS2_4000=ADDRESS3_4000=""
+        ACCOUNT_TYPE_4100=""
+        BIC_4100=""
+        ACCOUNT_4100=""
+        NAME_4100=""
+        ADDRESS1_4100=ADDRESS2_4100=ADDRESS3_4100=""
+        BBI_1_6400=BBI_2_6400=BBI_3_6400=BBI_4_6400=BBI_5_6400=BBI_6_6400=""
+        RCVR_1_6100=RCVR_2_6100=RCVR_3_6100=RCVR_4_6100=RCVR_5_6100=RCVR_6_6100=""
+        BBK_1_6300=BBK_2_6300=BBK_3_6300=BBK_4_6300=BBK_5_6300=BBK_6_6300=""
+        ACCOUNT_5100=""
+        NAME_5100=""
+        ADDRESS1_5100=ADDRESS2_5100=ADDRESS3_5100=""
 
-    def show_download_window(self):
-        self.download_count = 0
-        self.total_files = 3
+        logger.error(f"successfully fetched values from xml")
+        return pd.Series([ABA_3100,ABA_3400,CDTR_ACCT_5400,CDTR_NM_5400,BFC,ACCOUNT_TYPE_4200,ACCOUNT_4200,NAME_4200,ADDRESS1_4200,ADDRESS2_4200,ADDRESS3_4200,ACCOUNT_5000,NAME_5000,ADDRESS1_5000,ADDRESS2_5000,ADDRESS3_5000,ACCOUNT_4400,NAME_4400,ADDRESS1_4400,ADDRESS2_4400,ADDRESS3_4400,OBI_6000,BBI_6500,IBKIDTYPE_4000,ABA_4000,BIC_4000,NAME_4000,ADDRESS1_4000,ADDRESS2_4000,ADDRESS3_4000,ACCOUNT_TYPE_4100,BIC_4100,ACCOUNT_4100,NAME_4100,ADDRESS1_4100,ADDRESS2_4100,ADDRESS3_4100,BBI_1_6400,BBI_2_6400,BBI_3_6400,BBI_4_6400,BBI_5_6400,BBI_6_6400,RCVR_1_6100,RCVR_2_6100,RCVR_3_6100,RCVR_4_6100,RCVR_5_6100,RCVR_6_6100,BBK_1_6300,BBK_2_6300,BBK_3_6300,BBK_4_6300,BBK_5_6300,BBK_6_6300,ACCOUNT_5100,NAME_5100,ADDRESS1_5100,ADDRESS2_5100,ADDRESS3_5100])
+    except Exception as e:
+        logger.error(f"unsuccessfully fetched values from xml")
 
-        self.download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-        panel = wx.Panel(self.download_frame)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
-        sizer.Add(info_label, 0, wx.ALL, 10)
-
-        generated_files = {
-            "Final Report (Excel)": ACCOUNT_FINAL_REPORT_PATH,
-            "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
-            "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
-        }
-
-        for file_label, file_path in generated_files.items():
-            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            
-            label = wx.StaticText(panel, label=file_label)
-            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
-            
-            download_btn = wx.Button(panel, label="Download")
-            file_sizer.Add(download_btn, 0, wx.ALL, 5)
-            
-            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label))
-            
-            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
-
-        panel.SetSizer(sizer)
-        self.download_frame.Show()
-
-    def download_file(self, event, file_path, file_label):
-        wildcard = ""
-        if file_label.endswith("(Excel)"):
-            wildcard = "Excel files (*.xlsx)|*.xlsx"
-        elif file_label.endswith("(CSV)"):
-            wildcard = "CSV files (*.csv)|*.csv"
-        elif file_label.endswith("(DSV)"):
-            wildcard = "DSV files (*.dsv)|*.dsv"
-        
-        save_dialog = wx.FileDialog(
-            None, message=f"Save {file_label}", 
-            defaultFile=file_path.split("/")[-1],
-            wildcard=wildcard, 
-            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        
-        if save_dialog.ShowModal() == wx.ID_OK:
-            dest_path = save_dialog.GetPath()
-            try:
-                with open(file_path, 'rb') as src_file:
-                    with open(dest_path, 'wb') as dest_file:
-                        dest_file.write(src_file.read())
-                wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Information", wx.OK | wx.ICON_INFORMATION)
-                self.download_count += 1
-                self.check_if_all_files_downloaded()
-            except IOError as e:
-                wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
-        
-        save_dialog.Destroy()
-
-    def check_if_all_files_downloaded(self):
-        if self.download_count >= self.total_files:
-            self.download_frame.Destroy()  # Close the download window
-            self.Show()  # Redirect back to "My Application" window
-
-def main():
-    app = wx.App(False)
-    frame = MyFrame(None, title="My Application", size=(400, 300))
-    frame.Show(True)
-    app.MainLoop()
-
-if __name__ == "__main__":
-    main()
+def remove_spaces(string):
+    spaceless_string=""
+    for i in string:
+        if i !=" ":
+            spaceless_string+=i
+    return spaceless_string
