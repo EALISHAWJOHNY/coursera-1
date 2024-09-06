@@ -1,3 +1,6 @@
+# main_gui.py
+import wx
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(MyFrame, self).__init__(*args, **kw)
@@ -6,37 +9,41 @@ class MyFrame(wx.Frame):
         panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Accounts Button
         accounts_btn = wx.Button(panel, label="Accounts")
         sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
         accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
 
-        accounts_btn = wx.Button(panel, label="Templates")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
+        # Templates Button
+        templates_btn = wx.Button(panel, label="Templates")
+        sizer.Add(templates_btn, 0, wx.ALL | wx.EXPAND, 5)
+        templates_btn.Bind(wx.EVT_BUTTON, self.on_templates)
 
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_templates)
+        # Standing Orders Button
+        standing_orders_btn = wx.Button(panel, label="Standing Orders")
+        sizer.Add(standing_orders_btn, 0, wx.ALL | wx.EXPAND, 5)
+        standing_orders_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
 
-        accounts_btn = wx.Button(panel, label="Standing Orders")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
-
-        accounts_btn = wx.Button(panel, label="Synonyms")
-        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
-
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
+        # Synonyms Button
+        synonyms_btn = wx.Button(panel, label="Synonyms")
+        sizer.Add(synonyms_btn, 0, wx.ALL | wx.EXPAND, 5)
+        synonyms_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
 
         panel.SetSizer(sizer)
         self.Show()
 
     def on_accounts(self, event):
-        self.redirect_to_upload_section()
+        from Accounts.gui import launch_gui
+        launch_gui()
 
     def on_templates(self, event):
-        self.redirect_to_upload_section()
+        from templates.gui import launch_gui
+        launch_gui()
 
     def on_standing_orders(self, event):
-        self.redirect_to_upload_section()
+        from standing_orders.gui import launch_gui
+        launch_gui()
 
     def on_synonyms(self, event):
-        self.redirect_to_upload_section()
+        from Synonyms.gui import launch_gui
+        launch_gui()
