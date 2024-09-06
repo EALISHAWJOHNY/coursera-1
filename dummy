@@ -9,12 +9,12 @@ class MyFrame(wx.Frame):
         accounts_btn = wx.Button(panel, label="Accounts")
         sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
 
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
 
         accounts_btn = wx.Button(panel, label="Templates")
         sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
 
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_templates)
 
         accounts_btn = wx.Button(panel, label="Standing Orders")
         sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
@@ -24,10 +24,19 @@ class MyFrame(wx.Frame):
         accounts_btn = wx.Button(panel, label="Synonyms")
         sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
 
-        accounts_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
 
         panel.SetSizer(sizer)
         self.Show()
 
+    def on_accounts(self, event):
+        self.redirect_to_upload_section()
+
+    def on_templates(self, event):
+        self.redirect_to_upload_section()
+
     def on_standing_orders(self, event):
+        self.redirect_to_upload_section()
+
+    def on_synonyms(self, event):
         self.redirect_to_upload_section()
