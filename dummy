@@ -57,3 +57,172 @@ if __name__ == "__main__":
     frame = MyFrame(None, title="My Application", size=(400, 300))
     frame.Show(True)
     app.MainLoop()
+
+import wx
+import requests
+from helpers.logging.logger import Logger
+from helpers.constants import ACCOUNTS_LOG_FILE_PATH
+from Accounts.final_report_generator.report_generator import ReportGenerator
+from Accounts.source_data_mapping.helper import Helper
+from helpers.constants import ACCOUNTS_FINAL_REPORT_FILE_PATH
+from helpers.constants import SKIPPED_RECORDS_FILE_PATH
+from helpers.constants import SOURCE_ACCOUNTS_GNRTD_PATH
+
+download_count = 0
+total_files = 3
+
+def redirect_to_Accounts_upload_section():
+        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
+        panel = wx.Panel(upload_frame)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        source_label = wx.StaticText(panel, label="Source File (.json):")
+        source_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(source_label, 0, wx.ALL, 5)
+        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        target_label = wx.StaticText(panel, label="Target File (.dsv):")
+        target_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(target_label, 0, wx.ALL, 5)
+        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        upload_btn = wx.Button(panel, label="Upload Files")
+        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
+
+        upload_btn.Bind(wx.EVT_BUTTON, lambda event: upload_files(source_file_picker.GetPath(), target_file_picker.GetPath(),upload_frame))
+
+        panel.SetSizer(sizer)
+        upload_frame.Show()
+
+def upload_files(source_path, target_path,upload_frame):
+        url = "http://127.0.0.1:8000/Accounts/upload/"
+        files = {
+            'sourcefile': open(source_path, 'rb'),
+            'targetfile': open(target_path, 'rb')
+        }
+        
+        try:
+            response = requests.post(url, files=files)
+            
+            if response.status_code == 200:
+                try:
+                    message = response.json().get('message', 'No message returned')
+                    main()
+                    show_download_window()
+                    upload_frame.Destroy()
+                except requests.exceptions.JSONDecodeError:
+                    message = 'Error: Received invalid JSON response'
+            else:
+                message = f'Error: Server returned status code {response.status_code}'
+                server_response = response.text  # Capture server response for more context
+                message += f"\nServer Response: {server_response}"
+
+        except requests.exceptions.RequestException as e:
+            message = f'Request failed: {e}'
+
+        wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
+
+
+
+def main():
+        '''entry point of the accounts processing workflow'''
+        try:
+            logger=Logger(ACCOUNTS_LOG_FILE_PATH)
+            helper = Helper()
+            final_report_generator = ReportGenerator()
+            gfx_input_data = helper.read_input(logger)
+            mapped_records = helper.map_gfx_to_gpp(logger,gfx_input_data)
+            helper.generate_target_file(logger,mapped_records)
+            final_report_generator.process_dataframes(logger)
+
+            
+                
+
+        except FileNotFoundError as e:
+            logger.error(f"File not found : {e}")
+        except IOError as e:
+            logger.error(f"An unexpected error occured while writing to the file : {e}")
+        except Exception as e:
+            logger.error(f"An unexpected error occured: {e}")   
+
+def show_download_window():
+        
+        download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+        panel = wx.Panel(download_frame)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+        sizer.Add(info_label, 0, wx.ALL, 10)
+
+        # List of generated files with their corresponding paths and labels
+        generated_files = {
+            "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
+            "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+            "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+        }
+
+        # Create a download button for each file
+        for file_label, file_path in generated_files.items():
+            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            label = wx.StaticText(panel, label=file_label)
+            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+            
+            download_btn = wx.Button(panel, label="Download")
+            file_sizer.Add(download_btn, 0, wx.ALL, 5)
+            
+            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
+            
+            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        panel.SetSizer(sizer)
+        download_frame.Show()
+
+def download_file(event, file_path, file_label):
+        # Show file save dialog
+        global download_count
+        global total_files
+        wildcard = ""
+        if file_label.endswith("(Excel)"):
+            wildcard = "Excel files (*.xlsx)|*.xlsx"
+        elif file_label.endswith("(CSV)"):
+            wildcard = "CSV files (*.csv)|*.csv"
+        elif file_label.endswith("(DSV)"):
+            wildcard = "DSV files (*.dsv)|*.dsv"
+        
+        save_dialog = wx.FileDialog(
+            None, message=f"Save {file_label}", 
+            defaultFile=file_path.split("/")[-1],
+            wildcard=wildcard, 
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if save_dialog.ShowModal() == wx.ID_OK:
+            dest_path = save_dialog.GetPath()
+            try:
+                with open(file_path, 'rb') as src_file:
+                    with open(dest_path, 'wb') as dest_file:
+                        dest_file.write(src_file.read())
+                wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+                download_count += 1  # Increment download count
+                check_if_all_files_downloaded(download_count)
+            except IOError as e:
+                wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
+        
+        save_dialog.Destroy()
+
+def check_if_all_files_downloaded(download_count):
+        if download_count >= total_files:
+            wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
+            download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+            download_frame.Destroy()  # Close the download window
+            redirect_to_main_window()  # Redirect back to "My Application" window
+
+def redirect_to_main_window():
+        for window in wx.GetTopLevelWindows() :
+            if window.GetTitle() != "My Application" :
+                window.Destroy()
+        for window in wx.GetTopLevelWindows() :
+            if window.GetTitle() == "My Application" :
+                window.Raise()
+                break
