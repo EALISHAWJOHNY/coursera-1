@@ -1,10 +1,59 @@
-Traceback (most recent call last):
-  File "C:\src\DataMigration(rnd)\GPP_DMV_Engine\main.py", line 2, in <module>
-    from Accounts.gui import redirect_to_upload_section
-  File "C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\gui.py", line 6, in <module>
-    from Accounts.source_data_mapping.helper import Helper
-  File "C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\source_data_mapping\helper.py", line 7, in <module>
-    from Accounts.source_data_mapping.mapper import Mapper
-  File "C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\source_data_mapping\mapper.py", line 2, in <module>
-    from source_data_mapping.constants import *
-ModuleNotFoundError: No module named 'source_data_mapping'
+import wx
+from Accounts.gui import redirect_to_Accounts_upload_section
+from standing_orders.standing_orders_gui import redirect_to_upload_section
+from Synonyms.gui import redirect_to_Synonyms_upload_section
+from templates.templates_gui import redirect_to_templates_upload_section
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MyFrame, self).__init__(*args, **kw)
+        self.download_count = 0
+        self.total_files = 2
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Accounts Button
+        accounts_btn = wx.Button(panel, label="Accounts")
+        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
+
+        # Templates Button
+        templates_btn = wx.Button(panel, label="Templates")
+        sizer.Add(templates_btn, 0, wx.ALL | wx.EXPAND, 5)
+        templates_btn.Bind(wx.EVT_BUTTON, self.on_templates)
+
+        # Standing Orders Button
+        standing_orders_btn = wx.Button(panel, label="Standing Orders")
+        sizer.Add(standing_orders_btn, 0, wx.ALL | wx.EXPAND, 5)
+        standing_orders_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+
+        # Synonyms Button
+        synonyms_btn = wx.Button(panel, label="Synonyms")
+        sizer.Add(synonyms_btn, 0, wx.ALL | wx.EXPAND, 5)
+        synonyms_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
+
+        panel.SetSizer(sizer)
+        self.Show()
+
+    def on_accounts(self, event):        
+        redirect_to_Accounts_upload_section()
+
+    def on_templates(self, event):
+        redirect_to_templates_upload_section()
+
+    def on_standing_orders(self, event):
+        
+        redirect_to_upload_section()
+
+    def on_synonyms(self, event):
+        redirect_to_Synonyms_upload_section()
+    
+
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MyFrame(None, title="My Application", size=(400, 300))
+    frame.Show(True)
+    app.MainLoop()
