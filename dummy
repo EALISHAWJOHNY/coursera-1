@@ -1,1 +1,83 @@
-pyinstaller --onefile --add-data "helpers/logging/log_files/accounts.log;helpers/logging/log_files" --add-data "Accounts/data/input_data/source/accountsource.json;Accounts/data/input_data/source" main_script.py
+def show_download_window():
+        logger=Logger(ACCOUNTS_LOG_FILE_PATH)
+        logger.info("entered inside show_download_window")
+        download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+        panel = wx.Panel(download_frame)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+        sizer.Add(info_label, 0, wx.ALL, 10)
+        try:
+            logger.debug("file path accessible")
+            # List of generated files with their corresponding paths and labels
+            generated_files = {
+                "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
+                "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+                "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+            }
+        except Exception as e:
+            logger.error("An unexpected error occured: {e}")
+        # Create a download button for each file
+        for file_label, file_path in generated_files.items():
+            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            label = wx.StaticText(panel, label=file_label)
+            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+            
+            download_btn = wx.Button(panel, label="Download")
+            file_sizer.Add(download_btn, 0, wx.ALL, 5)
+            
+            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
+            
+            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        panel.SetSizer(sizer)
+        download_frame.Show()
+
+def download_file(event, file_path, file_label):
+        # Show file save dialog
+        global download_count
+        global total_files
+        wildcard = ""
+        if file_label.endswith("(Excel)"):
+            wildcard = "Excel files (*.xlsx)|*.xlsx"
+        elif file_label.endswith("(CSV)"):
+            wildcard = "CSV files (*.csv)|*.csv"
+        elif file_label.endswith("(DSV)"):
+            wildcard = "DSV files (*.dsv)|*.dsv"
+        
+        save_dialog = wx.FileDialog(
+            None, message=f"Save {file_label}", 
+            defaultFile=file_path.split("/")[-1],
+            wildcard=wildcard, 
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        
+        if save_dialog.ShowModal() == wx.ID_OK:
+            dest_path = save_dialog.GetPath()
+            try:
+                with open(file_path, 'rb') as src_file:
+                    with open(dest_path, 'wb') as dest_file:
+                        dest_file.write(src_file.read())
+                wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+                download_count += 1  # Increment download count
+                check_if_all_files_downloaded(download_count)
+            except IOError as e:
+                wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
+        
+        save_dialog.Destroy()
+
+def check_if_all_files_downloaded(download_count):
+        if download_count >= total_files:
+            wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
+            download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+            download_frame.Destroy()  # Close the download window
+            redirect_to_main_window()  # Redirect back to "My Application" window
+
+def redirect_to_main_window():
+        for window in wx.GetTopLevelWindows() :
+            if window.GetTitle() != "My Application" :
+                window.Destroy()
+        for window in wx.GetTopLevelWindows() :
+            if window.GetTitle() == "My Application" :
+                window.Raise()
+                break
