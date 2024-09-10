@@ -1,12 +1,1 @@
-# helpers/path_helper.py
-import os
-import sys
-
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for both development and after being bundled into an exe """
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
+pyinstaller --onefile --add-data "helpers/logging/log_files/accounts.log;helpers/logging/log_files" --add-data "Accounts/data/input_data/source/accountsource.json;Accounts/data/input_data/source" main_script.py
