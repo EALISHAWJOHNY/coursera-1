@@ -3,14 +3,13 @@ from Accounts.gui import redirect_to_Accounts_upload_section
 from standing_orders.standing_orders_gui import redirect_to_upload_section
 from Synonyms.gui import redirect_to_Synonyms_upload_section
 from templates.templates_gui import redirect_to_templates_upload_section
+from helpers.constants import ACCOUNTS_FINAL_REPORT_FILE_PATH, SKIPPED_RECORDS_FILE_PATH, SOURCE_ACCOUNTS_GNRTD_PATH, ACCOUNTS_LOG_FILE_PATH
+from helpers.logging.logger import Logger
 import sys
 import os
+
+# Add the root directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from helpers.constants import ACCOUNTS_FINAL_REPORT_FILE_PATH
-from helpers.constants import SKIPPED_RECORDS_FILE_PATH
-from helpers.constants import SOURCE_ACCOUNTS_GNRTD_PATH
-from helpers.constants import ACCOUNTS_LOG_FILE_PATH
-from helpers.logging.logger import Logger
 
 # Global counters for each module
 global_accounts_download_count = 0
@@ -29,6 +28,7 @@ class MyFrame(wx.Frame):
         super(MyFrame, self).__init__(*args, **kw)
         self.download_count = 0
         self.total_files = 2
+        self.download_frame = None
         panel = wx.Panel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -55,161 +55,155 @@ class MyFrame(wx.Frame):
         panel.SetSizer(sizer)
         self.Show()
 
-    def on_accounts(self, event):        
+    def on_accounts(self, event):
         redirect_to_Accounts_upload_section()
 
     def on_templates(self, event):
         redirect_to_templates_upload_section()
 
     def on_standing_orders(self, event):
-        
         redirect_to_upload_section()
 
     def on_synonyms(self, event):
-        redirect_to_Synonyms_upload_section()   
+        redirect_to_Synonyms_upload_section()
 
+    def show_download_window(self, module):
+        logger = Logger(ACCOUNTS_LOG_FILE_PATH)
+        logger.info(f"Entered inside show_download_window for {module}")
+        
+        self.download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+        panel = wx.Panel(self.download_frame)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+        sizer.Add(info_label, 0, wx.ALL, 10)
+        
+        generated_files = {}
+        global download_count, total_files
 
+        try:
+            logger.debug("File path accessible")
+            
+            # Define file paths based on the module
+            if module == "accounts":
+                generated_files = {
+                    "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
+                    "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+                    "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+                }
+                download_count = global_accounts_download_count
+                total_files = total_accounts_files
+            # Uncomment and complete the following as needed
+            # elif module == "templates":
+            #     generated_files = {
+            #         "Templates Report (Excel)": FINAL_TEMPLATES_REPORT,
+            #         "Skipped Templates (CSV)": SKIPPED_TEMPLATES_FILE_PATH,
+            #         "Mapped Templates (DSV)": GNRTD_TEMPLATES_MAPPED_FILE_PATH,
+            #     }
+            #     download_count = global_templates_download_count
+            #     total_files = total_templates_files
+            # elif module == "standing_orders":
+            #     generated_files = {
+            #         "Standing Orders Report (Excel)": FINAL_STANDING_ORDER_REPORT,
+            #         "Skipped Orders (CSV)": SKIPPED_SO_FILE_PATH,
+            #         "Mapped Orders (DSV)": GENERATED_MAPPED_SO_FILE_PATH,
+            #     }
+            #     download_count = global_standing_orders_download_count
+            #     total_files = total_standing_orders_files
+            # elif module == "synonyms":
+            #     generated_files = {
+            #         "Synonyms Report (Excel)": FINAL_SYNONYMS_REPORT_PATH,
+            #         "Skipped Synonyms (CSV)": SKIPPED_SYNONYMS_FILE_PATH,
+            #         "Mapped Synonyms (DSV)": GENERATED_TARGET_FILE_PATH,
+            #     }
+            #     download_count = global_synonyms_download_count
+            #     total_files = total_synonyms_files
+            else:
+                raise ValueError(f"Unknown module: {module}")
 
-    def show_download_window(self,module):
-            logger = Logger(ACCOUNTS_LOG_FILE_PATH)
-            logger.info(f"entered inside show_download_window for {module}")
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+
+        # Create a download button for each file
+        for file_label, file_path in generated_files.items():
+            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
             
-            download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-            panel = wx.Panel(download_frame)
-            sizer = wx.BoxSizer(wx.VERTICAL)
+            label = wx.StaticText(panel, label=file_label)
+            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
             
-            info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
-            sizer.Add(info_label, 0, wx.ALL, 10)
+            download_btn = wx.Button(panel, label="Download")
+            file_sizer.Add(download_btn, 0, wx.ALL, 5)
             
+            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label, module))
+            
+            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        panel.SetSizer(sizer)
+        self.download_frame.Show()
+
+    def download_file(self, event, file_path, file_label, module):
+        # Show file save dialog
+        global download_count
+        wildcard = ""
+        if file_label.endswith("(Excel)"):
+            wildcard = "Excel files (*.xlsx)|*.xlsx"
+        elif file_label.endswith("(CSV)"):
+            wildcard = "CSV files (*.csv)|*.csv"
+        elif file_label.endswith("(DSV)"):
+            wildcard = "DSV files (*.dsv)|*.dsv"
+        
+        save_dialog = wx.FileDialog(
+            None, message=f"Save {file_label}", 
+            defaultFile=os.path.basename(file_path),
+            wildcard=wildcard, 
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+        
+        if save_dialog.ShowModal() == wx.ID_OK:
+            dest_path = save_dialog.GetPath()
             try:
-                logger.debug("file path accessible")
-                
-                # List of generated files with their corresponding paths and labels based on the module
-                if module == "accounts":
-                    generated_files = {
-                        "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
-                        "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
-                        "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
-                    }
-                    global download_count, total_files
-                    download_count = global_accounts_download_count
-                    total_files = total_accounts_files
+                with open(file_path, 'rb') as src_file:
+                    with open(dest_path, 'wb') as dest_file:
+                        dest_file.write(src_file.read())
+                wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
+                download_count += 1  # Increment download count
+                self.check_if_all_files_downloaded(download_count, module)
+            except IOError as e:
+                wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
+        
+        save_dialog.Destroy()
 
-                # elif module == "templates":
-                #     generated_files = {
-                #         "Templates Report (Excel)": FINAL_TEMPLATES_REPORT,
-                #         "Skipped Templates (CSV)": SKIPPED_TEMPLATES_FILE_PATH,
-                #         "Mapped Templates (DSV)": GNRTD_TEMPLATES_MAPPED_FILE_PATH,
-                #     }
-                #     global download_count, total_files
-                #     download_count = global_templates_download_count
-                #     total_files = total_templates_files
+    def check_if_all_files_downloaded(self, download_count, module):
+        global total_files
+        
+        if download_count >= total_files:
+            wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
+            if self.download_frame:
+                self.download_frame.Destroy()  # Close the download window
+            self.redirect_to_main_window()  # Redirect back to "My Application" window
 
-                # elif module == "standing_orders":
-                #     generated_files = {
-                #         "Standing Orders Report (Excel)": FINAL_STANDING_ORDER_REPORT,
-                #         "Skipped Orders (CSV)": SKIPPED_SO_FILE_PATH,
-                #         "Mapped Orders (DSV)": GENERATED_MAPPED_SO_FILE_PATH,
-                #     }
-                #     global download_count, total_files
-                #     download_count = global_standing_orders_download_count
-                #     total_files = total_standing_orders_files
+            # Reset the download count after completion
+            if module == "accounts":
+                global global_accounts_download_count
+                global_accounts_download_count = 0
+            elif module == "templates":
+                global global_templates_download_count
+                global_templates_download_count = 0
+            elif module == "standing_orders":
+                global global_standing_orders_download_count
+                global_standing_orders_download_count = 0
+            elif module == "synonyms":
+                global global_synonyms_download_count
+                global_synonyms_download_count = 0
 
-                # elif module == "synonyms":
-                #     generated_files = {
-                #         "Synonyms Report (Excel)": FINAL_SYNONYMS_REPORT_PATH,
-                #         "Skipped Synonyms (CSV)": SKIPPED_SYNONYMS_FILE_PATH,
-                #         "Mapped Synonyms (DSV)": GENERATED_TARGET_FILE_PATH,
-                #     }
-                    # global download_count, total_files
-                    # download_count = global_synonyms_download_count
-                    # total_files = total_synonyms_files
-
-                else:
-                    raise ValueError(f"Unknown module: {module}")
-                
-            except Exception as e:
-                logger.error(f"An unexpected error occurred: {e}")
-            
-            # Create a download button for each file
-            for file_label, file_path in generated_files.items():
-                file_sizer = wx.BoxSizer(wx.HORIZONTAL)
-                
-                label = wx.StaticText(panel, label=file_label)
-                file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
-                
-                download_btn = wx.Button(panel, label="Download")
-                file_sizer.Add(download_btn, 0, wx.ALL, 5)
-                
-                download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: self.download_file(event, path, label, module))
-                
-                sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
-
-            panel.SetSizer(sizer)
-            download_frame.Show()
-
-    def download_file(self,event, file_path, file_label, module):
-            # Show file save dialog
-            global download_count
-            wildcard = ""
-            if file_label.endswith("(Excel)"):
-                wildcard = "Excel files (*.xlsx)|*.xlsx"
-            elif file_label.endswith("(CSV)"):
-                wildcard = "CSV files (*.csv)|*.csv"
-            elif file_label.endswith("(DSV)"):
-                wildcard = "DSV files (*.dsv)|*.dsv"
-            
-            save_dialog = wx.FileDialog(
-                None, message=f"Save {file_label}", 
-                defaultFile=file_path.split("/")[-1],
-                wildcard=wildcard, 
-                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            
-            if save_dialog.ShowModal() == wx.ID_OK:
-                dest_path = save_dialog.GetPath()
-                try:
-                    with open(file_path, 'rb') as src_file:
-                        with open(dest_path, 'wb') as dest_file:
-                            dest_file.write(src_file.read())
-                    wx.MessageBox(f"{file_label} saved successfully at {dest_path}", "Info", wx.OK | wx.ICON_INFORMATION)
-                    download_count += 1  # Increment download count
-                    self.check_if_all_files_downloaded(download_count, module)
-                except IOError as e:
-                    wx.MessageBox(f"Error saving {file_label}: {e}", "Error", wx.OK | wx.ICON_ERROR)
-            
-            save_dialog.Destroy()
-
-    def check_if_all_files_downloaded(self,download_count, module):
-            global total_files
-            
-            if download_count >= total_files:
-                wx.MessageBox("All files downloaded successfully.", "Info", wx.OK | wx.ICON_INFORMATION)
-                download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-                download_frame.Destroy()  # Close the download window
-                redirect_to_main_window()  # Redirect back to "My Application" window
-
-                # Reset the download count after completion
-                if module == "accounts":
-                    global global_accounts_download_count
-                    global_accounts_download_count = 0
-                elif module == "templates":
-                    global global_templates_download_count
-                    global_templates_download_count = 0
-                elif module == "standing_orders":
-                    global global_standing_orders_download_count
-                    global_standing_orders_download_count = 0
-                elif module == "synonyms":
-                    global global_synonyms_download_count
-                    global_synonyms_download_count = 0
-
-            def redirect_to_main_window(self):
-                for window in wx.GetTopLevelWindows():
-                    if window.GetTitle() != "My Application":
-                        window.Destroy()
-                for window in wx.GetTopLevelWindows():
-                    if window.GetTitle() == "My Application":
-                        window.Raise()
-                        break 
+    def redirect_to_main_window(self):
+        for window in wx.GetTopLevelWindows():
+            if window.GetTitle() != "My Application":
+                window.Destroy()
+        for window in wx.GetTopLevelWindows():
+            if window.GetTitle() == "My Application":
+                window.Raise()
+                break
 
 if __name__ == "__main__":
     app = wx.App(False)
