@@ -1,21 +1,33 @@
-import os
+def show_download_window():
+        
+        download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+        panel = wx.Panel(download_frame)
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
-# Get the full path of the current script and split into parts
-script_dir = os.path.dirname(os.path.abspath(__file__))
-path_parts = script_dir.split(os.sep)
+        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+        sizer.Add(info_label, 0, wx.ALL, 10)
+        
+        generated_files = {
+            "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
+            "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+            "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+        }
 
-# Extract the desired base path (up to 'GPP_DMV_Engine/Accounts')
-try:
-    base_path = os.path.join(*path_parts[:path_parts.index('GPP_DMV_Engine') + 2])
-except ValueError:
-    raise Exception("GPP_DMV_Engine not found in the current path.")
+        # Create a download button for each file
+        for file_label, file_path in generated_files.items():
+            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            label = wx.StaticText(panel, label=file_label)
+            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+            
+            download_btn = wx.Button(panel, label="Download")
+            file_sizer.Add(download_btn, 0, wx.ALL, 5)
+            
+            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
+            
+            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
-# Define the output directory and ensure it exists
-output_dir = os.path.join(base_path, 'data', 'output_data')
-os.makedirs(output_dir, exist_ok=True)  # Efficiently creates directories if they don't exist
+        panel.SetSizer(sizer)
+        download_frame.Show()
 
-# Final file path
-file_path = os.path.join(output_dir, 'Skipped-Records.csv')
-
-# Use file_path to save the file
-print(f"File will be saved at: {file_path}")
+C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data
