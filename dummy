@@ -23,6 +23,22 @@ total_templates_files = 3
 total_standing_orders_files = 3
 total_synonyms_files = 3
 
+# Paths to check and create if they don't exist
+folders_to_check = [
+    'c:/test/Accounts/data/input_data/source',
+    'c:/test/Accounts/data/input_data/target',
+    'c:/test/Accounts/data/output_data',
+    'c:/test/log_files'
+]
+
+# Create folders if they don't exist
+for folder in folders_to_check:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+        print(f"Created folder: {folder}")
+    else:
+        print(f"Folder already exists: {folder}")
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(MyFrame, self).__init__(*args, **kw)
@@ -67,15 +83,9 @@ class MyFrame(wx.Frame):
     def on_synonyms(self, event):
         redirect_to_Synonyms_upload_section()
 
-    
 
 if __name__ == "__main__":
     app = wx.App(False)
     frame = MyFrame(None, title="My Application", size=(400, 300))
     frame.Show(True)
     app.MainLoop()
-
-fs_source = FileSystemStorage(location='c:/test/Accounts/data/input_data/source')
-            fs_target = FileSystemStorage(location='c:/test/Accounts/data/input_data/target')
-c:/test/Accounts/data/output_data/
-c:/test/log_files/
