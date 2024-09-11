@@ -1,77 +1,81 @@
-To copy all the files from the directory `C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data` to the target directory `C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data` after calling the `show_download_window()` function, you can use Python's `shutil` module to copy the files right after showing the download window.
-
-Here's how you can modify the function to include the file copying logic:
-
-### Updated Function:
-
-```python
-import shutil
+import wx
+from Accounts.gui import redirect_to_Accounts_upload_section
+from standing_orders.standing_orders_gui import redirect_to_upload_section
+from Synonyms.gui import redirect_to_Synonyms_upload_section
+from templates.templates_gui import redirect_to_templates_upload_section
+from helpers.constants import ACCOUNTS_FINAL_REPORT_FILE_PATH, SKIPPED_RECORDS_FILE_PATH, SOURCE_ACCOUNTS_GNRTD_PATH, ACCOUNTS_LOG_FILE_PATH
+from helpers.logging.logger import Logger
+import sys
 import os
 
-def show_download_window():
-        
-    download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-    panel = wx.Panel(download_frame)
-    sizer = wx.BoxSizer(wx.VERTICAL)
+# Add the root directory to sys.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-    info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
-    sizer.Add(info_label, 0, wx.ALL, 10)
+# Global counters for each module
+global_accounts_download_count = 0
+global_templates_download_count = 0
+global_standing_orders_download_count = 0
+global_synonyms_download_count = 0
+
+# Total files for each module
+total_accounts_files = 3
+total_templates_files = 3
+total_standing_orders_files = 3
+total_synonyms_files = 3
+
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MyFrame, self).__init__(*args, **kw)
+        self.download_count = 0
+        self.total_files = 2
+        self.download_frame = None
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Accounts Button
+        accounts_btn = wx.Button(panel, label="Accounts")
+        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
+
+        # Templates Button
+        templates_btn = wx.Button(panel, label="Templates")
+        sizer.Add(templates_btn, 0, wx.ALL | wx.EXPAND, 5)
+        templates_btn.Bind(wx.EVT_BUTTON, self.on_templates)
+
+        # Standing Orders Button
+        standing_orders_btn = wx.Button(panel, label="Standing Orders")
+        sizer.Add(standing_orders_btn, 0, wx.ALL | wx.EXPAND, 5)
+        standing_orders_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+
+        # Synonyms Button
+        synonyms_btn = wx.Button(panel, label="Synonyms")
+        sizer.Add(synonyms_btn, 0, wx.ALL | wx.EXPAND, 5)
+        synonyms_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
+
+        panel.SetSizer(sizer)
+        self.Show()
+
+    def on_accounts(self, event):
+        redirect_to_Accounts_upload_section()
+
+    def on_templates(self, event):
+        redirect_to_templates_upload_section()
+
+    def on_standing_orders(self, event):
+        redirect_to_upload_section()
+
+    def on_synonyms(self, event):
+        redirect_to_Synonyms_upload_section()
+
     
-    generated_files = {
-        "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
-        "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
-        "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
-    }
 
-    # Create a download button for each file
-    for file_label, file_path in generated_files.items():
-        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        label = wx.StaticText(panel, label=file_label)
-        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
-        
-        download_btn = wx.Button(panel, label="Download")
-        file_sizer.Add(download_btn, 0, wx.ALL, 5)
-        
-        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
-        
-        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MyFrame(None, title="My Application", size=(400, 300))
+    frame.Show(True)
+    app.MainLoop()
 
-    panel.SetSizer(sizer)
-    download_frame.Show()
-
-    # Step to copy files from the source directory to the target directory
-    copy_files_to_temp()
-
-def copy_files_to_temp():
-    # Define the source and destination directories
-    src_dir = r'C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data'
-    dest_dir = r'C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data'
-
-    # Create the destination directory if it doesn't exist
-    os.makedirs(dest_dir, exist_ok=True)
-
-    # Copy all files from the source to the destination directory
-    for filename in os.listdir(src_dir):
-        src_file = os.path.join(src_dir, filename)
-        dest_file = os.path.join(dest_dir, filename)
-        
-        if os.path.isfile(src_file):
-            shutil.copy(src_file, dest_file)
-            print(f"Copied: {src_file} to {dest_file}")
-```
-
-### Breakdown of Changes:
-
-1. **`copy_files_to_temp()` Function**:
-   - **`src_dir`**: The source directory where the files are currently located (`C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data`).
-   - **`dest_dir`**: The destination directory (`C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data`).
-   - **`os.makedirs(dest_dir, exist_ok=True)`**: Ensures the destination directory exists, creating it if necessary.
-   - **`shutil.copy(src_file, dest_file)`**: Copies each file from the source directory to the destination directory.
-
-2. **`os.listdir(src_dir)`**: This function lists all files in the source directory. We then iterate through the list and copy each file to the destination directory.
-
-3. **Calling `copy_files_to_temp()`**: After showing the download window, this function is called to copy the files to the temporary directory.
-
-### Result:
--
+fs_source = FileSystemStorage(location='c:/test/Accounts/data/input_data/source')
+            fs_target = FileSystemStorage(location='c:/test/Accounts/data/input_data/target')
+c:/test/Accounts/data/output_data/
+c:/test/log_files/
