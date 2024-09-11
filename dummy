@@ -1,7 +1,1 @@
-pyinstaller --onefile --add-data "helpers/logging/log_files/accounts.log:helpers/logging/log_files" \
---add-data "Accounts/data/input_data/source:Accounts/data/input_data/source" \
---add-data "Accounts/data/input_data/target:Accounts/data/input_data/target" \
---add-data "C:/src/DataMigration(rnd)/GPP_DMV_Engine/Accounts/data/output_data/Final-Report:Accounts/data/output_data" \
---add-data "C:/src/DataMigration(rnd)/GPP_DMV_Engine/Accounts/data/output_data/Skipped-Records:Accounts/data/output_data" \
---add-data "C:/src/DataMigration(rnd)/GPP_DMV_Engine/Accounts/data/output_data/SRC_Accounts.dsv:Accounts/data/output_data" \
-main1.py
+scrpit_dir = os.path.dirname(os.path.abspath(__file__))
