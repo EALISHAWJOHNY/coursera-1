@@ -1,33 +1,77 @@
+To copy all the files from the directory `C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data` to the target directory `C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data` after calling the `show_download_window()` function, you can use Python's `shutil` module to copy the files right after showing the download window.
+
+Here's how you can modify the function to include the file copying logic:
+
+### Updated Function:
+
+```python
+import shutil
+import os
+
 def show_download_window():
         
-        download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
-        panel = wx.Panel(download_frame)
-        sizer = wx.BoxSizer(wx.VERTICAL)
+    download_frame = wx.Frame(None, title="Download Generated Files", size=(400, 300))
+    panel = wx.Panel(download_frame)
+    sizer = wx.BoxSizer(wx.VERTICAL)
 
-        info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
-        sizer.Add(info_label, 0, wx.ALL, 10)
+    info_label = wx.StaticText(panel, label="Click the Download button to save the files:")
+    sizer.Add(info_label, 0, wx.ALL, 10)
+    
+    generated_files = {
+        "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
+        "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
+        "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
+    }
+
+    # Create a download button for each file
+    for file_label, file_path in generated_files.items():
+        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        generated_files = {
-            "Final Report (Excel)": ACCOUNTS_FINAL_REPORT_FILE_PATH,
-            "Skipped Records (CSV)": SKIPPED_RECORDS_FILE_PATH,
-            "SRC Accounts (DSV)": SOURCE_ACCOUNTS_GNRTD_PATH,
-        }
+        label = wx.StaticText(panel, label=file_label)
+        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+        
+        download_btn = wx.Button(panel, label="Download")
+        file_sizer.Add(download_btn, 0, wx.ALL, 5)
+        
+        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
+        
+        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
-        # Create a download button for each file
-        for file_label, file_path in generated_files.items():
-            file_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            
-            label = wx.StaticText(panel, label=file_label)
-            file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
-            
-            download_btn = wx.Button(panel, label="Download")
-            file_sizer.Add(download_btn, 0, wx.ALL, 5)
-            
-            download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
-            
-            sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
+    panel.SetSizer(sizer)
+    download_frame.Show()
 
-        panel.SetSizer(sizer)
-        download_frame.Show()
-C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data
-C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data
+    # Step to copy files from the source directory to the target directory
+    copy_files_to_temp()
+
+def copy_files_to_temp():
+    # Define the source and destination directories
+    src_dir = r'C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data'
+    dest_dir = r'C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data'
+
+    # Create the destination directory if it doesn't exist
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Copy all files from the source to the destination directory
+    for filename in os.listdir(src_dir):
+        src_file = os.path.join(src_dir, filename)
+        dest_file = os.path.join(dest_dir, filename)
+        
+        if os.path.isfile(src_file):
+            shutil.copy(src_file, dest_file)
+            print(f"Copied: {src_file} to {dest_file}")
+```
+
+### Breakdown of Changes:
+
+1. **`copy_files_to_temp()` Function**:
+   - **`src_dir`**: The source directory where the files are currently located (`C:\src\DataMigration(rnd)\GPP_DMV_Engine\Accounts\data\output_data`).
+   - **`dest_dir`**: The destination directory (`C:\Users\EJOHNY\AppData\Local\Temp\_MEI221322\Accounts\data\output_data`).
+   - **`os.makedirs(dest_dir, exist_ok=True)`**: Ensures the destination directory exists, creating it if necessary.
+   - **`shutil.copy(src_file, dest_file)`**: Copies each file from the source directory to the destination directory.
+
+2. **`os.listdir(src_dir)`**: This function lists all files in the source directory. We then iterate through the list and copy each file to the destination directory.
+
+3. **Calling `copy_files_to_temp()`**: After showing the download window, this function is called to copy the files to the temporary directory.
+
+### Result:
+-
