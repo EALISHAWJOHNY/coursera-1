@@ -5,3 +5,5 @@ Not Found: /
 [12/Sep/2024 15:15:27] "GET / HTTP/1.1" 404 2780
 Not Found: /favicon.ico
 [12/Sep/2024 15:15:28] "GET /favicon.ico HTTP/1.1" 404 2831
+
+execute_from_command_line(['manage.py','runserver','127.0.0.1:8000','--noreload'])
