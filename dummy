@@ -1,12 +1,15 @@
-def main():
-    """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GPP_DMV_Engine.settings')
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
+Exception in thread Thread-1 (run_django_server):
+Traceback (most recent call last):
+  File "threading.py", line 1075, in _bootstrap_inner
+  File "threading.py", line 1012, in run
+  File "GPP_DMV_Engine.py", line 50, in run_django_server
+  File "django\core\management\__init__.py", line 442, in execute_from_command_line
+  File "django\core\management\__init__.py", line 436, in execute
+  File "django\core\management\base.py", line 413, in run_from_argv
+  File "django\core\management\commands\runserver.py", line 75, in execute
+  File "django\core\management\base.py", line 459, in execute
+  File "django\core\management\commands\runserver.py", line 112, in handle
+  File "django\core\management\commands\runserver.py", line 119, in run
+  File "django\utils\autoreload.py", line 664, in run_with_reloader
+  File "signal.py", line 58, in signal
+ValueError: signal only works in main thread of the main interpreter
