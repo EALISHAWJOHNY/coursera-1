@@ -1,17 +1,16 @@
-Traceback (most recent call last):
-  File "GPP_DMV_Engine.py", line 119, in <module>
-  File "GPP_DMV_Engine.py", line 50, in run_django_server
-  File "django\core\management\__init__.py", line 442, in execute_from_command_line
-  File "django\core\management\__init__.py", line 436, in execute
-  File "django\core\management\base.py", line 413, in run_from_argv
-  File "django\core\management\commands\runserver.py", line 75, in execute
-  File "django\core\management\base.py", line 459, in execute
-  File "django\core\management\commands\runserver.py", line 112, in handle
-  File "django\core\management\commands\runserver.py", line 119, in run
-  File "django\utils\autoreload.py", line 673, in run_with_reloader
-  File "PyInstaller\hooks\rthooks\pyi_rth_django.py", line 24, in _restart_with_reloader
-  File "django\utils\autoreload.py", line 272, in restart_with_reloader
-  File "django\utils\autoreload.py", line 229, in get_child_arguments
-IndexError: list index out of range
-[PYI-14844:ERROR] Failed to execute script 'GPP_DMV_Engine' due to unhandled exception!
-
+Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
+Internal Server Error: /Accounts/upload/
+[12/Sep/2024 15:10:26] "POST /Accounts/upload/ HTTP/1.1" 500 87
+Not Found: /
+[12/Sep/2024 15:15:27] "GET / HTTP/1.1" 404 2780
+Not Found: /favicon.ico
+[12/Sep/2024 15:15:28] "GET /favicon.ico HTTP/1.1" 404 2831
+Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
+Internal Server Error: /Accounts/upload/
+[12/Sep/2024 15:16:08] "POST /Accounts/upload/ HTTP/1.1" 500 87
+Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
+Internal Server Error: /Accounts/upload/
+[12/Sep/2024 15:24:06] "POST /Accounts/upload/ HTTP/1.1" 500 87
+Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
+Internal Server Error: /Accounts/upload/
+[12/Sep/2024 15:26:31] "POST /Accounts/upload/ HTTP/1.1" 500 87
