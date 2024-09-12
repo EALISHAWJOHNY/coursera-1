@@ -1,3 +1,12 @@
 Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
 Internal Server Error: /Accounts/upload/
 [12/Sep/2024 15:41:42] "POST /Accounts/upload/ HTTP/1.1" 500 87
+def upload_files(source_path, target_path,upload_frame):
+        url = "http://127.0.0.1:8000/Accounts/upload/"
+        files = {
+            'sourcefile': open(source_path, 'rb'),
+            'targetfile': open(target_path, 'rb')
+        }
+        
+        try:
+            response = requests.post(url, files=files)
