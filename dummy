@@ -1,1 +1,96 @@
-C:\\src\\DataMigration(rnd)\\GPP_DMV_Engine\\icon
+import wx
+from Accounts.gui import redirect_to_Accounts_upload_section
+from standing_orders.standing_orders_gui import redirect_to_upload_section
+from Synonyms.gui import redirect_to_Synonyms_upload_section
+from templates.templates_gui import redirect_to_templates_upload_section
+from helpers.logging.logger import Logger
+import sys
+import os
+
+# Add the root directory to sys.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Paths to check and create if they don't exist
+folders_to_check = [
+    'c:/GPP/log_files',  
+      
+    'c:/GPP/Accounts/data/input_data/source',
+    'c:/GPP/Accounts/data/input_data/target',
+    'c:/GPP/Accounts/data/output_data',
+    
+    'c:/GPP/Synonyms/data/input_data/source',
+    'c:/GPP/Synonyms/data/input_data/target',
+    'c:/GPP/Synonyms/data/output_data',
+    
+    'c:/GPP/standing_orders/data/input_data/source',
+    'c:/GPP/standing_orders/data/input_data/source_before_merge',
+    'c:/GPP/standing_orders/data/input_data/target',
+    'c:/GPP/standing_orders/data/output_data',
+    
+    'c:\\GPP\\templates\\data\\input_data\\source',
+    'c:\\GPP\\templates\\data\\input_data\\source_before_merge',
+    'c:\\GPP\\templates\\data\\input_data\\target',
+    'c:\\GPP\\templates\\data\\output_data', 
+    
+]
+
+if not os.path.exists("c:\\GPP"):
+        os.makedirs("c:\\GPP")
+
+# Create folders if they don't exist
+for folder in folders_to_check:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+        
+        
+class MyFrame(wx.Frame):
+    def __init__(self, *args, **kw):
+        super(MyFrame, self).__init__(*args, **kw)
+        self.download_count = 0
+        self.total_files = 2
+        self.download_frame = None
+        panel = wx.Panel(self)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Accounts Button
+        accounts_btn = wx.Button(panel, label="Accounts")
+        sizer.Add(accounts_btn, 0, wx.ALL | wx.EXPAND, 5)
+        accounts_btn.Bind(wx.EVT_BUTTON, self.on_accounts)
+
+        # Templates Button
+        templates_btn = wx.Button(panel, label="Templates")
+        sizer.Add(templates_btn, 0, wx.ALL | wx.EXPAND, 5)
+        templates_btn.Bind(wx.EVT_BUTTON, self.on_templates)
+
+        # Standing Orders Button
+        standing_orders_btn = wx.Button(panel, label="Standing Orders")
+        sizer.Add(standing_orders_btn, 0, wx.ALL | wx.EXPAND, 5)
+        standing_orders_btn.Bind(wx.EVT_BUTTON, self.on_standing_orders)
+
+        # Synonyms Button
+        synonyms_btn = wx.Button(panel, label="Synonyms")
+        sizer.Add(synonyms_btn, 0, wx.ALL | wx.EXPAND, 5)
+        synonyms_btn.Bind(wx.EVT_BUTTON, self.on_synonyms)
+
+        panel.SetSizer(sizer)
+        self.Show()
+
+    def on_accounts(self, event):
+        redirect_to_Accounts_upload_section()
+
+    def on_templates(self, event):
+        redirect_to_templates_upload_section()
+
+    def on_standing_orders(self, event):
+        redirect_to_upload_section()
+
+    def on_synonyms(self, event):
+        redirect_to_Synonyms_upload_section()
+
+    
+
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MyFrame(None, title="GPP DMV Engine", size=(400, 300))
+    frame.Show(True)
+    app.MainLoop()
