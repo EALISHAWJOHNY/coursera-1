@@ -1,12 +1,7 @@
 Unexpected error in subprocess: [WinError 2] The system cannot find the file specified
 Internal Server Error: /Accounts/upload/
-[12/Sep/2024 15:41:42] "POST /Accounts/upload/ HTTP/1.1" 500 87
-def upload_files(source_path, target_path,upload_frame):
-        url = "http://127.0.0.1:8000/Accounts/upload/"
-        files = {
-            'sourcefile': open(source_path, 'rb'),
-            'targetfile': open(target_path, 'rb')
-        }
-        
-        try:
-            response = requests.post(url, files=files)
+[12/Sep/2024 15:10:26] "POST /Accounts/upload/ HTTP/1.1" 500 87
+Not Found: /
+[12/Sep/2024 15:15:27] "GET / HTTP/1.1" 404 2780
+Not Found: /favicon.ico
+[12/Sep/2024 15:15:28] "GET /favicon.ico HTTP/1.1" 404 2831
