@@ -1,30 +1,30 @@
-ACCOUNTS_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "accounts.log")
-ACCOUNTS_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "input_data", "source", "accountsource.json")
-SKIPPED_ACCOUNTS_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Skipped-Records.csv")
-SOURCE_ACCOUNTS_GNRTD_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "SRC_Accounts.dsv")
-TARGET_ACCOUNTS_PATH = os.path.join(BASE_DIR, "Accounts", "data", "input_data", "target", "Target Data Extract - Accounts 3.19 - Copy.dsv")
-SKIPPED_RECORDS_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Skipped-Records.csv")
-ACCOUNTS_FINAL_REPORT_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Final-Report.xlsx")
+from .path_helper import resource_path
 
-# synonyms
-SYNONYMS_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "synonyms.log")
-SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "input_data", "source", "synonyms.dsv")
-GENERATED_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "output_data", "SYNONYM-SOURCE.dsv")
-GENERATED_TARGET_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "input_data", "target", "FAT PROD in UAT account_alias.dsv")
-FINAL_SYNONYMS_REPORT_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "output_data", "FINAL-SYNONYM-REPORT.xlsx")
+
+#accounts
+ACCOUNTS_LOG_FILE_PATH= "C:\\GPP\\log_files\\accounts.log"
+ACCOUNTS_SOURCE_FILE_PATH= "C:\\GPP\\Accounts\\data\\input_data\\source\\accountsource.json"
+SKIPPED_ACCOUNTS_FILE_PATH= "C:\\GPP\\Accounts\\data\\output_data\\Skipped-Records.csv"
+SOURCE_ACCOUNTS_GNRTD_PATH= "c:/GPP/Accounts/data/output_data/SRC_Accounts.dsv"
+TARGET_ACCOUNTS_PATH= "C:\\GPP\\Accounts\\data\\input_data\\target\\Target Data Extract - Accounts 3.19 - Copy.dsv"
+SKIPPED_RECORDS_FILE_PATH= "C:\\GPP\\Accounts\\data\\output_data\\Skipped-Records.csv"
+ACCOUNTS_FINAL_REPORT_FILE_PATH= "C:\\GPP\\Accounts\\data\\output_data\\Final-Report.xlsx"
+
+#synonyms
+SYNONYMS_LOG_FILE_PATH="C:\\GPP\\log_files\\synonyms.log"
+SOURCE_FILE_PATH="C:\\GPP\\Synonyms\\data\\input_data\\source\\synonyms.dsv"
+GENERATED_SOURCE_FILE_PATH="C:\\GPP\\Synonyms\\data\\output_data\\SYNONYM-SOURCE.dsv"
+GENERATED_TARGET_FILE_PATH="C:\\GPP\\Synonyms/data/input_data/target/FAT PROD in UAT account_alias.dsv"
+FINAL_SYNONYMS_REPORT_PATH="C:\\GPP\\Synonyms\\data\\output_data\\FINAL-SYNONYM-REPORT.xlsx"
 ALIAS_TYPE="VAAC"
 CURRENCY="USD"
 DEPARTMENT_SYNONYMS="SDM"
 OFFICE_SYNONYMS="US1"
 SYNONYMS_FIELDS_TO_MAP=["OFFICE","DEPARTMENT","ACC_NO","CURRENCY","ACCOUNT_ALIAS","ALIAS_TYPE"]
 
-# standing orders
-STANDING_ORDERS_LOG_FILE = os.path.join(BASE_DIR, "log_files", "standing_orders.log")
-STANDING_ORDERS_SOURCE_FILE = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "source", "Schedulers_to_be_migrated_combined.xlsx")
-GENERATED_MAPPED_SO_FILE_PATH = os.path.join(BASE_DIR, "standing_orders", "data", "output_data", "Mapped_Standing_Order_Report.xlsx")
-TARGET_SO_FILE_PATH = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "target", "FAT PROD in UAT STANDING_ORDERS.dsv")
-FINAL_STANDING_ORDER_REPORT = os.path.join(BASE_DIR, "standing_orders", "data", "output_data", "Final_Standing_Order_Report.xlsx")
-STANDING_ORDERS_SOURCE_FILE_BEFORE_MERGE = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "source_before_merge", "Schedulers to be migrated - Apr'24 (Incl & Excl).xlsx")
+#standing orders
+STANDING_ORDERS_LOG_FILE="C:\\GPP\\log_files\\standing_orders.log"
+STANDING_ORDERS_SOURCE_FILE="C:\\GPP\\standing_orders\\data\\input_data\\source\\Schedulers_to_be_migrated_combined.xlsx"
 NUMBER_OF_OCCURANCES="0"
 PAYMENTS_GENERATED_CNT="0"
 DEPARTMENT_SO="PAY"
@@ -32,6 +32,8 @@ OFFICE_SO="US1"
 AMT_SRC_SO="CDB_INQ"
 ACC_CCY="USD"
 REC_STATUS_SO="AC"
+GENERATED_MAPPED_SO_FILE_PATH="C:\\GPP\\standing_orders\\data\\output_data\\Mapped_Standing_Order_Report.xlsx"
+TARGET_SO_FILE_PATH="C:\\GPP\\standing_orders\\data\\input_data\\target\\FAT PROD in UAT STANDING_ORDERS.dsv"
 SO_FIELDNAMES_LIST=["SO_NAME","SO_DESCRIPTION","NUMBER_OF_OCCURRENCES","END_BY_DATE",                            
 "CT_TEMPLATE_MID","CT_TEMPLATE","PAYMENTS_GENERATED_CNT","DEPARTMENT","OFFICE","REC_STATUS","PROFILE_CHANGE_STATUS",                  
 "EFFECTIVE_DATE","PENDING_ACTION","TIMES_OF_OCCURRENCES","SO_CLOSED","TIME_STAMP","PMNT_TYPE",                         
@@ -44,14 +46,77 @@ SO_COLUMNS_TO_MATCH_LIST=["SO_NAME","NUMBER_OF_OCCURRENCES","END_BY_DATE",
 "AMT_SRC","CT_MIN_SWEEP_AMT","MIN_REMAIN_BAL", "ACC_CCY", "DAY_OF_WEEK",                          
 "DAY_OF_MONTH","MONTH_NUMBER","FREQUENCY_PATTERN",                      
 "RECUR_EVERY","ADJ_TO_BSNESSDATE","LAST_EXECUTION_TIME","DD_MIN_SWEEP_AMT","APPROVALS","PRIMARY","ACC_NO"]
+FINAL_STANDING_ORDER_REPORT="C:\\GPP\\standing_orders\\data\\output_data\\Final_Standing_Order_Report.xlsx"
+STANDING_ORDERS_SOURCE_FILE_BEFORE_MERGE = "C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge\\Schedulers to be migrated - Apr'24 (Incl & Excl).xlsx"
 
-# templates
-TEMPLATES_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "templates.log")
-TEMPLATES_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "source", "templates_combined.xlsx")
-GNRTD_TEMPLATES_MAPPED_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "output_data", "Mapped_Templates_Report.xlsx")
-TRGT_TEMPLATES_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "target", "target_template.xlsx")
-TRGT_TEMPLATE1_FILE_PATH=os.path.join(BASE_DIR, "templates", "data", "input_data", "target", "target_template1.xlsx")
-FINAL_TEMPLATES_REPORT = os.path.join(BASE_DIR, "templates", "data", "output_data", "Final_Templates_Report.xlsx")
-TEMPLATES_SOURCE_FILE_BEFORE_MERGE = os.path.join(BASE_DIR, "templates", "data", "input_data", "source_before_merge", "Templates_to_be_migrated_Latest.xlsx")
-TRGT_TEMPLATES_DSV_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "target", "TEMPLATES_TARGET.dsv")
+#templates
+TEMPLATES_LOG_FILE_PATH="C:\\GPP\\log_files\\templates.log"
+TEMPLATES_SOURCE_FILE_PATH="C:\\GPP\\templates\\data\\input_data\\source\\templates_combined.xlsx"
+OFFICE_TEMPLATES="US1"
+P_DEPARTMENT="PAY"
+KNOWN_FED_MSG_TYPES=[1000,1500,1600,1031,1631]
+TEMPLATES_FIELDNAMES_LIST=['P_TEMPLATE_NM', 'P_OFFICE', 'P_DEPARTMENT', 'P_CDT_MOP', 
+'P_MSG_TYPE', 'P_MSG_SUB_TYPE', 'P_STTLM_AMT', 'P_STTLM_CCY', 'P_STTLM_DT_1B', 'P_TEMPLATE_PREFIX',
+'P_TRX_DIRECTION', 'ABA_3100', 'ABA_3400', 'CDTR_ACCT_5400', 'CDTR_NM_5400', 'ACCOUNT_5000',
+'NAME_5000', 'ADDRESS1_5000', 'ADDRESS2_5000', 'ADDRESS3_5000', 'IBKIDTYPE_4000', 'ABA_4000',
+'BIC_4000', 'NAME_4000', 'ADDRESS1_4000', 'ADDRESS2_4000', 'ADDRESS3_4000', 'ACCOUNT_TYPE_4100',
+'BIC_4100', 'ACCOUNT_4100', 'NAME_4100', 'ADDRESS1_4100', 'ADDRESS2_4100', 'ADDRESS3_4100',
+'ACCOUNT_TYPE_4200', 'ACCOUNT_4200', 'NAME_4200', 'ADDRESS1_4200', 'ADDRESS2_4200', 
+'ADDRESS3_4200', 'P_END_TO_END_ID', 'OBI_1_6000', 'OBI_2_6000', 'OBI_3_6000', 'OBI_4_6000', 
+'BBI_1_6500', 'BBI_2_6500', 'BBI_3_6500', 'BBI_4_6500', 'BBI_5_6500', 'BBI_6_6500', 'BBI_1_6400', 
+'BBI_2_6400', 'BBI_3_6400', 'BBI_4_6400', 'BBI_5_6400', 'BBI_6_6400', 'RCVR_1_6100', 'RCVR_2_6100', 
+'RCVR_3_6100', 'RCVR_4_6100', 'RCVR_5_6100', 'RCVR_6_6100', 'BBK_1_6300', 'BBK_2_6300', 
+'BBK_3_6300', 'BBK_4_6300', 'BBK_5_6300', 'BBK_6_6300', 'ACCOUNT_4400', 'NAME_4400', 
+'ADDRESS1_4400', 'ADDRESS2_4400', 'ADDRESS3_4400', 'ACCOUNT_5100', 'NAME_5100', 'ADDRESS1_5100', 
+'ADDRESS2_5100', 'ADDRESS3_5100', 'BFC', 'P_TEMPLATE_TYPE']
+GNRTD_TEMPLATES_MAPPED_FILE_PATH="C:\\GPP\\templates\\data\\output_data\\Mapped_Templates_Report.xlsx"
+TRGT_TEMPLATE1_FILE_PATH="C:\\GPP\\templates\\data\\input_data\\target\\target_template1.xlsx"
+TRGT_TEMPLATES_FILE_PATH="C:\\GPP\\templates\\data\\input_data\\target\\target_template.xlsx"
+TRGT_TEMPLATES_FILE_PATH="C:\\GPP\\templates\\data\\input_data\\target\\target_template.xlsx"
+TRGT_TEMPLATES_FILE_PATH="C:\\GPP\\templates\\data\\input_data\\target\\target_template.xlsx"
+TEMPLATES_COLUMNS_TO_MATCH=["P_TEMPLATE_NM","P_OFFICE","P_DEPARTMENT","P_CDT_MOP","P_MSG_TYPE","P_MSG_SUB_TYPE",
+                  "P_STTLM_AMT","P_STTLM_CCY","P_TRX_DIRECTION","ABA_3100","ABA_3400",
+                  "ACCOUNT_5000","NAME_5000","ADDRESS1_5000","ADDRESS2_5000","ADDRESS3_5000","IBKIDTYPE_4000",
+                  "ABA_4000","BIC_4000","NAME_4000","ADDRESS1_4000","ADDRESS2_4000","ADDRESS3_4000","ACCOUNT_TYPE_4200",
+                  "ACCOUNT_4200","NAME_4200","ADDRESS1_4200","ADDRESS2_4200","ADDRESS3_4200",
+                  "P_END_TO_END_ID","BBI_1_6400","BBI_2_6400","BBI_3_6400","BBI_4_6400","BBI_5_6400","BBI_6_6400",
+                  "RCVR_1_6100","RCVR_2_6100","RCVR_3_6100","RCVR_4_6100","RCVR_5_6100","RCVR_6_6100",
+                   "BBK_1_6300","BBK_2_6300","BBK_3_6300","BBK_4_6300","BBK_5_6300","BBK_6_6300","NAME_4400","ADDRESS1_4400",
+                  "ADDRESS2_4400","BFC","P_TEMPLATE_TYPE","ADDRESS3_4400","ACCOUNT_5100","NAME_5100","ADDRESS1_5100","ADDRESS2_5100","ADDRESS3_5100",
+                  "BBI_6500","OBI_6000","ACCOUNT_4400","CDTR_ACCT_5400","CDTR_NM_5400"
+                 ]
+TEMPLATES_SOURCE_FILE_BEFORE_MERGE = "C:\\GPP\\templates\\data\\input_data\\source_before_merge\\Templates_to_be_migrated_Latest.xlsx"
+TRGT_TEMPLATES_DSV_FILE_PATH = "C:\\GPP\\templates\\data\\input_data\\target\\TEMPLATES_TARGET.dsv"
+FINAL_TEMPLATES_REPORT="C:\\GPP\\templates\\data\\output_data\\Final_Templates_Report.xlsx"
 TARGET_ACCOUNTS_PATH_FOR_TEMPLATE = "C:\\GPP\\Accounts\\data\\input_data\\target\\Target Data Extract - Accounts 3.19 - Copy.dsv"
+
+
+folders_to_check = [
+    'C:\\GPP\\log_files',  
+      
+    'C:\\GPP\\Accounts\\data\\input_data\\source',
+    'C:\\GPP\\Accounts\\data\\input_data\\target',
+    'C:\\GPP\\Accounts\\data\\output_data',
+    
+    'C:\\GPP\\Synonyms\\data\\input_data\\source',
+    'C:\\GPP\\Synonyms\\data\\input_data\\target',
+    'C:\\GPP\\Synonyms\\data\\output_data',
+    
+    'C:\\GPP\\standing_orders\\data\\input_data\\source',
+    'C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge',
+    'C:\\GPP\\standing_orders\\data\\input_data\\target',
+    'C:\\GPP\\standing_orders\\data\\output_data',
+    
+    'C:\\GPP\\templates\\data\\input_data\\source',
+    'C:\\GPP\\templates\\data\\input_data\\target',
+    'C:\\GPP\\templates\\data\\output_data', 
+    
+]
+
+if not os.path.exists("C:\\GPP"):
+        os.makedirs("C:\\GPP")
+
+# Create folders if they don't exist
+for folder in folders_to_check:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
