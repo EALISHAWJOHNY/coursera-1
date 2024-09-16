@@ -1,40 +1,30 @@
-import os
-from .path_helper import resource_path  # Assuming resource_path is used to handle relative paths
+# Paths to check and create if they don't exist
+# folders_to_check = [
+#     'C:\\GPP\\log_files',  
+      
+#     'C:\\GPP\\Accounts\\data\\input_data\\source',
+#     'C:\\GPP\\Accounts\\data\\input_data\\target',
+#     'C:\\GPP\\Accounts\\data\\output_data',
+    
+#     'C:\\GPP\\Synonyms\\data\\input_data\\source',
+#     'C:\\GPP\\Synonyms\\data\\input_data\\target',
+#     'C:\\GPP\\Synonyms\\data\\output_data',
+    
+#     'C:\\GPP\\standing_orders\\data\\input_data\\source',
+#     'C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge',
+#     'C:\\GPP\\standing_orders\\data\\input_data\\target',
+#     'C:\\GPP\\standing_orders\\data\\output_data',
+    
+#     'C:\\GPP\\templates\\data\\input_data\\source',
+#     'C:\\GPP\\templates\\data\\input_data\\target',
+#     'C:\\GPP\\templates\\data\\output_data', 
+    
+# ]
 
-# Define base directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Current directory where this script is located
+# if not os.path.exists("C:\\GPP"):
+#         os.makedirs("C:\\GPP")
 
-# accounts
-ACCOUNTS_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "accounts.log")
-ACCOUNTS_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "input_data", "source", "accountsource.json")
-SKIPPED_ACCOUNTS_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Skipped-Records.csv")
-SOURCE_ACCOUNTS_GNRTD_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "SRC_Accounts.dsv")
-TARGET_ACCOUNTS_PATH = os.path.join(BASE_DIR, "Accounts", "data", "input_data", "target", "Target Data Extract - Accounts 3.19 - Copy.dsv")
-SKIPPED_RECORDS_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Skipped-Records.csv")
-ACCOUNTS_FINAL_REPORT_FILE_PATH = os.path.join(BASE_DIR, "Accounts", "data", "output_data", "Final-Report.xlsx")
-
-# synonyms
-SYNONYMS_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "synonyms.log")
-SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "input_data", "source", "synonyms.dsv")
-GENERATED_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "output_data", "SYNONYM-SOURCE.dsv")
-GENERATED_TARGET_FILE_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "input_data", "target", "FAT PROD in UAT account_alias.dsv")
-FINAL_SYNONYMS_REPORT_PATH = os.path.join(BASE_DIR, "Synonyms", "data", "output_data", "FINAL-SYNONYM-REPORT.xlsx")
-
-# standing orders
-STANDING_ORDERS_LOG_FILE = os.path.join(BASE_DIR, "log_files", "standing_orders.log")
-STANDING_ORDERS_SOURCE_FILE = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "source", "Schedulers_to_be_migrated_combined.xlsx")
-GENERATED_MAPPED_SO_FILE_PATH = os.path.join(BASE_DIR, "standing_orders", "data", "output_data", "Mapped_Standing_Order_Report.xlsx")
-TARGET_SO_FILE_PATH = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "target", "FAT PROD in UAT STANDING_ORDERS.dsv")
-FINAL_STANDING_ORDER_REPORT = os.path.join(BASE_DIR, "standing_orders", "data", "output_data", "Final_Standing_Order_Report.xlsx")
-STANDING_ORDERS_SOURCE_FILE_BEFORE_MERGE = os.path.join(BASE_DIR, "standing_orders", "data", "input_data", "source_before_merge", "Schedulers to be migrated - Apr'24 (Incl & Excl).xlsx")
-
-# templates
-TEMPLATES_LOG_FILE_PATH = os.path.join(BASE_DIR, "log_files", "templates.log")
-TEMPLATES_SOURCE_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "source", "templates_combined.xlsx")
-GNRTD_TEMPLATES_MAPPED_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "output_data", "Mapped_Templates_Report.xlsx")
-TRGT_TEMPLATES_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "target", "target_template.xlsx")
-FINAL_TEMPLATES_REPORT = os.path.join(BASE_DIR, "templates", "data", "output_data", "Final_Templates_Report.xlsx")
-TEMPLATES_SOURCE_FILE_BEFORE_MERGE = os.path.join(BASE_DIR, "templates", "data", "input_data", "source_before_merge", "Templates_to_be_migrated_Latest.xlsx")
-TRGT_TEMPLATES_DSV_FILE_PATH = os.path.join(BASE_DIR, "templates", "data", "input_data", "target", "TEMPLATES_TARGET.dsv")
-
-# Other paths will be similarly constructed
+# # Create folders if they don't exist
+# for folder in folders_to_check:
+#     if not os.path.exists(folder):
+#         os.makedirs(folder)
