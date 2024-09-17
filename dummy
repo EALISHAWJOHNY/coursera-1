@@ -1,20 +1,18 @@
-pyinstaller --onefile --add-data "helpers/logging/log_files/accounts.log:helpers/logging/log_files" --icon='C:\\src\\DataMigration(rnd)\\GPP_DMV_Engine\\icon\gpp.ico' GPP_DMV_Engine.py
-
- 'C:\\GPP\\log_files',  
-      
-    'C:\\GPP\\Accounts\\data\\input_data\\source',
-    'C:\\GPP\\Accounts\\data\\input_data\\target',
-    'C:\\GPP\\Accounts\\data\\output_data',
-    
-    'C:\\GPP\\Synonyms\\data\\input_data\\source',
-    'C:\\GPP\\Synonyms\\data\\input_data\\target',
-    'C:\\GPP\\Synonyms\\data\\output_data',
-    
-    'C:\\GPP\\standing_orders\\data\\input_data\\source',
-    'C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge',
-    'C:\\GPP\\standing_orders\\data\\input_data\\target',
-    'C:\\GPP\\standing_orders\\data\\output_data',
-    
-    'C:\\GPP\\templates\\data\\input_data\\source',
-    'C:\\GPP\\templates\\data\\input_data\\target',
-    'C:\\GPP\\templates\\data\\output_data',
+pyinstaller --onefile \
+--add-data "helpers/logging/log_files/accounts.log:helpers/logging/log_files" \
+--add-data "C:\\GPP\\Accounts\\data\\input_data\\source\\accountsource.json:Accounts/data/input_data/source" \
+--add-data "C:\\GPP\\Accounts\\data\\input_data\\target\\Target Data Extract - Accounts 3.19 - Copy.dsv:Accounts/data/input_data/target" \
+--add-data "C:\\GPP\\Accounts\\data\\output_data\\Skipped-Records.csv:Accounts/data/output_data" \
+--add-data "C:\\GPP\\Accounts\\data\\output_data\\Final-Report.xlsx:Accounts/data/output_data" \
+--add-data "C:\\GPP\\Synonyms\\data\\input_data\\source\\synonyms.dsv:Synonyms/data/input_data/source" \
+--add-data "C:\\GPP\\Synonyms\\data\\input_data\\target\\FAT PROD in UAT account_alias.dsv:Synonyms/data/input_data/target" \
+--add-data "C:\\GPP\\Synonyms\\data\\output_data\\SYNONYM-SOURCE.dsv:Synonyms/data/output_data" \
+--add-data "C:\\GPP\\Synonyms\\data\\output_data\\FINAL-SYNONYM-REPORT.xlsx:Synonyms/data/output_data" \
+--add-data "C:\\GPP\\standing_orders\\data\\input_data\\source\\Schedulers_to_be_migrated_combined.xlsx:standing_orders/data/input_data/source" \
+--add-data "C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge\\Schedulers to be migrated - Apr'24 (Incl & Excl).xlsx:standing_orders/data/input_data/source_before_merge" \
+--add-data "C:\\GPP\\standing_orders\\data\\input_data\\target\\FAT PROD in UAT STANDING_ORDERS.dsv:standing_orders/data/input_data/target" \
+--add-data "C:\\GPP\\standing_orders\\data\\output_data\\Mapped_Standing_Order_Report.xlsx:standing_orders/data/output_data" \
+--add-data "C:\\GPP\\templates\\data\\input_data\\source\\templates_combined.xlsx:templates/data/input_data/source" \
+--add-data "C:\\GPP\\templates\\data\\input_data\\target\\target_template.xlsx:templates/data/input_data/target" \
+--add-data "C:\\GPP\\templates\\data\\output_data\\Mapped_Templates_Report.xlsx:templates/data/output_data" \
+--icon="C:\\src\\DataMigration(rnd)\\GPP_DMV_Engine\\icon\\gpp.ico" GPP_DMV_Engine.py
