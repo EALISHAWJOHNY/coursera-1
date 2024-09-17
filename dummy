@@ -1,23 +1,47 @@
+import os
+import wx
+
 def redirect_to_Accounts_upload_section():
-        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
-        panel = wx.Panel(upload_frame)
+    upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
+    panel = wx.Panel(upload_frame)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer = wx.BoxSizer(wx.VERTICAL)
 
-        source_label = wx.StaticText(panel, label="Source File (.json):")
-        source_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(source_label, 0, wx.ALL, 5)
-        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+    source_label = wx.StaticText(panel, label="Source File (.json):")
+    source_file_picker = wx.FilePickerCtrl(panel)
+    sizer.Add(source_label, 0, wx.ALL, 5)
+    sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
 
-        target_label = wx.StaticText(panel, label="Target File (.dsv):")
-        target_file_picker = wx.FilePickerCtrl(panel)
-        sizer.Add(target_label, 0, wx.ALL, 5)
-        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+    target_label = wx.StaticText(panel, label="Target File (.dsv):")
+    target_file_picker = wx.FilePickerCtrl(panel)
+    sizer.Add(target_label, 0, wx.ALL, 5)
+    sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
 
-        upload_btn = wx.Button(panel, label="Upload Files")
-        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
+    upload_btn = wx.Button(panel, label="Upload Files")
+    sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
 
-        upload_btn.Bind(wx.EVT_BUTTON, lambda event: upload_files(source_file_picker.GetPath(), target_file_picker.GetPath(),upload_frame))
+    upload_btn.Bind(wx.EVT_BUTTON, lambda event: upload_files(source_file_picker.GetPath(), target_file_picker.GetPath(), upload_frame))
 
-        panel.SetSizer(sizer)
-        upload_frame.Show()
+    panel.SetSizer(sizer)
+    upload_frame.Show()
+
+def upload_files(source_path, target_path, frame):
+    # Validate source file
+    source_filename = os.path.basename(source_path)
+    if not source_filename == "accountsource.json" or not source_path.endswith('.json'):
+        wx.MessageBox("Invalid source file. It must be 'accountsource.json'.", "Error", wx.ICON_ERROR)
+        return
+
+    # Validate target file
+    target_filename = os.path.basename(target_path)
+    if not target_filename.startswith("Target Data Extract") or not target_path.endswith('.dsv'):
+        wx.MessageBox("Invalid target file. It must be 'Target Data Extract' with a .dsv extension.", "Error", wx.ICON_ERROR)
+        return
+
+    # Proceed with file upload (example logic)
+    try:
+        # Replace with your file processing logic
+        wx.MessageBox(f"Source file: {source_path}\nTarget file: {target_path}", "Upload Successful", wx.ICON_INFORMATION)
+        frame.Close()
+    except Exception as e:
+        wx.MessageBox(f"Failed to upload files: {str(e)}", "Error", wx.ICON_ERROR)
