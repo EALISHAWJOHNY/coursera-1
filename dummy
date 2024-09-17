@@ -22,3 +22,7 @@ def upload_files(source_path, target_path, frame):
         frame.Close()
     except Exception as e:
         wx.MessageBox(f"Failed to upload files: {str(e)}", "Error", wx.ICON_ERROR)
+def get_file_mime_type(file_path):
+    # Get the actual MIME type of the file based on its content/extension
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return mime_type
