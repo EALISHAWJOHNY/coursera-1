@@ -1,1 +1,23 @@
-C:\\GPP\\log_files'
+def redirect_to_Accounts_upload_section():
+        upload_frame = wx.Frame(None, title="Upload Files", size=(400, 300))
+        panel = wx.Panel(upload_frame)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        source_label = wx.StaticText(panel, label="Source File (.json):")
+        source_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(source_label, 0, wx.ALL, 5)
+        sizer.Add(source_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        target_label = wx.StaticText(panel, label="Target File (.dsv):")
+        target_file_picker = wx.FilePickerCtrl(panel)
+        sizer.Add(target_label, 0, wx.ALL, 5)
+        sizer.Add(target_file_picker, 0, wx.ALL | wx.EXPAND, 5)
+
+        upload_btn = wx.Button(panel, label="Upload Files")
+        sizer.Add(upload_btn, 0, wx.ALL | wx.CENTER, 5)
+
+        upload_btn.Bind(wx.EVT_BUTTON, lambda event: upload_files(source_file_picker.GetPath(), target_file_picker.GetPath(),upload_frame))
+
+        panel.SetSizer(sizer)
+        upload_frame.Show()
