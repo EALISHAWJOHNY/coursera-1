@@ -1,1 +1,1 @@
-pyinstaller: error: unrecognized arguments: \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GPP_DMV_Engine.py
+Unable to find 'C:\\GPP\\Synonyms\\data\\input_data\\source\\synonyms.dsv' when adding binary and data files.
