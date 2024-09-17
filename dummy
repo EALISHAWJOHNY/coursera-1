@@ -1,16 +1,1 @@
-pyinstaller --onefile \
---add-data "helpers/logging/log_files;helpers/logging/log_files" \
---add-data "C:\\GPP\\Accounts\\data\\input_data\\source;Accounts/data/input_data/source" \
---add-data "C:\\GPP\\Accounts\\data\\input_data\\target;Accounts/data/input_data/target" \
---add-data "C:\\GPP\\Accounts\\data\\output_data;Accounts/data/output_data" \
---add-data "C:\\GPP\\Synonyms\\data\\input_data\\source;Synonyms/data/input_data/source" \
---add-data "C:\\GPP\\Synonyms\\data\\input_data\\target;Synonyms/data/input_data/target" \
---add-data "C:\\GPP\\Synonyms\\data\\output_data;Synonyms/data/output_data" \
---add-data "C:\\GPP\\standing_orders\\data\\input_data\\source;standing_orders/data/input_data/source" \
---add-data "C:\\GPP\\standing_orders\\data\\input_data\\source_before_merge;standing_orders/data/input_data/source_before_merge" \
---add-data "C:\\GPP\\standing_orders\\data\\input_data\\target;standing_orders/data/input_data/target" \
---add-data "C:\\GPP\\standing_orders\\data\\output_data;standing_orders/data/output_data" \
---add-data "C:\\GPP\\templates\\data\\input_data\\source;templates/data/input_data/source" \
---add-data "C:\\GPP\\templates\\data\\input_data\\target;templates/data/input_data/target" \
---add-data "C:\\GPP\\templates\\data\\output_data;templates/data/output_data" \
---icon="C:\\src\\DataMigration(rnd)\\GPP_DMV_Engine\\icon\\gpp.ico" GPP_DMV_Engine.py
+C:\\GPP\\log_files'
