@@ -1,28 +1,5 @@
-def upload_files(source_path, target_path, frame):
-    # Validate source file
-    source_filename = os.path.basename(source_path)
+source_filename = os.path.basename(source_path)
     source_mime_type = get_file_mime_type(source_path)
-
-    if source_filename != "accountsource.json" or source_mime_type != 'application/json':
-        wx.MessageBox("Invalid source file. It must be 'accountsource.json' with .json format.", "Error", wx.ICON_ERROR)
+    if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
+        wx.MessageBox("Invalid source file. Filename must be 'Source_Accounts.json' with .json format.", "Error", wx.ICON_ERROR)
         return
-
-    # Validate target file
-    target_filename = os.path.basename(target_path)
-    target_mime_type = get_file_mime_type(target_path)
-
-    if not target_filename.startswith("Target Data Extract") or target_mime_type != 'text/plain':
-        wx.MessageBox("Invalid target file. It must be 'Target Data Extract' with a .dsv format.", "Error", wx.ICON_ERROR)
-        return
-
-    # Proceed with file upload (example logic)
-    try:
-        # Replace with your file processing logic
-        wx.MessageBox(f"Source file: {source_path}\nTarget file: {target_path}", "Upload Successful", wx.ICON_INFORMATION)
-        frame.Close()
-    except Exception as e:
-        wx.MessageBox(f"Failed to upload files: {str(e)}", "Error", wx.ICON_ERROR)
-def get_file_mime_type(file_path):
-    # Get the actual MIME type of the file based on its content/extension
-    mime_type, _ = mimetypes.guess_type(file_path)
-    return mime_type
