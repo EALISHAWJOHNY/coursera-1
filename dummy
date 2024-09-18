@@ -1,5 +1,28 @@
-source_filename = os.path.basename(source_path)
+import os
+import shutil  # To copy and rename the file
+
+def process_source_file(source_path, destination_folder):
+    # Extract the source file name and mime type
+    source_filename = os.path.basename(source_path)
     source_mime_type = get_file_mime_type(source_path)
-    if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
-        wx.MessageBox("Invalid source file. Filename must be 'Source_Accounts.json' with .json format.", "Error", wx.ICON_ERROR)
+
+    # Check if the source file has the correct extension
+    if source_mime_type != 'application/json':
+        wx.MessageBox("Invalid file format. File must be in .json format.", "Error", wx.ICON_ERROR)
         return
+
+    # Destination path for the renamed file
+    destination_path = os.path.join(destination_folder, "Source_Accounts.json")
+
+    # Rename the file if the name is incorrect
+    if source_filename != "Source_Accounts.json":
+        try:
+            shutil.copy(source_path, destination_path)
+            wx.MessageBox(f"File renamed to 'Source_Accounts.json' and saved to {destination_folder}.", "Success", wx.ICON_INFORMATION)
+        except Exception as e:
+            wx.MessageBox(f"Error renaming file: {str(e)}", "Error", wx.ICON_ERROR)
+            return
+    else:
+        # If the filename is already correct, just save the file to the destination folder
+        shutil.copy(source_path, destination_path)
+        wx.MessageBox(f"File saved successfully to {destination_folder}.", "Success", wx.ICON_INFORMATION)
