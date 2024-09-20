@@ -1,5 +1,9 @@
-def upload_files(source_path, target_path,upload_frame):
-    
+import os
+import time
+import requests
+import wx
+
+def upload_files(source_path, target_path, upload_frame):
     source_filename = os.path.basename(source_path)
     source_mime_type = get_file_mime_type(source_path)
     if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
@@ -10,17 +14,29 @@ def upload_files(source_path, target_path,upload_frame):
     target_filename = os.path.basename(target_path)
     target_mime_type = get_file_mime_type(target_path)
     if target_filename != "Target_Accounts.dsv" or target_mime_type != 'text/plain':
-        wx.MessageBox("Invalid target file. Filename must be 'Target_Accounts' with a .dsv format.", "Error", wx.ICON_ERROR)
+        wx.MessageBox("Invalid target file. Filename must be 'Target_Accounts.dsv' with a .dsv format.", "Error", wx.ICON_ERROR)
         return      
     
     try:
+        # Generate filenames with timestamp
+        timestamp = time.strftime("%Y%m%d%H%M%S")
+        source_filename_timestamped = f"Source_Accounts_{timestamp}.json"
+        target_filename_timestamped = f"Target_Accounts_{timestamp}.dsv"
+        
+        # Define the destination paths for saving the files with timestamp
+        source_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//source', source_filename_timestamped)
+        target_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//target', target_filename_timestamped)
+        
+        # Copy the files to the respective destinations
+        os.rename(source_path, source_save_path)
+        os.rename(target_path, target_save_path)
+        
         url = "http://127.0.0.1:8000/Accounts/upload/"
         files = {
-                'sourcefile': open(source_path, 'rb'),
-                'targetfile': open(target_path, 'rb')
-            }
+            'sourcefile': open(source_save_path, 'rb'),
+            'targetfile': open(target_save_path, 'rb')
+        }
         
-    
         response = requests.post(url, files=files)
             
         if response.status_code == 200:
@@ -36,23 +52,40 @@ def upload_files(source_path, target_path,upload_frame):
             message += f"\nServer Response: {server_response}"
 
     except requests.exceptions.RequestException as e:
-            message = f'Request failed: {e}'
+        message = f'Request failed: {e}'
     except Exception as e:
-            Logger.error(e)
-            wx.MessageBox(f"Error in uploading the files.Kindly check file uploaded is in correct format and filename :{e}", "Error", wx.OK | wx.ICON_ERROR)
+        Logger.error(e)
+        wx.MessageBox(f"Error in uploading the files. Kindly check file format and filename: {e}", "Error", wx.OK | wx.ICON_ERROR)
     wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
 
 
-def read_input(self,logger):
-        '''To read and return data from json file'''
-        try:
-            with open(ACCOUNTS_SOURCE_FILE_PATH,"r",encoding='utf-8') as input_file:
-                data=json.load(input_file)
-                logger.info("Successfully read json file")
-                return data
-        except FileNotFoundError as e:
-            logger.error("File not found error occured")
-            raise FileNotFoundError(f"File not found: {e}") from e
-        except Exception as e:
-            logger.error("An unexpected error occured")
-            raise Exception(f"Unknown exception occured : {e}")  from e
+import os
+import json
+
+def read_input(self, logger):
+    '''To read and return data from the latest json file in the specified directory'''
+    try:
+        # Define the directory path
+        input_directory = 'C://GPP//ACCOUNTS//data//input//source'
+        
+        # Get all files in the directory
+        files = [os.path.join(input_directory, f) for f in os.listdir(input_directory) if f.endswith('.json')]
+        
+        # If there are no files, raise an exception
+        if not files:
+            raise FileNotFoundError("No JSON files found in the directory")
+        
+        # Sort the files by last modified time and select the latest one
+        latest_file = max(files, key=os.path.getmtime)
+        
+        # Read the latest file
+        with open(latest_file, "r", encoding='utf-8') as input_file:
+            data = json.load(input_file)
+            logger.info(f"Successfully read json file: {latest_file}")
+            return data
+    except FileNotFoundError as e:
+        logger.error("File not found error occurred")
+        raise FileNotFoundError(f"File not found: {e}") from e
+    except Exception as e:
+        logger.error("An unexpected error occurred")
+        raise Exception(f"Unknown exception occurred: {e}") from e
