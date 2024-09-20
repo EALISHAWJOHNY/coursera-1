@@ -1,48 +1,31 @@
-def process_dataframes(self,logger):
-        '''To clean, transform, compare and generate the final report'''
-        try:
-            source_dataframe=load_dsv_to_dataframe(logger,SOURCE_ACCOUNTS_GNRTD_PATH)
-            target_dataframe=load_dsv_to_dataframe(logger,TARGET_ACCOUNTS_PATH)
+import os
 
-            #remove unnessary columns from target dataframe which are not required for analysis
-            trimmed_target_dataframe=self.process_data.trim_dataframe(
-                logger,source_dataframe,target_dataframe)
+def process_dataframes(self, logger):
+    '''To clean, transform, compare and generate the final report'''
+    try:
+        # Load the latest target file from the specified directory
+        target_directory = 'C://Accounts//data//input_data//target'
+        target_files = [os.path.join(target_directory, f) for f in os.listdir(target_directory) if f.endswith('.dsv')]
 
-            #adding some transformations to the dataframes
-            source_dataframe=self.process_data.apply_data_transformations(logger,source_dataframe)
-            target_dataframe=self.process_data.apply_data_transformations(logger,
-                                                                          trimmed_target_dataframe)
+        if not target_files:
+            raise FileNotFoundError("No target files found in the directory")
 
-            #matched, unmatched dataframes
-            matched_records_between_source_and_target=self.process_data.get_matched_records(
-                logger,source_dataframe,target_dataframe)
-            unmatched_records_in_source_dataframe=self.process_data.get_unmatched_records(
-                logger,source_dataframe,target_dataframe,dataframe1_filename="SRC",
-                dataframe2_filename="TRG-File")
-            unmatched_records_in_target_dataframe=self.process_data.get_unmatched_records(
-                logger,target_dataframe,source_dataframe,dataframe1_filename="TRG-File",
-                dataframe2_filename="SRC")
+        # Sort files by last modified time and select the latest
+        latest_target_file = max(target_files, key=os.path.getmtime)
 
-            #to add detailed comments
-            unmatched_records_in_target_dataframe,unmatched_records_in_source_dataframe=self.process_data.compare_unmatched_column_values_with_expected_values(
-                logger,unmatched_records_in_target_dataframe,unmatched_records_in_source_dataframe)
+        # Load dataframes
+        source_dataframe = load_dsv_to_dataframe(logger, SOURCE_ACCOUNTS_GNRTD_PATH)
+        target_dataframe = load_dsv_to_dataframe(logger, latest_target_file)
 
-            #to add additional comments of skipped records and others present in target
-            self.process_data.compare_skipped_record_and_others_with_unmatched_target(
-                logger,
-                unmatched_records_in_target_dataframe,
-                SKIPPED_ACCOUNTS_FILE_PATH)
+        # Remove unnecessary columns from the target dataframe
+        trimmed_target_dataframe = self.process_data.trim_dataframe(
+            logger, source_dataframe, target_dataframe)
 
-            #concatenating matched and unmatched records
-            final_concatenated_df=self.process_data.concatenate_dataframes(logger,
-                                                matched_records_between_source_and_target,
-                                                    unmatched_records_in_source_dataframe,
-                                                    unmatched_records_in_target_dataframe)
-            #generate final excel report
-            generate_excel_file(logger,ACCOUNTS_FINAL_REPORT_FILE_PATH,final_concatenated_df)
-        except FileNotFoundError as e:
-            raise FileNotFoundError(f"File Not found : {e}") from e
-        except Exception as e:
-            raise Exception(f"Unknown exception occured {e}") from e
+        # Apply transformations to the dataframes
+        source_dataframe = self.process_data.apply_data_transformations(logger, source_dataframe)
+        target_dataframe = self.process_data.apply_data_transformations(logger, trimmed_target_dataframe)
 
-target_dataframe=load_dsv_to_dataframe(logger,TARGET_ACCOUNTS_PATH)
+        # Matched and unmatched records
+        matched_records_between_source_and_target = self.process_data.get_matched_records(
+            logger, source_dataframe, target_dataframe)
+        unmatched_records_in_source_dataframe = self.process_data.get_un
