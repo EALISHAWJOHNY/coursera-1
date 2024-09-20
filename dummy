@@ -1,28 +1,58 @@
-import os
-import shutil  # To copy and rename the file
-
-def process_source_file(source_path, destination_folder):
-    # Extract the source file name and mime type
+def upload_files(source_path, target_path,upload_frame):
+    
     source_filename = os.path.basename(source_path)
     source_mime_type = get_file_mime_type(source_path)
-
-    # Check if the source file has the correct extension
-    if source_mime_type != 'application/json':
-        wx.MessageBox("Invalid file format. File must be in .json format.", "Error", wx.ICON_ERROR)
+    if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
+        wx.MessageBox("Invalid source file. Filename must be 'Source_Accounts.json' with .json format.", "Error", wx.ICON_ERROR)
         return
 
-    # Destination path for the renamed file
-    destination_path = os.path.join(destination_folder, "Source_Accounts.json")
+    # Validate target file
+    target_filename = os.path.basename(target_path)
+    target_mime_type = get_file_mime_type(target_path)
+    if target_filename != "Target_Accounts.dsv" or target_mime_type != 'text/plain':
+        wx.MessageBox("Invalid target file. Filename must be 'Target_Accounts' with a .dsv format.", "Error", wx.ICON_ERROR)
+        return      
+    
+    try:
+        url = "http://127.0.0.1:8000/Accounts/upload/"
+        files = {
+                'sourcefile': open(source_path, 'rb'),
+                'targetfile': open(target_path, 'rb')
+            }
+        
+    
+        response = requests.post(url, files=files)
+            
+        if response.status_code == 200:
+            try:
+                message = response.json().get('message', 'No message returned')
+                main()
+                show_download_window()
+            except requests.exceptions.JSONDecodeError:
+                message = 'Error: Received invalid JSON response'
+        else:
+            message = f'Error: Server returned status code {response.status_code}'
+            server_response = response.text  # Capture server response for more context
+            message += f"\nServer Response: {server_response}"
 
-    # Rename the file if the name is incorrect
-    if source_filename != "Source_Accounts.json":
+    except requests.exceptions.RequestException as e:
+            message = f'Request failed: {e}'
+    except Exception as e:
+            Logger.error(e)
+            wx.MessageBox(f"Error in uploading the files.Kindly check file uploaded is in correct format and filename :{e}", "Error", wx.OK | wx.ICON_ERROR)
+    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
+
+
+def read_input(self,logger):
+        '''To read and return data from json file'''
         try:
-            shutil.copy(source_path, destination_path)
-            wx.MessageBox(f"File renamed to 'Source_Accounts.json' and saved to {destination_folder}.", "Success", wx.ICON_INFORMATION)
+            with open(ACCOUNTS_SOURCE_FILE_PATH,"r",encoding='utf-8') as input_file:
+                data=json.load(input_file)
+                logger.info("Successfully read json file")
+                return data
+        except FileNotFoundError as e:
+            logger.error("File not found error occured")
+            raise FileNotFoundError(f"File not found: {e}") from e
         except Exception as e:
-            wx.MessageBox(f"Error renaming file: {str(e)}", "Error", wx.ICON_ERROR)
-            return
-    else:
-        # If the filename is already correct, just save the file to the destination folder
-        shutil.copy(source_path, destination_path)
-        wx.MessageBox(f"File saved successfully to {destination_folder}.", "Success", wx.ICON_INFORMATION)
+            logger.error("An unexpected error occured")
+            raise Exception(f"Unknown exception occured : {e}")  from e
