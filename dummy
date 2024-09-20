@@ -1,91 +1,48 @@
-import os
-import time
-import requests
-import wx
+def process_dataframes(self,logger):
+        '''To clean, transform, compare and generate the final report'''
+        try:
+            source_dataframe=load_dsv_to_dataframe(logger,SOURCE_ACCOUNTS_GNRTD_PATH)
+            target_dataframe=load_dsv_to_dataframe(logger,TARGET_ACCOUNTS_PATH)
 
-def upload_files(source_path, target_path, upload_frame):
-    source_filename = os.path.basename(source_path)
-    source_mime_type = get_file_mime_type(source_path)
-    if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
-        wx.MessageBox("Invalid source file. Filename must be 'Source_Accounts.json' with .json format.", "Error", wx.ICON_ERROR)
-        return
+            #remove unnessary columns from target dataframe which are not required for analysis
+            trimmed_target_dataframe=self.process_data.trim_dataframe(
+                logger,source_dataframe,target_dataframe)
 
-    # Validate target file
-    target_filename = os.path.basename(target_path)
-    target_mime_type = get_file_mime_type(target_path)
-    if target_filename != "Target_Accounts.dsv" or target_mime_type != 'text/plain':
-        wx.MessageBox("Invalid target file. Filename must be 'Target_Accounts.dsv' with a .dsv format.", "Error", wx.ICON_ERROR)
-        return      
-    
-    try:
-        # Generate filenames with timestamp
-        timestamp = time.strftime("%Y%m%d%H%M%S")
-        source_filename_timestamped = f"Source_Accounts_{timestamp}.json"
-        target_filename_timestamped = f"Target_Accounts_{timestamp}.dsv"
-        
-        # Define the destination paths for saving the files with timestamp
-        source_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//source', source_filename_timestamped)
-        target_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//target', target_filename_timestamped)
-        
-        # Copy the files to the respective destinations
-        os.rename(source_path, source_save_path)
-        os.rename(target_path, target_save_path)
-        
-        url = "http://127.0.0.1:8000/Accounts/upload/"
-        files = {
-            'sourcefile': open(source_save_path, 'rb'),
-            'targetfile': open(target_save_path, 'rb')
-        }
-        
-        response = requests.post(url, files=files)
-            
-        if response.status_code == 200:
-            try:
-                message = response.json().get('message', 'No message returned')
-                main()
-                show_download_window()
-            except requests.exceptions.JSONDecodeError:
-                message = 'Error: Received invalid JSON response'
-        else:
-            message = f'Error: Server returned status code {response.status_code}'
-            server_response = response.text  # Capture server response for more context
-            message += f"\nServer Response: {server_response}"
+            #adding some transformations to the dataframes
+            source_dataframe=self.process_data.apply_data_transformations(logger,source_dataframe)
+            target_dataframe=self.process_data.apply_data_transformations(logger,
+                                                                          trimmed_target_dataframe)
 
-    except requests.exceptions.RequestException as e:
-        message = f'Request failed: {e}'
-    except Exception as e:
-        Logger.error(e)
-        wx.MessageBox(f"Error in uploading the files. Kindly check file format and filename: {e}", "Error", wx.OK | wx.ICON_ERROR)
-    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
+            #matched, unmatched dataframes
+            matched_records_between_source_and_target=self.process_data.get_matched_records(
+                logger,source_dataframe,target_dataframe)
+            unmatched_records_in_source_dataframe=self.process_data.get_unmatched_records(
+                logger,source_dataframe,target_dataframe,dataframe1_filename="SRC",
+                dataframe2_filename="TRG-File")
+            unmatched_records_in_target_dataframe=self.process_data.get_unmatched_records(
+                logger,target_dataframe,source_dataframe,dataframe1_filename="TRG-File",
+                dataframe2_filename="SRC")
 
+            #to add detailed comments
+            unmatched_records_in_target_dataframe,unmatched_records_in_source_dataframe=self.process_data.compare_unmatched_column_values_with_expected_values(
+                logger,unmatched_records_in_target_dataframe,unmatched_records_in_source_dataframe)
 
-import os
-import json
+            #to add additional comments of skipped records and others present in target
+            self.process_data.compare_skipped_record_and_others_with_unmatched_target(
+                logger,
+                unmatched_records_in_target_dataframe,
+                SKIPPED_ACCOUNTS_FILE_PATH)
 
-def read_input(self, logger):
-    '''To read and return data from the latest json file in the specified directory'''
-    try:
-        # Define the directory path
-        input_directory = 'C://GPP//ACCOUNTS//data//input//source'
-        
-        # Get all files in the directory
-        files = [os.path.join(input_directory, f) for f in os.listdir(input_directory) if f.endswith('.json')]
-        
-        # If there are no files, raise an exception
-        if not files:
-            raise FileNotFoundError("No JSON files found in the directory")
-        
-        # Sort the files by last modified time and select the latest one
-        latest_file = max(files, key=os.path.getmtime)
-        
-        # Read the latest file
-        with open(latest_file, "r", encoding='utf-8') as input_file:
-            data = json.load(input_file)
-            logger.info(f"Successfully read json file: {latest_file}")
-            return data
-    except FileNotFoundError as e:
-        logger.error("File not found error occurred")
-        raise FileNotFoundError(f"File not found: {e}") from e
-    except Exception as e:
-        logger.error("An unexpected error occurred")
-        raise Exception(f"Unknown exception occurred: {e}") from e
+            #concatenating matched and unmatched records
+            final_concatenated_df=self.process_data.concatenate_dataframes(logger,
+                                                matched_records_between_source_and_target,
+                                                    unmatched_records_in_source_dataframe,
+                                                    unmatched_records_in_target_dataframe)
+            #generate final excel report
+            generate_excel_file(logger,ACCOUNTS_FINAL_REPORT_FILE_PATH,final_concatenated_df)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"File Not found : {e}") from e
+        except Exception as e:
+            raise Exception(f"Unknown exception occured {e}") from e
+
+target_dataframe=load_dsv_to_dataframe(logger,TARGET_ACCOUNTS_PATH)
