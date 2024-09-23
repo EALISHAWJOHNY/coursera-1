@@ -1,83 +1,53 @@
-import os
-import time
-import requests
-import wx
-import shutil
-
-def upload_files(source_path, target_path, upload_frame):
-    source_filename = os.path.basename(source_path)
-    source_mime_type = get_file_mime_type(source_path)
-    if source_filename != "Source_Accounts.json" or source_mime_type != 'application/json':
-        wx.MessageBox("Invalid source file. Filename must be 'Source_Accounts.json' with .json format.", "Error", wx.ICON_ERROR)
-        return
-
-    # Validate target file
-    target_filename = os.path.basename(target_path)
-    target_mime_type = get_file_mime_type(target_path)
-    if target_filename != "Target_Accounts.dsv" or target_mime_type != 'text/plain':
-        wx.MessageBox("Invalid target file. Filename must be 'Target_Accounts.dsv' with a .dsv format.", "Error", wx.ICON_ERROR)
-        return      
-    
-    try:
-        # Generate filenames with timestamp
-        timestamp = time.strftime("%Y%m%d%H%M%S")
-        source_filename_timestamped = f"Source_Accounts_{timestamp}.json"
-        target_filename_timestamped = f"Target_Accounts_{timestamp}.dsv"
+target_directory = 'C:\\GPP\\Accounts\\data\\input_data\\target'
+        target_files = [os.path.join(target_directory, f) for f in os.listdir(target_directory) if f.endswith('.dsv')]
         
-        # Define the destination paths for saving the files with timestamp
-        source_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//source', source_filename_timestamped)
-        target_save_path = os.path.join('C://GPP//ACCOUNTS//data//input//target', target_filename_timestamped)
         
-        # Copy the files to the respective destinations
-        shutil.copy(source_path, source_save_path)
-        shutil.copy(target_path, target_save_path)
-        
-        url = "http://127.0.0.1:8000/Accounts/upload/"
-        files = {
-            'sourcefile': open(source_save_path, 'rb'),
-            'targetfile': open(target_save_path, 'rb')
-        }
+        if os.path.exists(target_directory):  
+        # Sort files by last modified time and select the latest
+            latest_target_file = max(target_files, key=os.path.getmtime)
+            if os.path.isfile(latest_target_file):           
+                    
+                # List of generated files with their corresponding paths and labels
+                target_account_file = {
+                    "Target_Account_File (DSV)": latest_target_file,
+                }
+                # Create a download button for each file
+                for file_label, file_path in target_account_file.items():
+                        
+                        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
+                        
+                        label = wx.StaticText(panel, label=file_label)
+                        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
+                        
+                        download_btn = wx.Button(panel, label="Download")
+                        file_sizer.Add(download_btn, 0, wx.ALL, 5)
+                        
+                        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
+                        
+                        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
 
-        response = requests.post(url, files=files)
-        
-        if response.status_code == 200:
-            try:
-                message = response.json().get('message', 'No message returned')
+progress_dialog = wx.ProgressDialog(
+                        "Processing", "Processing the data...", maximum=100, 
+                        parent=upload_frame, style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
+                    )
 
-                # Show a progress dialog for processing the main() function
-                progress_dialog = wx.ProgressDialog(
-                    "Processing", "Processing the data...", maximum=100, 
-                    parent=upload_frame, style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
-                )
+                    # Start the progress dialog before calling main
+                    progress_dialog.Update(0,"Starting processing...")
+                    wx.Yield()
+                    
+                    for progress in range(10,101,10):
+                        wx.MilliSleep(300)
+                        progress_dialog.Update(progress,f"Processing the files...{progress}% completed")
+                        wx.Yield()
+                
 
-                # Start the progress dialog before calling main
-                progress_dialog.Pulse("Starting processing...")
+                    # Call the main function
+                    main()
 
-                # Simulate work with the progress bar for the main function execution
-                progress_dialog.Update(50, "Processing main function...")
+                    # Update and close the progress dialog when the process is done
+                    progress_dialog.Update(100, "Processing completed.")
+                    wx.Yield()                    
+                    progress_dialog.Destroy()
+                    upload_frame.Destroy()
 
-                # Call the main function
-                main()
-
-                # Update and close the progress dialog when the process is done
-                progress_dialog.Update(100, "Processing completed.")
-                progress_dialog.Destroy()
-
-                # After the main function finishes, show the download window
-                show_download_window()
-
-            except requests.exceptions.JSONDecodeError:
-                message = 'Error: Received invalid JSON response'
-        else:
-            message = f'Error: Server returned status code {response.status_code}'
-            server_response = response.text  # Capture server response for more context
-            message += f"\nServer Response: {server_response}"
-
-    except requests.exceptions.RequestException as e:
-        message = f'Request failed: {e}'
-    except Exception as e:
-        Logger.error(e)
-        wx.MessageBox(f"Error in uploading the files. Kindly check file format and filename: {e}", "Error", wx.OK | wx.ICON_ERROR)
-
-    # Show final info message
-    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION)
+                    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
