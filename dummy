@@ -1,31 +1,3 @@
-target_directory = 'C:\\GPP\\Accounts\\data\\input_data\\target'
-        target_files = [os.path.join(target_directory, f) for f in os.listdir(target_directory) if f.endswith('.dsv')]
-        
-        
-        if os.path.exists(target_directory):  
-        # Sort files by last modified time and select the latest
-            latest_target_file = max(target_files, key=os.path.getmtime)
-            if os.path.isfile(latest_target_file):           
-                    
-                # List of generated files with their corresponding paths and labels
-                target_account_file = {
-                    "Target_Account_File (DSV)": latest_target_file,
-                }
-                # Create a download button for each file
-                for file_label, file_path in target_account_file.items():
-                        
-                        file_sizer = wx.BoxSizer(wx.HORIZONTAL)
-                        
-                        label = wx.StaticText(panel, label=file_label)
-                        file_sizer.Add(label, 1, wx.ALL | wx.EXPAND, 5)
-                        
-                        download_btn = wx.Button(panel, label="Download")
-                        file_sizer.Add(download_btn, 0, wx.ALL, 5)
-                        
-                        download_btn.Bind(wx.EVT_BUTTON, lambda event, path=file_path, label=file_label: download_file(event, path, label))
-                        
-                        sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 5)
-
 progress_dialog = wx.ProgressDialog(
                         "Processing", "Processing the data...", maximum=100, 
                         parent=upload_frame, style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
@@ -46,8 +18,4 @@ progress_dialog = wx.ProgressDialog(
 
                     # Update and close the progress dialog when the process is done
                     progress_dialog.Update(100, "Processing completed.")
-                    wx.Yield()                    
-                    progress_dialog.Destroy()
-                    upload_frame.Destroy()
-
-                    wx.MessageBox(message, "Info", wx.OK | wx.ICON_INFORMATION) 
+                    wx.Yield()
