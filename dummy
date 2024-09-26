@@ -1,21 +1,119 @@
-progress_dialog = wx.ProgressDialog(
-                        "Processing", "Processing the data...", maximum=100, 
-                        parent=upload_frame, style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
-                    )
+Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
 
-                    # Start the progress dialog before calling main
-                    progress_dialog.Update(0,"Starting processing...")
-                    wx.Yield()
-                    
-                    for progress in range(10,101,10):
-                        wx.MilliSleep(300)
-                        progress_dialog.Update(progress,f"Processing the files...{progress}% completed")
-                        wx.Yield()
-                
+public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNumber)
+{
+    List<ResultModel> results = new List<ResultModel>();
+    var res = new AccountDmvDataModel();
+    try
+    {
 
-                    # Call the main function
-                    main()
+        if (dataModel != null)
+        {
+            this.tab_General.Click();
+            results.Add(this.ValidateData("ACC_TYPE", dataModel.ACC_TYPE, this.txt_ACC_TYPE, false, true));
+            res.ACC_TYPE = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, this.txt_ACC_NO, false, true));
+            res.ACC_NO = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("CUST_CODE", dataModel.CUST_CODE, this.txt_CUST_CODE, false, true));
+            res.CUST_CODE = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("CURRENCY", dataModel.CURRENCY, this.txt_CURRENCY, false, true));
+            res.CURRENCY = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("ACCOUNTNAME", dataModel.ACCOUNTNAME, this.txt_ACCOUNTNAME, false, true));
+            res.ACCOUNTNAME = results[rowNumber].ResultLog;
 
-                    # Update and close the progress dialog when the process is done
-                    progress_dialog.Update(100, "Processing completed.")
-                    wx.Yield()
+            this.tab_Contact_Information.Click();
+            results.Add(this.ValidateData("Address1", dataModel.Address1, this.txt_Address1, false, true));
+            res.Address1 = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("Address2", dataModel.Address2, this.txt_Address2, false, true));
+            res.Address2 = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("Address3", dataModel.Address3, this.txt_Address3, false, true));
+            res.Address3 = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, this.txt_LOCATION, false, true));
+            res.LOCATION = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, this.txt_NET_ADDR, false, true));
+            res.NET_ADDR = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("PHONE", dataModel.PHONE, this.txt_PHONE, false, true));
+            res.PHONE = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("FAX", dataModel.FAX, this.txt_FAX, false, true));
+            res.FAX = results[rowNumber].ResultLog;
+
+            this.tab_General.Click();
+            results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, this.chkbx_CONSUMER, true, false));
+            res.CONSUMER = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, this.txt_DEPARTMENT, false, true));
+            res.DEPARTMENT = results[rowNumber].ResultLog;
+
+            this.tab_Preference.Click();
+            results.Add(this.ValidateData("COST_CTR", dataModel.COST_CTR, this.txt_COST_CTR, false, true));
+            res.COST_CTR = results[rowNumber].ResultLog;
+
+            this.tab_General.Click();
+            results.Add(this.ValidateData("STOPFLAGDR", dataModel.STOPFLAGDR, this.chkbx_STOPFLAGDR, true, false));
+            res.STOPFLAGDR = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("REASONDR", dataModel.REASONDR, this.txt_REASONDR, false, true));
+            res.REASONDR = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("STOPFLAGCR", dataModel.STOPFLAGCR, this.chkbx_STOPFLAGCR, true, false));
+            res.STOPFLAGCR = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("REASONCR", dataModel.REASONCR, this.txt_REASONCR, false, true));
+            res.REASONCR = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("EFFECTIVE_DATE", dataModel.EFFECTIVE_DATE, this.txt_EFFECTIVE_DATE, false, true));
+            res.EFFECTIVE_DATE = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("ACCOUNT_OWNER_NAME", dataModel.ACCOUNT_OWNER_NAME, this.txt_ACCOUNT_OWNER_NAME, false, true));
+            res.ACCOUNT_OWNER_NAME = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("REC_STATUS", dataModel.REC_STATUS, this.txt_REC_STATUS, false, true));
+            res.REC_STATUS = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("BOOKNG_ENT", dataModel.BOOKNG_ENT, this.txt_BOOKNG_ENT, false, true));
+            res.BOOKNG_ENT = results[rowNumber].ResultLog;
+
+            this.tab_Preference.Click();
+            results.Add(this.ValidateData("CDB_CHCK_DBT_IND", dataModel.CDB_CHCK_DBT_IND, this.chkbx_CDB_CHCK_DBT_IND, true, false));
+            res.CDB_CHCK_DBT_IND = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("CDB_CHCK_CDT_IND", dataModel.CDB_CHCK_CDT_IND, this.chkbx_CDB_CHCK_CDT_IND, true, false));
+            res.CDB_CHCK_CDT_IND = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("CATEGORY_LIST", dataModel.CATEGORY_LIST, this.txt_CATEGORY_LIST, false, true));
+            res.CATEGORY_LIST = results[rowNumber].ResultLog;
+
+            this.tab_Accounting_and_Fees.Click();
+            results.Add(this.ValidateData("DEBIT_CONVERSION", dataModel.DEBIT_CONVERSION, this.chkbx_DEBIT_CONVERSION, true, false));
+            res.DEBIT_CONVERSION = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("CREDIT_CONVERSION", dataModel.CREDIT_CONVERSION, this.chkbx_CREDIT_CONVERSION, true, false));
+            res.CREDIT_CONVERSION = results[rowNumber].ResultLog;
+
+            this.tab_General.Click();
+            results.Add(this.ValidateData("EXT_AGREEMENT_IND", dataModel.EXT_AGREEMENT_IND, this.chkbx_EXT_AGREEMENT_IND, true, false));
+            res.EXT_AGREEMENT_IND = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("EXT_AGREEMENT_START_DT", dataModel.EXT_AGREEMENT_START_DT, this.txt_EXT_AGREEMENT_START_DT, false, true));
+            res.EXT_AGREEMENT_START_DT = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("EXT_AGREEMENT_END_DT", dataModel.EXT_AGREEMENT_END_DT, this.txt_EXT_AGREEMENT_END_DT, false, true));
+            res.EXT_AGREEMENT_END_DT = results[rowNumber].ResultLog;
+
+            this.tab_Preference.Click();
+            results.Add(this.ValidateData("BALANCE_AND_ACOUNT_IND", dataModel.BALANCE_AND_ACOUNT_IND, this.chkbx_BALANCE_AND_ACOUNT_IND, true, false));
+            res.BALANCE_AND_ACOUNT_IND = results[rowNumber].ResultLog;
+
+            this.tab_Contact_Information.Click();
+            results.Add(this.ValidateData("COUNTRYCODE", dataModel.COUNTRYCODE, this.txt_COUNTRYCODE, false, true));
+            res.COUNTRYCODE = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("BRANCHCODE", dataModel.BRANCHCODE, this.txt_BRANCHCODE, false, true));
+            res.BRANCHCODE = results[rowNumber].ResultLog;
+
+            this.tab_Preference.Click();
+            results.Add(this.ValidateData("ACC_SERVICING_INSTITUTION", dataModel.ACC_SERVICING_INSTITUTION, this.txt_ACC_SERVICING_INSTITUTION, false, true));
+            res.ACC_SERVICING_INSTITUTION = results[rowNumber].ResultLog;
+            results.Add(this.ValidateData("PROD_CAT_CODE", dataModel.PROD_CAT_CODE, this.txt_PROD_CAT_CODE, false, true));
+            res.PROD_CAT_CODE = results[rowNumber].ResultLog;
+
+            res.OVERALL_RESULT = (results.All(items => items.IsMatched)) ? "PASS" : "FAIL";
+        }
+    }
+    catch (Exception ex)
+    {
+        Support.IsTrue(false, "Issue in Comparing Data" +ex.Message);
+    }
+    finally
+    {
+        this.btn_CloseAccountWindow.FATClick();
+    }
+    return res;
+}
