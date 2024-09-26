@@ -205,3 +205,42 @@ public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNum
     }
     return res;
 }
+
+ private IWebElement txt_ACC_TYPE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_TYPE']"));
+ private IWebElement txt_ACC_NO => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_NO']"));
+ private IWebElement txt_CUST_CODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CUST_CODE']"));
+ private IWebElement txt_CURRENCY => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CURRENCY']"));
+ private IWebElement txt_ACCOUNTNAME => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACCOUNTNAME']"));
+ private IWebElement txt_Address1 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS1']"));
+ private IWebElement txt_Address2 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS2']"));
+ private IWebElement txt_Address3 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS3']"));
+ private IWebElement txt_LOCATION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.LOCATION']"));
+ private IWebElement txt_NET_ADDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.NET_ADDR']"));
+ private IWebElement txt_PHONE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.PHONE']"));
+ private IWebElement txt_FAX => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.FAX']"));
+ private IWebElement chkbx_CONSUMER => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CONSUMER']"));
+ private IWebElement txt_DEPARTMENT => FATrustDrivers.WebDriver.FindElement(By.XPath("//select[@id='ACCOUNTS.DEPARTMENT']"));
+ private IWebElement txt_COST_CTR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.COST_CTR']"));
+ private IWebElement chkbx_STOPFLAGDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.STOPFLAGDR']"));
+ private IWebElement txt_REASONDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_DEBIT']"));
+ private IWebElement chkbx_STOPFLAGCR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_DEBIT']"));
+ private IWebElement txt_REASONCR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_CREDIT']"));
+ private IWebElement txt_EFFECTIVE_DATE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EFFECTIVE_DATE']"));
+ private IWebElement txt_ACCOUNT_OWNER_NAME => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.V_CUST_NAME']"));
+ private IWebElement txt_REC_STATUS => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.REC_STATUS']"));
+ private IWebElement txt_BOOKNG_ENT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BOOKNG_ENT']"));
+ private IWebElement chkbx_CDB_CHCK_DBT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CDB_CHCK_DBT_IND']"));
+ private IWebElement chkbx_CDB_CHCK_CDT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CDB_CHCK_CDT_IND']"));
+ private IWebElement txt_CATEGORY_LIST => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CATEGORY_LIST']"));
+ private IWebElement chkbx_DEBIT_CONVERSION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.DEBIT_CONVERSION']"));
+ private IWebElement chkbx_CREDIT_CONVERSION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CREDIT_CONVERSION']"));
+ private IWebElement chkbx_EXT_AGREEMENT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_IND']"));
+ private IWebElement txt_EXT_AGREEMENT_START_DT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_START_DT']"));
+ private IWebElement txt_EXT_AGREEMENT_END_DT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_END_DT']"));
+ private IWebElement chkbx_BALANCE_AND_ACOUNT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BALANCE_AND_ACOUNT_IND']"));
+ private IWebElement txt_COUNTRYCODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.COUNTRYCODE']"));
+ private IWebElement txt_BRANCHCODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BRANCHCODE']"));
+ private IWebElement txt_ACC_SERVICING_INSTITUTION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_SERVICING_INSTITUTION']"));
+ private IWebElement txt_PROD_CAT_CODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.PROD_CAT_CODE']"));
+ private IWebElement btn_closeAccountFilter => FATrustDrivers.WebDriver.FindElement(By.XPath("//th[2]//lib-reset-icon//span[@class='mat-mdc-focus-indicator']"));
+ private IWebElement btn_CloseAccountWindow => FATrustDrivers.WebDriver.FindElement(By.XPath("//button[contains(text(),'Close')]"));
