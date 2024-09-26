@@ -1,190 +1,49 @@
-Here’s the full code with the dictionary values mapped to the properties of the `AccountDmvDataModel` class:
-
-### Full Code:
-
-```csharp
-public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNumber)
+public class ResultModel
 {
-    List<ResultModel> results = new List<ResultModel>();
-
-    // Dictionary to store column name and its corresponding ResultLog value
-    Dictionary<string, string> columnResultLogMap = new Dictionary<string, string>();
-
-    // Instance of AccountDmvDataModel to store results
-    var res = new AccountDmvDataModel();
-
-    try
-    {
-        if (dataModel != null)
-        {
-            // Example for tab General
-            this.tab_General.Click();
-
-            // Validate ACC_TYPE
-            results.Add(this.ValidateData("ACC_TYPE", dataModel.ACC_TYPE, this.txt_ACC_TYPE, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["ACC_TYPE"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate ACC_NO
-            results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, this.txt_ACC_NO, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["ACC_NO"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate CUST_CODE
-            results.Add(this.ValidateData("CUST_CODE", dataModel.CUST_CODE, this.txt_CUST_CODE, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["CUST_CODE"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate CURRENCY
-            results.Add(this.ValidateData("CURRENCY", dataModel.CURRENCY, this.txt_CURRENCY, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["CURRENCY"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate ACCOUNTNAME
-            results.Add(this.ValidateData("ACCOUNTNAME", dataModel.ACCOUNTNAME, this.txt_ACCOUNTNAME, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["ACCOUNTNAME"] = results[rowNumber].ResultLog;
-            }
-
-            // Example for tab Contact Information
-            this.tab_Contact_Information.Click();
-
-            // Validate Address1
-            results.Add(this.ValidateData("Address1", dataModel.Address1, this.txt_Address1, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["Address1"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate Address2
-            results.Add(this.ValidateData("Address2", dataModel.Address2, this.txt_Address2, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["Address2"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate Address3
-            results.Add(this.ValidateData("Address3", dataModel.Address3, this.txt_Address3, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["Address3"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate LOCATION
-            results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, this.txt_LOCATION, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["LOCATION"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate NET_ADDR
-            results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, this.txt_NET_ADDR, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["NET_ADDR"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate PHONE
-            results.Add(this.ValidateData("PHONE", dataModel.PHONE, this.txt_PHONE, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["PHONE"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate FAX
-            results.Add(this.ValidateData("FAX", dataModel.FAX, this.txt_FAX, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["FAX"] = results[rowNumber].ResultLog;
-            }
-
-            // Example for tab General (CONSUMER)
-            this.tab_General.Click();
-            results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, this.chkbx_CONSUMER, true, false));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["CONSUMER"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate DEPARTMENT
-            results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, this.txt_DEPARTMENT, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["DEPARTMENT"] = results[rowNumber].ResultLog;
-            }
-
-            // Validate COST_CTR
-            this.tab_Preference.Click();
-            results.Add(this.ValidateData("COST_CTR", dataModel.COST_CTR, this.txt_COST_CTR, false, true));
-            if (rowNumber < results.Count)
-            {
-                columnResultLogMap["COST_CTR"] = results[rowNumber].ResultLog;
-            }
-
-            // Finally, store the overall result
-            columnResultLogMap["OVERALL_RESULT"] = results.All(items => items.IsMatched) ? "PASS" : "FAIL";
-        }
-
-        // Map dictionary values to the properties of AccountDmvDataModel
-        if (columnResultLogMap.ContainsKey("ACC_TYPE")) res.ACC_TYPE = columnResultLogMap["ACC_TYPE"];
-        if (columnResultLogMap.ContainsKey("ACC_NO")) res.ACC_NO = columnResultLogMap["ACC_NO"];
-        if (columnResultLogMap.ContainsKey("CUST_CODE")) res.CUST_CODE = columnResultLogMap["CUST_CODE"];
-        if (columnResultLogMap.ContainsKey("CURRENCY")) res.CURRENCY = columnResultLogMap["CURRENCY"];
-        if (columnResultLogMap.ContainsKey("ACCOUNTNAME")) res.ACCOUNTNAME = columnResultLogMap["ACCOUNTNAME"];
-        if (columnResultLogMap.ContainsKey("Address1")) res.Address1 = columnResultLogMap["Address1"];
-        if (columnResultLogMap.ContainsKey("Address2")) res.Address2 = columnResultLogMap["Address2"];
-        if (columnResultLogMap.ContainsKey("Address3")) res.Address3 = columnResultLogMap["Address3"];
-        if (columnResultLogMap.ContainsKey("LOCATION")) res.LOCATION = columnResultLogMap["LOCATION"];
-        if (columnResultLogMap.ContainsKey("NET_ADDR")) res.NET_ADDR = columnResultLogMap["NET_ADDR"];
-        if (columnResultLogMap.ContainsKey("PHONE")) res.PHONE = columnResultLogMap["PHONE"];
-        if (columnResultLogMap.ContainsKey("FAX")) res.FAX = columnResultLogMap["FAX"];
-        if (columnResultLogMap.ContainsKey("CONSUMER")) res.CONSUMER = columnResultLogMap["CONSUMER"];
-        if (columnResultLogMap.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnResultLogMap["DEPARTMENT"];
-        if (columnResultLogMap.ContainsKey("COST_CTR")) res.COST_CTR = columnResultLogMap["COST_CTR"];
-        if (columnResultLogMap.ContainsKey("OVERALL_RESULT")) res.OVERALL_RESULT = columnResultLogMap["OVERALL_RESULT"];
-
-        // Continue mapping for other fields as needed...
-    }
-    catch (Exception ex)
-    {
-        Support.IsTrue(false, "Issue in Comparing Data: " + ex.Message);
-    }
-    finally
-    {
-        // Close the account window
-        this.btn_CloseAccountWindow.FATClick();
-    }
-
-    // Return the populated AccountDmvDataModel object
-    return res;
+    public bool IsMatched { get; set; }
+    public string ElementName { get; set; }
+    public string ResultLog { get; set; }
+    public string OverallResult { get; set; }
 }
-```
 
-### Explanation:
-
-1. **Dictionary Population**:
-   - Each field is validated, and the `ResultLog` is stored in the dictionary with the field name as the key (e.g., `"ACC_TYPE"`, `"ACC_NO"`, etc.).
-
-2. **Mapping to `AccountDmvDataModel`**:
-   - After validation, the dictionary values are mapped to the respective properties of the `AccountDmvDataModel` object (`res`).
-   - Example:
-     ```csharp
-     if (columnResultLogMap.ContainsKey("ACC_TYPE")) 
-         res.ACC_TYPE = columnResultLogMap["ACC_TYPE"];
-     ```
-
-3. **Return the `AccountDmvDataModel` Object**:
-   - Once all the mappings are done, the `AccountDmvDataModel` object (`res`) is returned with its properties populated based on the `ResultLog` values from the dictionary.
-
-### Notes:
-- Ensure that every validation result is correctly stored in the dictionary, and map all the fields accordingly to the `AccountDmvDataModel` class.
-- Add more fields to the mapping section as per your data model.
+public class AccountDmvDataModel
+{
+    public string ACC_TYPE { get; set; }
+    public string ACC_NO { get; set; }
+    public string CUST_CODE { get; set; }
+    public string CURRENCY { get; set; }
+    public string ACCOUNTNAME { get; set; }
+    public string Address1 { get; set; }
+    public string Address2 { get; set; }
+    public string Address3 { get; set; }
+    public string LOCATION { get; set; }
+    public string NET_ADDR { get; set; }
+    public string PHONE { get; set; }
+    public string FAX { get; set; }
+    public string CONSUMER { get; set; }
+    public string DEPARTMENT { get; set; }
+    public string COST_CTR { get; set; }
+    public string STOPFLAGDR { get; set; }
+    public string REASONDR { get; set; }
+    public string STOPFLAGCR { get; set; }
+    public string REASONCR { get; set; }
+    public string EFFECTIVE_DATE { get; set; }
+    public string ACCOUNT_OWNER_NAME { get; set; }
+    public string REC_STATUS { get; set; }
+    public string BOOKNG_ENT { get; set; }
+    public string CDB_CHCK_DBT_IND { get; set; }
+    public string CDB_CHCK_CDT_IND { get; set; }
+    public string CATEGORY_LIST { get; set; }
+    public string DEBIT_CONVERSION { get; set; }
+    public string CREDIT_CONVERSION { get; set; }
+    public string EXT_AGREEMENT_IND { get; set; }
+    public string EXT_AGREEMENT_START_DT { get; set; }
+    public string EXT_AGREEMENT_END_DT { get; set; }
+    public string BALANCE_AND_ACOUNT_IND { get; set; }
+    public string COUNTRYCODE { get; set; }
+    public string BRANCHCODE { get; set; }
+    public string ACC_SERVICING_INSTITUTION { get; set; }
+    public string PROD_CAT_CODE { get; set; }
+    public string IS_RECORD_EXIST { get; set; }
+    public string OVERALL_RESULT { get; set; }
+}
