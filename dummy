@@ -1,42 +1,13 @@
-// Append the results to an Excel sheet
-            FileInfo fileInfo = new FileInfo(filePath);
+OfficeOpenXml.LicenseException
+  HResult=0x80131500
+  Message=Please set the ExcelPackage.LicenseContext property. See https://epplussoftware.com/developers/licenseexception
+  Source=EPPlus
+  StackTrace:
+   at OfficeOpenXml.ExcelPackage.get_Workbook()
+   at OfficeOpenXml.ExcelPackage.CreateBlankWb()
+   at OfficeOpenXml.ExcelPackage.ConstructNewFile(String password)
+   at FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(AccountDmvDataModel dataModel, Int32 rowNumber) in C:\src\GPP_DMV\GPP\FATrust.GPP.PageObjects\GPP_PageObjects\PageOperations\GPPAccountSetupOperation.cs:line 290
 
-            using (ExcelPackage package = new ExcelPackage(fileInfo))
-            {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets.Count > 0
-                    ? package.Workbook.Worksheets[0]
-                    : package.Workbook.Worksheets.Add("ComparisonResults");
-
-                // Add headers if the worksheet is empty
-                if (worksheet.Dimension == null)
-                {
-                    worksheet.Cells[1, 1].Value = "Row Number";
-                    worksheet.Cells[1, 2].Value = "Field Name";
-                    worksheet.Cells[1, 3].Value = "Expected Value";
-                    worksheet.Cells[1, 4].Value = "Actual Value";
-                    worksheet.Cells[1, 5].Value = "Result";
-                }
-
-                // Find the next row to write data
-                int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-
-                // Write each field and its comparison result
-                foreach (var field in columnResult)
-                {
-                    // Field name (key), Expected value (from dataModel), Actual value (from web element)
-                    var fieldName = field.Key;
-                    var expectedValue = dataModel.GetType().GetProperty(field.Key)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
-                    var actualValue = field.Value;
-                    var result = actualValue.Contains("PASS") ? "PASS" : "FAIL";
-
-                    worksheet.Cells[nextRow, 1].Value = rowNumber;  // Row number
-                    worksheet.Cells[nextRow, 2].Value = fieldName;  // Field name (e.g., ACC_TYPE, CUST_CODE)
-                    worksheet.Cells[nextRow, 3].Value = expectedValue;  // Expected value from dataModel
-                    worksheet.Cells[nextRow, 4].Value = actualValue;  // Actual value from comparison
-                    worksheet.Cells[nextRow, 5].Value = result;  // Pass/Fail
-
-                    nextRow++;
-                }
-
-                // Save the Excel file after writing all rows
-                package.Save();
+  This exception was originally thrown at this call stack:
+    [External Code]
+    FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(FATrust.PageObjects.Data_Objects.GPPDMVDataSetupProfileParameters.AccountDmvDataModel, int) in GPPAccountSetupOperation.cs
