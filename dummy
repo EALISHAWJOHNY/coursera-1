@@ -1,13 +1,18 @@
+Here’s the full code with the dictionary values mapped to the properties of the `AccountDmvDataModel` class:
+
+### Full Code:
+
+```csharp
 public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNumber)
 {
     List<ResultModel> results = new List<ResultModel>();
-    
+
     // Dictionary to store column name and its corresponding ResultLog value
     Dictionary<string, string> columnResultLogMap = new Dictionary<string, string>();
-    
+
     // Instance of AccountDmvDataModel to store results
     var res = new AccountDmvDataModel();
-    
+
     try
     {
         if (dataModel != null)
@@ -60,6 +65,48 @@ public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNum
                 columnResultLogMap["Address1"] = results[rowNumber].ResultLog;
             }
 
+            // Validate Address2
+            results.Add(this.ValidateData("Address2", dataModel.Address2, this.txt_Address2, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["Address2"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate Address3
+            results.Add(this.ValidateData("Address3", dataModel.Address3, this.txt_Address3, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["Address3"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate LOCATION
+            results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, this.txt_LOCATION, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["LOCATION"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate NET_ADDR
+            results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, this.txt_NET_ADDR, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["NET_ADDR"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate PHONE
+            results.Add(this.ValidateData("PHONE", dataModel.PHONE, this.txt_PHONE, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["PHONE"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate FAX
+            results.Add(this.ValidateData("FAX", dataModel.FAX, this.txt_FAX, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["FAX"] = results[rowNumber].ResultLog;
+            }
+
             // Example for tab General (CONSUMER)
             this.tab_General.Click();
             results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, this.chkbx_CONSUMER, true, false));
@@ -68,7 +115,20 @@ public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNum
                 columnResultLogMap["CONSUMER"] = results[rowNumber].ResultLog;
             }
 
-            // Continue for other fields in similar fashion...
+            // Validate DEPARTMENT
+            results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, this.txt_DEPARTMENT, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["DEPARTMENT"] = results[rowNumber].ResultLog;
+            }
+
+            // Validate COST_CTR
+            this.tab_Preference.Click();
+            results.Add(this.ValidateData("COST_CTR", dataModel.COST_CTR, this.txt_COST_CTR, false, true));
+            if (rowNumber < results.Count)
+            {
+                columnResultLogMap["COST_CTR"] = results[rowNumber].ResultLog;
+            }
 
             // Finally, store the overall result
             columnResultLogMap["OVERALL_RESULT"] = results.All(items => items.IsMatched) ? "PASS" : "FAIL";
@@ -81,10 +141,18 @@ public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNum
         if (columnResultLogMap.ContainsKey("CURRENCY")) res.CURRENCY = columnResultLogMap["CURRENCY"];
         if (columnResultLogMap.ContainsKey("ACCOUNTNAME")) res.ACCOUNTNAME = columnResultLogMap["ACCOUNTNAME"];
         if (columnResultLogMap.ContainsKey("Address1")) res.Address1 = columnResultLogMap["Address1"];
+        if (columnResultLogMap.ContainsKey("Address2")) res.Address2 = columnResultLogMap["Address2"];
+        if (columnResultLogMap.ContainsKey("Address3")) res.Address3 = columnResultLogMap["Address3"];
+        if (columnResultLogMap.ContainsKey("LOCATION")) res.LOCATION = columnResultLogMap["LOCATION"];
+        if (columnResultLogMap.ContainsKey("NET_ADDR")) res.NET_ADDR = columnResultLogMap["NET_ADDR"];
+        if (columnResultLogMap.ContainsKey("PHONE")) res.PHONE = columnResultLogMap["PHONE"];
+        if (columnResultLogMap.ContainsKey("FAX")) res.FAX = columnResultLogMap["FAX"];
         if (columnResultLogMap.ContainsKey("CONSUMER")) res.CONSUMER = columnResultLogMap["CONSUMER"];
+        if (columnResultLogMap.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnResultLogMap["DEPARTMENT"];
+        if (columnResultLogMap.ContainsKey("COST_CTR")) res.COST_CTR = columnResultLogMap["COST_CTR"];
         if (columnResultLogMap.ContainsKey("OVERALL_RESULT")) res.OVERALL_RESULT = columnResultLogMap["OVERALL_RESULT"];
 
-        // Continue mapping for other fields...
+        // Continue mapping for other fields as needed...
     }
     catch (Exception ex)
     {
@@ -99,3 +167,24 @@ public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNum
     // Return the populated AccountDmvDataModel object
     return res;
 }
+```
+
+### Explanation:
+
+1. **Dictionary Population**:
+   - Each field is validated, and the `ResultLog` is stored in the dictionary with the field name as the key (e.g., `"ACC_TYPE"`, `"ACC_NO"`, etc.).
+
+2. **Mapping to `AccountDmvDataModel`**:
+   - After validation, the dictionary values are mapped to the respective properties of the `AccountDmvDataModel` object (`res`).
+   - Example:
+     ```csharp
+     if (columnResultLogMap.ContainsKey("ACC_TYPE")) 
+         res.ACC_TYPE = columnResultLogMap["ACC_TYPE"];
+     ```
+
+3. **Return the `AccountDmvDataModel` Object**:
+   - Once all the mappings are done, the `AccountDmvDataModel` object (`res`) is returned with its properties populated based on the `ResultLog` values from the dictionary.
+
+### Notes:
+- Ensure that every validation result is correctly stored in the dictionary, and map all the fields accordingly to the `AccountDmvDataModel` class.
+- Add more fields to the mapping section as per your data model.
