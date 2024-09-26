@@ -1,13 +1,16 @@
-OfficeOpenXml.LicenseException
-  HResult=0x80131500
-  Message=Please set the ExcelPackage.LicenseContext property. See https://epplussoftware.com/developers/licenseexception
-  Source=EPPlus
-  StackTrace:
-   at OfficeOpenXml.ExcelPackage.get_Workbook()
-   at OfficeOpenXml.ExcelPackage.CreateBlankWb()
-   at OfficeOpenXml.ExcelPackage.ConstructNewFile(String password)
-   at FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(AccountDmvDataModel dataModel, Int32 rowNumber) in C:\src\GPP_DMV\GPP\FATrust.GPP.PageObjects\GPP_PageObjects\PageOperations\GPPAccountSetupOperation.cs:line 290
+// Define headers for field names if not already present
+        if (worksheet.Dimension == null)
+        {
+            // Row 1: Field Names
+            worksheet.Cells[1, 1].Value = "Row Number";
+            int columnIndex = 2; // Start after "Row Number" column
 
-  This exception was originally thrown at this call stack:
-    [External Code]
-    FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(FATrust.PageObjects.Data_Objects.GPPDMVDataSetupProfileParameters.AccountDmvDataModel, int) in GPPAccountSetupOperation.cs
+            // Iterate through field names to add as headers
+            foreach (var field in columnResult.Keys)
+            {
+                worksheet.Cells[1, columnIndex].Value = field + " - Expected";
+                worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
+                worksheet.Cells[1, columnIndex + 2].Value = field + " - Result";
+                columnIndex += 3; // Increment by 3 for each set of Expected/Actual/Result
+            }
+        }
