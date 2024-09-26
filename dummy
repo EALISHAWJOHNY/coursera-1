@@ -1,246 +1,42 @@
-public class ResultModel
-{
-    public bool IsMatched { get; set; }
-    public string ElementName { get; set; }
-    public string ResultLog { get; set; }
-    public string OverallResult { get; set; }
-}
+// Append the results to an Excel sheet
+            FileInfo fileInfo = new FileInfo(filePath);
 
-public class AccountDmvDataModel
-{
-    public string ACC_TYPE { get; set; }
-    public string ACC_NO { get; set; }
-    public string CUST_CODE { get; set; }
-    public string CURRENCY { get; set; }
-    public string ACCOUNTNAME { get; set; }
-    public string Address1 { get; set; }
-    public string Address2 { get; set; }
-    public string Address3 { get; set; }
-    public string LOCATION { get; set; }
-    public string NET_ADDR { get; set; }
-    public string PHONE { get; set; }
-    public string FAX { get; set; }
-    public string CONSUMER { get; set; }
-    public string DEPARTMENT { get; set; }
-    public string COST_CTR { get; set; }
-    public string STOPFLAGDR { get; set; }
-    public string REASONDR { get; set; }
-    public string STOPFLAGCR { get; set; }
-    public string REASONCR { get; set; }
-    public string EFFECTIVE_DATE { get; set; }
-    public string ACCOUNT_OWNER_NAME { get; set; }
-    public string REC_STATUS { get; set; }
-    public string BOOKNG_ENT { get; set; }
-    public string CDB_CHCK_DBT_IND { get; set; }
-    public string CDB_CHCK_CDT_IND { get; set; }
-    public string CATEGORY_LIST { get; set; }
-    public string DEBIT_CONVERSION { get; set; }
-    public string CREDIT_CONVERSION { get; set; }
-    public string EXT_AGREEMENT_IND { get; set; }
-    public string EXT_AGREEMENT_START_DT { get; set; }
-    public string EXT_AGREEMENT_END_DT { get; set; }
-    public string BALANCE_AND_ACOUNT_IND { get; set; }
-    public string COUNTRYCODE { get; set; }
-    public string BRANCHCODE { get; set; }
-    public string ACC_SERVICING_INSTITUTION { get; set; }
-    public string PROD_CAT_CODE { get; set; }
-    public string IS_RECORD_EXIST { get; set; }
-    public string OVERALL_RESULT { get; set; }
-}
+            using (ExcelPackage package = new ExcelPackage(fileInfo))
+            {
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Count > 0
+                    ? package.Workbook.Worksheets[0]
+                    : package.Workbook.Worksheets.Add("ComparisonResults");
 
-public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNumber)
-{
-    List<ResultModel> results = new List<ResultModel>();
-    var res = new AccountDmvDataModel();
-    Dictionary<string,string> columnResult = new Dictionary<string,string>();
-    try
-    {
+                // Add headers if the worksheet is empty
+                if (worksheet.Dimension == null)
+                {
+                    worksheet.Cells[1, 1].Value = "Row Number";
+                    worksheet.Cells[1, 2].Value = "Field Name";
+                    worksheet.Cells[1, 3].Value = "Expected Value";
+                    worksheet.Cells[1, 4].Value = "Actual Value";
+                    worksheet.Cells[1, 5].Value = "Result";
+                }
 
-        if (dataModel != null)
-        {
-            this.tab_General.Click();
-            results.Add(this.ValidateData("ACC_TYPE", dataModel.ACC_TYPE, this.txt_ACC_TYPE, false, true));
-            Console.WriteLine(results[results.Count - 1].ResultLog);
-            columnResult["ACC_TYPE"] = results[results.Count -1].ResultLog;
-            results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, this.txt_ACC_NO, false, true));
-            columnResult["ACC_NO"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CUST_CODE", dataModel.CUST_CODE, this.txt_CUST_CODE, false, true));
-            columnResult["CUST_CODE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CURRENCY", dataModel.CURRENCY, this.txt_CURRENCY, false, true));
-            columnResult["CURRENCY"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("ACCOUNTNAME", dataModel.ACCOUNTNAME, this.txt_ACCOUNTNAME, false, true));
-            columnResult["ACCOUNTNAME"] = results[results.Count - 1].ResultLog;
+                // Find the next row to write data
+                int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
 
-            this.tab_Contact_Information.Click();
-            results.Add(this.ValidateData("Address1", dataModel.Address1, this.txt_Address1, false, true));
-            columnResult["Address1"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("Address2", dataModel.Address2, this.txt_Address2, false, true));
-            columnResult["Address2"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("Address3", dataModel.Address3, this.txt_Address3, false, true));
-            columnResult["Address3"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, this.txt_LOCATION, false, true));
-            columnResult["LOCATION"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, this.txt_NET_ADDR, false, true));
-            columnResult["NET_ADDR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("PHONE", dataModel.PHONE, this.txt_PHONE, false, true));
-            columnResult["PHONE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("FAX", dataModel.FAX, this.txt_FAX, false, true));
-            columnResult["FAX"] = results[results.Count - 1].ResultLog;
+                // Write each field and its comparison result
+                foreach (var field in columnResult)
+                {
+                    // Field name (key), Expected value (from dataModel), Actual value (from web element)
+                    var fieldName = field.Key;
+                    var expectedValue = dataModel.GetType().GetProperty(field.Key)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
+                    var actualValue = field.Value;
+                    var result = actualValue.Contains("PASS") ? "PASS" : "FAIL";
 
-            this.tab_General.Click();
-            results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, this.chkbx_CONSUMER, true, false));
-            columnResult["CONSUMER"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, this.txt_DEPARTMENT, false, true));
-            columnResult["DEPARTMENT"] = results[results.Count - 1].ResultLog;
+                    worksheet.Cells[nextRow, 1].Value = rowNumber;  // Row number
+                    worksheet.Cells[nextRow, 2].Value = fieldName;  // Field name (e.g., ACC_TYPE, CUST_CODE)
+                    worksheet.Cells[nextRow, 3].Value = expectedValue;  // Expected value from dataModel
+                    worksheet.Cells[nextRow, 4].Value = actualValue;  // Actual value from comparison
+                    worksheet.Cells[nextRow, 5].Value = result;  // Pass/Fail
 
-            this.tab_Preference.Click();
-            results.Add(this.ValidateData("COST_CTR", dataModel.COST_CTR, this.txt_COST_CTR, false, true));
-            columnResult["COST_CTR"] = results[results.Count - 1].ResultLog;
+                    nextRow++;
+                }
 
-            this.tab_General.Click();
-            results.Add(this.ValidateData("STOPFLAGDR", dataModel.STOPFLAGDR, this.chkbx_STOPFLAGDR, true, false));
-            columnResult["STOPFLAGDR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("REASONDR", dataModel.REASONDR, this.txt_REASONDR, false, true));
-            columnResult["REASONDR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("STOPFLAGCR", dataModel.STOPFLAGCR, this.chkbx_STOPFLAGCR, true, false));
-            columnResult["STOPFLAGCR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("REASONCR", dataModel.REASONCR, this.txt_REASONCR, false, true));
-            columnResult["REASONCR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("EFFECTIVE_DATE", dataModel.EFFECTIVE_DATE, this.txt_EFFECTIVE_DATE, false, true));
-            columnResult["EFFECTIVE_DATE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("ACCOUNT_OWNER_NAME", dataModel.ACCOUNT_OWNER_NAME, this.txt_ACCOUNT_OWNER_NAME, false, true));
-            columnResult["ACCOUNT_OWNER_NAME"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("REC_STATUS", dataModel.REC_STATUS, this.txt_REC_STATUS, false, true));
-            columnResult["REC_STATUS"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("BOOKNG_ENT", dataModel.BOOKNG_ENT, this.txt_BOOKNG_ENT, false, true));
-            columnResult["BOOKNG_ENT"] = results[results.Count - 1].ResultLog;
-
-            this.tab_Preference.Click();
-            results.Add(this.ValidateData("CDB_CHCK_DBT_IND", dataModel.CDB_CHCK_DBT_IND, this.chkbx_CDB_CHCK_DBT_IND, true, false));
-            columnResult["CDB_CHCK_DBT_IND"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CDB_CHCK_CDT_IND", dataModel.CDB_CHCK_CDT_IND, this.chkbx_CDB_CHCK_CDT_IND, true, false));
-            columnResult["CDB_CHCK_CDT_IND"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CATEGORY_LIST", dataModel.CATEGORY_LIST, this.txt_CATEGORY_LIST, false, true));
-            columnResult["CATEGORY_LIST"] = results[results.Count - 1].ResultLog;
-
-            this.tab_Accounting_and_Fees.Click();
-            results.Add(this.ValidateData("DEBIT_CONVERSION", dataModel.DEBIT_CONVERSION, this.chkbx_DEBIT_CONVERSION, true, false));
-            columnResult["DEBIT_CONVERSION"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CREDIT_CONVERSION", dataModel.CREDIT_CONVERSION, this.chkbx_CREDIT_CONVERSION, true, false));
-            columnResult["CREDIT_CONVERSION"] = results[results.Count - 1].ResultLog;
-
-            this.tab_General.Click();
-            results.Add(this.ValidateData("EXT_AGREEMENT_IND", dataModel.EXT_AGREEMENT_IND, this.chkbx_EXT_AGREEMENT_IND, true, false));
-            columnResult["EXT_AGREEMENT_IND"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("EXT_AGREEMENT_START_DT", dataModel.EXT_AGREEMENT_START_DT, this.txt_EXT_AGREEMENT_START_DT, false, true));
-            columnResult["EXT_AGREEMENT_START_DT"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("EXT_AGREEMENT_END_DT", dataModel.EXT_AGREEMENT_END_DT, this.txt_EXT_AGREEMENT_END_DT, false, true));
-            columnResult["EXT_AGREEMENT_END_DT"] = results[results.Count - 1].ResultLog;
-
-            this.tab_Preference.Click();
-            results.Add(this.ValidateData("BALANCE_AND_ACOUNT_IND", dataModel.BALANCE_AND_ACOUNT_IND, this.chkbx_BALANCE_AND_ACOUNT_IND, true, false));
-            columnResult["BALANCE_AND_ACOUNT_IND"] = results[results.Count - 1].ResultLog;
-
-            this.tab_Contact_Information.Click();
-            results.Add(this.ValidateData("COUNTRYCODE", dataModel.COUNTRYCODE, this.txt_COUNTRYCODE, false, true));
-            columnResult["COUNTRYCODE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("BRANCHCODE", dataModel.BRANCHCODE, this.txt_BRANCHCODE, false, true));
-            columnResult["BRANCHCODE"] = results[results.Count - 1].ResultLog;
-
-            this.tab_Preference.Click();
-            results.Add(this.ValidateData("ACC_SERVICING_INSTITUTION", dataModel.ACC_SERVICING_INSTITUTION, this.txt_ACC_SERVICING_INSTITUTION, false, true));
-            columnResult["ACC_SERVICING_INSTITUTION"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("PROD_CAT_CODE", dataModel.PROD_CAT_CODE, this.txt_PROD_CAT_CODE, false, true));
-            columnResult["PROD_CAT_CODE"] = results[results.Count - 1].ResultLog;
-
-            columnResult["OVERALL_RESULT"] = (results.All(items => items.IsMatched)) ? "PASS" : "FAIL";
-
-            // Map dictionary values to the properties of AccountDmvDataModel
-            if (columnResult.ContainsKey("ACC_TYPE")) res.ACC_TYPE = columnResult["ACC_TYPE"];
-            if (columnResult.ContainsKey("ACC_NO")) res.ACC_NO = columnResult["ACC_NO"];
-            if (columnResult.ContainsKey("CUST_CODE")) res.CUST_CODE = columnResult["CUST_CODE"];
-            if (columnResult.ContainsKey("CURRENCY")) res.CURRENCY = columnResult["CURRENCY"];
-            if (columnResult.ContainsKey("ACCOUNTNAME")) res.ACCOUNTNAME = columnResult["ACCOUNTNAME"];
-            if (columnResult.ContainsKey("Address1")) res.Address1 = columnResult["Address1"];
-            if (columnResult.ContainsKey("Address2")) res.Address2 = columnResult["Address2"];
-            if (columnResult.ContainsKey("Address3")) res.Address3 = columnResult["Address3"];
-            if (columnResult.ContainsKey("LOCATION")) res.LOCATION = columnResult["LOCATION"];
-            if (columnResult.ContainsKey("NET_ADDR")) res.NET_ADDR = columnResult["NET_ADDR"];
-            if (columnResult.ContainsKey("PHONE")) res.PHONE = columnResult["PHONE"];
-            if (columnResult.ContainsKey("FAX")) res.FAX = columnResult["FAX"];
-            if (columnResult.ContainsKey("CONSUMER")) res.CONSUMER = columnResult["CONSUMER"];
-            if (columnResult.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnResult["DEPARTMENT"];
-            if (columnResult.ContainsKey("COST_CTR")) res.COST_CTR = columnResult["COST_CTR"];
-            if (columnResult.ContainsKey("STOPFLAGDR")) res.STOPFLAGDR = columnResult["STOPFLAGDR"];
-            if (columnResult.ContainsKey("REASONDR")) res.REASONDR = columnResult["REASONDR"];
-            if (columnResult.ContainsKey("STOPFLAGCR")) res.STOPFLAGCR = columnResult["STOPFLAGCR"];
-            if (columnResult.ContainsKey("REASONCR")) res.REASONCR = columnResult["REASONCR"];
-            if (columnResult.ContainsKey("EFFECTIVE_DATE")) res.EFFECTIVE_DATE = columnResult["EFFECTIVE_DATE"];
-            if (columnResult.ContainsKey("ACCOUNT_OWNER_NAME")) res.ACCOUNT_OWNER_NAME = columnResult["ACCOUNT_OWNER_NAME"];
-            if (columnResult.ContainsKey("REC_STATUS")) res.REC_STATUS = columnResult["REC_STATUS"];
-            if (columnResult.ContainsKey("BOOKNG_ENT")) res.BOOKNG_ENT = columnResult["BOOKNG_ENT"];
-            if (columnResult.ContainsKey("CDB_CHCK_DBT_IND")) res.CDB_CHCK_DBT_IND = columnResult["CDB_CHCK_DBT_IND"];
-            if (columnResult.ContainsKey("CDB_CHCK_CDT_IND")) res.CDB_CHCK_CDT_IND = columnResult["CDB_CHCK_CDT_IND"];
-            if (columnResult.ContainsKey("CATEGORY_LIST")) res.CATEGORY_LIST = columnResult["CATEGORY_LIST"];
-            if (columnResult.ContainsKey("DEBIT_CONVERSION")) res.DEBIT_CONVERSION = columnResult["DEBIT_CONVERSION"];
-            if (columnResult.ContainsKey("CREDIT_CONVERSION")) res.CREDIT_CONVERSION = columnResult["CREDIT_CONVERSION"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_IND")) res.EXT_AGREEMENT_IND = columnResult["EXT_AGREEMENT_IND"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_START_DT")) res.EXT_AGREEMENT_START_DT = columnResult["EXT_AGREEMENT_START_DT"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_END_DT")) res.EXT_AGREEMENT_END_DT = columnResult["EXT_AGREEMENT_END_DT"];
-            if (columnResult.ContainsKey("BALANCE_AND_ACOUNT_IND")) res.BALANCE_AND_ACOUNT_IND = columnResult["BALANCE_AND_ACOUNT_IND"];
-            if (columnResult.ContainsKey("COUNTRYCODE")) res.COUNTRYCODE = columnResult["COUNTRYCODE"];
-            if (columnResult.ContainsKey("BRANCHCODE")) res.BRANCHCODE = columnResult["BRANCHCODE"];
-            if (columnResult.ContainsKey("ACC_SERVICING_INSTITUTION")) res.ACC_SERVICING_INSTITUTION = columnResult["ACC_SERVICING_INSTITUTION"];
-            if (columnResult.ContainsKey("PROD_CAT_CODE")) res.PROD_CAT_CODE = columnResult["PROD_CAT_CODE"]; 
-            if (columnResult.ContainsKey("OVERALL_RESULT")) res.OVERALL_RESULT = columnResult["OVERALL_RESULT"];
-        }
-    }
-    catch (Exception ex)
-    {
-        Support.IsTrue(false, "Issue in Comparing Data" +ex.Message);
-    }
-    finally
-    {
-        this.btn_CloseAccountWindow.FATClick();
-    }
-    return res;
-}
-
- private IWebElement txt_ACC_TYPE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_TYPE']"));
- private IWebElement txt_ACC_NO => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_NO']"));
- private IWebElement txt_CUST_CODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CUST_CODE']"));
- private IWebElement txt_CURRENCY => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CURRENCY']"));
- private IWebElement txt_ACCOUNTNAME => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACCOUNTNAME']"));
- private IWebElement txt_Address1 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS1']"));
- private IWebElement txt_Address2 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS2']"));
- private IWebElement txt_Address3 => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ADDRESS3']"));
- private IWebElement txt_LOCATION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.LOCATION']"));
- private IWebElement txt_NET_ADDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.NET_ADDR']"));
- private IWebElement txt_PHONE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.PHONE']"));
- private IWebElement txt_FAX => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.FAX']"));
- private IWebElement chkbx_CONSUMER => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CONSUMER']"));
- private IWebElement txt_DEPARTMENT => FATrustDrivers.WebDriver.FindElement(By.XPath("//select[@id='ACCOUNTS.DEPARTMENT']"));
- private IWebElement txt_COST_CTR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.COST_CTR']"));
- private IWebElement chkbx_STOPFLAGDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.STOPFLAGDR']"));
- private IWebElement txt_REASONDR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_DEBIT']"));
- private IWebElement chkbx_STOPFLAGCR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_DEBIT']"));
- private IWebElement txt_REASONCR => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='STOP_FLAGS.DESCRIPTION_CREDIT']"));
- private IWebElement txt_EFFECTIVE_DATE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EFFECTIVE_DATE']"));
- private IWebElement txt_ACCOUNT_OWNER_NAME => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.V_CUST_NAME']"));
- private IWebElement txt_REC_STATUS => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.REC_STATUS']"));
- private IWebElement txt_BOOKNG_ENT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BOOKNG_ENT']"));
- private IWebElement chkbx_CDB_CHCK_DBT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CDB_CHCK_DBT_IND']"));
- private IWebElement chkbx_CDB_CHCK_CDT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CDB_CHCK_CDT_IND']"));
- private IWebElement txt_CATEGORY_LIST => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CATEGORY_LIST']"));
- private IWebElement chkbx_DEBIT_CONVERSION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.DEBIT_CONVERSION']"));
- private IWebElement chkbx_CREDIT_CONVERSION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.CREDIT_CONVERSION']"));
- private IWebElement chkbx_EXT_AGREEMENT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_IND']"));
- private IWebElement txt_EXT_AGREEMENT_START_DT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_START_DT']"));
- private IWebElement txt_EXT_AGREEMENT_END_DT => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.EXT_AGREEMENT_END_DT']"));
- private IWebElement chkbx_BALANCE_AND_ACOUNT_IND => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BALANCE_AND_ACOUNT_IND']"));
- private IWebElement txt_COUNTRYCODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.COUNTRYCODE']"));
- private IWebElement txt_BRANCHCODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.BRANCHCODE']"));
- private IWebElement txt_ACC_SERVICING_INSTITUTION => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.ACC_SERVICING_INSTITUTION']"));
- private IWebElement txt_PROD_CAT_CODE => FATrustDrivers.WebDriver.FindElement(By.XPath("//input[@id='ACCOUNTS.PROD_CAT_CODE']"));
- private IWebElement btn_closeAccountFilter => FATrustDrivers.WebDriver.FindElement(By.XPath("//th[2]//lib-reset-icon//span[@class='mat-mdc-focus-indicator']"));
- private IWebElement btn_CloseAccountWindow => FATrustDrivers.WebDriver.FindElement(By.XPath("//button[contains(text(),'Close')]"));
+                // Save the Excel file after writing all rows
+                package.Save();
