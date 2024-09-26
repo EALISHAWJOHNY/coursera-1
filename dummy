@@ -1,16 +1,21 @@
-// Define headers for field names if not already present
-        if (worksheet.Dimension == null)
-        {
-            // Row 1: Field Names
-            worksheet.Cells[1, 1].Value = "Row Number";
-            int columnIndex = 2; // Start after "Row Number" column
+worksheet.Cells[nextRow, 1].Value = rowNumber;
 
-            // Iterate through field names to add as headers
-            foreach (var field in columnResult.Keys)
-            {
-                worksheet.Cells[1, columnIndex].Value = field + " - Expected";
-                worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
-                worksheet.Cells[1, columnIndex + 2].Value = field + " - Result";
-                columnIndex += 3; // Increment by 3 for each set of Expected/Actual/Result
-            }
+        // Start writing field values from column 2 onward
+        int currentColumn = 2;
+        foreach (var field in columnResult)
+        {
+            var fieldName = field.Key;
+            var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
+            var actualValue = field.Value;
+            var result = actualValue.Contains("PASS") ? "PASS" : "FAIL";
+
+            // Write data in the respective columns for this field
+            worksheet.Cells[nextRow, currentColumn].Value = expectedValue;    // Expected value
+            worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;  // Actual value
+            worksheet.Cells[nextRow, currentColumn + 2].Value = result;       // Result (Pass/Fail)
+
+            currentColumn += 3; // Move to the next set of Expected/Actual/Result columns
         }
+
+        // Save the Excel file after writing the data
+        package.Save();
