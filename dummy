@@ -1,123 +1,13 @@
-public AccountDmvDataModel CompareData(AccountDmvDataModel dataModel, int rowNumber)
-{
-    List<ResultModel> results = new List<ResultModel>();
-    var res = new AccountDmvDataModel();
-    Dictionary<string, string> columnResult = new Dictionary<string, string>();
-    string filePath = @"C:\src\GPP_DMV\GPP\OutputFile.xlsx";
-    
-    try
-    {
-        if (dataModel != null)
-        {
-            // Navigate through tabs and validate data against UI elements
-            this.tab_General.Click();
-            results.Add(this.ValidateData("ACC_TYPE", dataModel.ACC_TYPE, this.txt_ACC_TYPE, false, true));
-            columnResult["ACC_TYPE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, this.txt_ACC_NO, false, true));
-            columnResult["ACC_NO"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CUST_CODE", dataModel.CUST_CODE, this.txt_CUST_CODE, false, true));
-            columnResult["CUST_CODE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("CURRENCY", dataModel.CURRENCY, this.txt_CURRENCY, false, true));
-            columnResult["CURRENCY"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("ACCOUNTNAME", dataModel.ACCOUNTNAME, this.txt_ACCOUNTNAME, false, true));
-            columnResult["ACCOUNTNAME"] = results[results.Count - 1].ResultLog;
+System.ObjectDisposedException
+  HResult=0x80131622
+  Message=Package has been disposed
+Object name: 'ExcelPackage'.
+  Source=EPPlus
+  StackTrace:
+   at OfficeOpenXml.ExcelPackage.CheckNotDisposed()
+   at OfficeOpenXml.ExcelPackage.Save()
+   at FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(AccountDmvDataModel dataModel, Int32 rowNumber) in C:\src\GPP_DMV\GPP\FATrust.GPP.PageObjects\GPP_PageObjects\PageOperations\GPPAccountSetupOperation.cs:line 375
 
-            this.tab_Contact_Information.Click();
-            results.Add(this.ValidateData("Address1", dataModel.Address1, this.txt_Address1, false, true));
-            columnResult["Address1"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("Address2", dataModel.Address2, this.txt_Address2, false, true));
-            columnResult["Address2"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("Address3", dataModel.Address3, this.txt_Address3, false, true));
-            columnResult["Address3"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, this.txt_LOCATION, false, true));
-            columnResult["LOCATION"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, this.txt_NET_ADDR, false, true));
-            columnResult["NET_ADDR"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("PHONE", dataModel.PHONE, this.txt_PHONE, false, true));
-            columnResult["PHONE"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("FAX", dataModel.FAX, this.txt_FAX, false, true));
-            columnResult["FAX"] = results[results.Count - 1].ResultLog;
-
-            // Additional fields and tabs
-            this.tab_General.Click();
-            results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, this.chkbx_CONSUMER, true, false));
-            columnResult["CONSUMER"] = results[results.Count - 1].ResultLog;
-            results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, this.txt_DEPARTMENT, false, true));
-            columnResult["DEPARTMENT"] = results[results.Count - 1].ResultLog;
-
-            // Handle the overall result
-            columnResult["OVERALL_RESULT"] = results.All(items => items.IsMatched) ? "PASS" : "FAIL";
-
-            // Map dictionary values to the AccountDmvDataModel properties
-            if (columnResult.ContainsKey("ACC_TYPE")) res.ACC_TYPE = columnResult["ACC_TYPE"];
-            if (columnResult.ContainsKey("ACC_NO")) res.ACC_NO = columnResult["ACC_NO"];
-            if (columnResult.ContainsKey("CUST_CODE")) res.CUST_CODE = columnResult["CUST_CODE"];
-            if (columnResult.ContainsKey("CURRENCY")) res.CURRENCY = columnResult["CURRENCY"];
-            if (columnResult.ContainsKey("ACCOUNTNAME")) res.ACCOUNTNAME = columnResult["ACCOUNTNAME"];
-            if (columnResult.ContainsKey("Address1")) res.Address1 = columnResult["Address1"];
-            if (columnResult.ContainsKey("Address2")) res.Address2 = columnResult["Address2"];
-            if (columnResult.ContainsKey("Address3")) res.Address3 = columnResult["Address3"];
-            if (columnResult.ContainsKey("LOCATION")) res.LOCATION = columnResult["LOCATION"];
-            if (columnResult.ContainsKey("NET_ADDR")) res.NET_ADDR = columnResult["NET_ADDR"];
-            if (columnResult.ContainsKey("PHONE")) res.PHONE = columnResult["PHONE"];
-            if (columnResult.ContainsKey("FAX")) res.FAX = columnResult["FAX"];
-            if (columnResult.ContainsKey("CONSUMER")) res.CONSUMER = columnResult["CONSUMER"];
-            if (columnResult.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnResult["DEPARTMENT"];
-            if (columnResult.ContainsKey("OVERALL_RESULT")) res.OVERALL_RESULT = columnResult["OVERALL_RESULT"];
-
-            // Write the results to an Excel file
-            FileInfo fileInfo = new FileInfo(filePath);
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (ExcelPackage package = new ExcelPackage(fileInfo))
-            {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
-
-                // Add headers if the worksheet is empty
-                if (worksheet.Dimension == null)
-                {
-                    worksheet.Cells[1, 1].Value = "Row Number";
-                    int columnIndex = 2; // Start after "Row Number" column
-
-                    foreach (var field in columnResult.Keys)
-                    {
-                        worksheet.Cells[1, columnIndex].Value = field + " - Expected";
-                        worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
-                        worksheet.Cells[1, columnIndex + 2].Value = field + " - Result";
-                        columnIndex += 3; // Increment by 3 for each set of Expected/Actual/Result
-                    }
-                }
-
-                // Find the next row to write data
-                int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-                worksheet.Cells[nextRow, 1].Value = rowNumber;
-
-                // Assume actualValues is populated with actual UI values
-                Dictionary<string, string> actualValues = GetActualValues();
-
-                // Start writing field values from column 2 onward
-                int currentColumn = 2;
-                foreach (var field in columnResult)
-                {
-                    var fieldName = field.Key;
-                    var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
-                    var actualValue = actualValues[fieldName];
-                    var result = actualValue == expectedValue ? "PASS" : "FAIL";
-
-                    worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                    worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                    worksheet.Cells[nextRow, currentColumn + 2].Value = result;
-                    currentColumn += 3;
-                }
-
-                package.Save();
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        // Handle exception
-        Console.WriteLine($"Error during comparison: {ex.Message}");
-    }
-
-    return res;
-}
+  This exception was originally thrown at this call stack:
+    [External Code]
+    FATrust.GPP.PageObjects.GPP_PageObjects.PageOperations.GPPAccountSetupOperation.CompareData(FATrust.PageObjects.Data_Objects.GPPDMVDataSetupProfileParameters.AccountDmvDataModel, int) in GPPAccountSetupOperation.cs
