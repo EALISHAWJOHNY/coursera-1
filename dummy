@@ -1,88 +1,112 @@
- // Append the results to an Excel sheet
- FileInfo fileInfo = new FileInfo(filePath);
- ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
- using (ExcelPackage package = new ExcelPackage(fileInfo))
- {
-     ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
-
-     // Add headers if the worksheet is empty
-     if (worksheet.Dimension == null)
-     {
-         worksheet.Cells[1, 1].Value = "Row Number";
-         int columnIndex = 2; // Start after "Row Number" column
-
-         // Iterate through field names to add as headers
-         foreach (var field in columnResult.Keys)
-         {
-             worksheet.Cells[1, columnIndex].Value = field + " - Expected";
-             worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
-             worksheet.Cells[1, columnIndex + 2].Value = field + " - Result";
-             columnIndex += 3; // Increment by 3 for each set of Expected/Actual/Result
-         }
-     }
+string filePath = @"C:\path\to\output.xlsx"; // Update with your actual path
+string directory = Path.GetDirectoryName(filePath);
+if (!Directory.Exists(directory))
+{
+    Directory.CreateDirectory(directory);
+}
 
 
-     // Find the next row to write data
-     int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+public void CreateAndSaveExcel(string filePath, AccountDmvDataModel dataModel, Dictionary<string, string> columnResult, int rowNumber)
+{
+    // Ensure directory exists
+    string directory = Path.GetDirectoryName(filePath);
+    if (!Directory.Exists(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
 
-     worksheet.Cells[nextRow, 1].Value = rowNumber;
+    try
+    {
+        FileInfo fileInfo = new FileInfo(filePath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using (ExcelPackage package = new ExcelPackage(fileInfo))
+        {
+            // Add or get worksheet
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
 
-     Dictionary<string, string> actualValues = new Dictionary<string, string>
-         {
-             { "ACC_TYPE", txt_ACC_TYPE.GetAttribute("value") },
-             { "ACC_NO", txt_ACC_NO.GetAttribute("value") },
-             { "CUST_CODE", txt_CUST_CODE.GetAttribute("value") },
-             { "CURRENCY", txt_CURRENCY.GetAttribute("value") },
-             { "ACCOUNTNAME", txt_ACCOUNTNAME.GetAttribute("value") },
-             { "Address1", txt_Address1.GetAttribute("value") },
-             { "Address2", txt_Address2.GetAttribute("value") },
-             { "Address3", txt_Address3.GetAttribute("value") },
-             { "LOCATION", txt_LOCATION.GetAttribute("value") },
-             { "NET_ADDR", txt_NET_ADDR.GetAttribute("value") },
-             { "PHONE", txt_PHONE.GetAttribute("value") },
-             { "FAX", txt_FAX.GetAttribute("value") },
-             { "CONSUMER", chkbx_CONSUMER.Selected ? "true" : "false" },
-             { "DEPARTMENT", txt_DEPARTMENT.GetAttribute("value") },
-             { "COST_CTR", txt_COST_CTR.GetAttribute("value") },
-             { "STOPFLAGDR", chkbx_STOPFLAGDR.Selected ? "true" : "false" },
-             { "REASONDR", txt_REASONDR.GetAttribute("value") },
-             { "STOPFLAGCR", chkbx_STOPFLAGCR.Selected ? "true" : "false" },
-             { "REASONCR", txt_REASONCR.GetAttribute("value") },
-             { "EFFECTIVE_DATE", txt_EFFECTIVE_DATE.GetAttribute("value") },
-             { "ACCOUNT_OWNER_NAME", txt_ACCOUNT_OWNER_NAME.GetAttribute("value") },
-             { "REC_STATUS", txt_REC_STATUS.GetAttribute("value") },
-             { "BOOKNG_ENT", txt_BOOKNG_ENT.GetAttribute("value") },
-             { "CDB_CHCK_DBT_IND", chkbx_CDB_CHCK_DBT_IND.Selected ? "true" : "false" },
-             { "CDB_CHCK_CDT_IND", chkbx_CDB_CHCK_CDT_IND.Selected ? "true" : "false" },
-             { "CATEGORY_LIST", txt_CATEGORY_LIST.GetAttribute("value") },
-             { "DEBIT_CONVERSION", chkbx_DEBIT_CONVERSION.Selected ? "true" : "false" },
-             { "CREDIT_CONVERSION", chkbx_CREDIT_CONVERSION.Selected ? "true" : "false" },
-             { "EXT_AGREEMENT_IND", chkbx_EXT_AGREEMENT_IND.Selected ? "true" : "false" },
-             { "EXT_AGREEMENT_START_DT", txt_EXT_AGREEMENT_START_DT.GetAttribute("value") },
-             { "EXT_AGREEMENT_END_DT", txt_EXT_AGREEMENT_END_DT.GetAttribute("value") },
-             { "BALANCE_AND_ACOUNT_IND", chkbx_BALANCE_AND_ACOUNT_IND.Selected ? "true" : "false" },
-             { "COUNTRYCODE", txt_COUNTRYCODE.GetAttribute("value") },
-             { "BRANCHCODE", txt_BRANCHCODE.GetAttribute("value") },
-             { "ACC_SERVICING_INSTITUTION", txt_ACC_SERVICING_INSTITUTION.GetAttribute("value") },
-             { "PROD_CAT_CODE", txt_PROD_CAT_CODE.GetAttribute("value") }
-         };
+            // Add headers if needed
+            if (worksheet.Dimension == null)
+            {
+                worksheet.Cells[1, 1].Value = "Row Number";
+                int columnIndex = 2; // Start after "Row Number" column
 
-     // Start writing field values from column 2 onward
-     int currentColumn = 2;
-     foreach (var field in columnResult)
-     {
-         var fieldName = field.Key;
-         var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
-         var actualValue = actualValues[fieldName];
-         var result = actualValue == expectedValue ? "PASS" : "FAIL";
+                foreach (var field in columnResult.Keys)
+                {
+                    worksheet.Cells[1, columnIndex].Value = field + " - Expected";
+                    worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
+                    worksheet.Cells[1, columnIndex + 2].Value = field + " - Result";
+                    columnIndex += 3;
+                }
+            }
 
-         // Write data in the respective columns for this field
-         worksheet.Cells[nextRow, currentColumn].Value = expectedValue;    // Expected value
-         worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;  // Actual value
-         worksheet.Cells[nextRow, currentColumn + 2].Value = result;       // Result (Pass/Fail)
+            // Find next row
+            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+            worksheet.Cells[nextRow, 1].Value = rowNumber;
 
-         currentColumn += 3; // Move to the next set of Expected/Actual/Result columns
-     }
+            // Extract actual values from web elements
+            Dictionary<string, string> actualValues = new Dictionary<string, string>
+            {
+                { "ACC_TYPE", txt_ACC_TYPE.GetAttribute("value") },
+                { "ACC_NO", txt_ACC_NO.GetAttribute("value") },
+                { "CUST_CODE", txt_CUST_CODE.GetAttribute("value") },
+                { "CURRENCY", txt_CURRENCY.GetAttribute("value") },
+                { "ACCOUNTNAME", txt_ACCOUNTNAME.GetAttribute("value") },
+                { "Address1", txt_Address1.GetAttribute("value") },
+                { "Address2", txt_Address2.GetAttribute("value") },
+                { "Address3", txt_Address3.GetAttribute("value") },
+                { "LOCATION", txt_LOCATION.GetAttribute("value") },
+                { "NET_ADDR", txt_NET_ADDR.GetAttribute("value") },
+                { "PHONE", txt_PHONE.GetAttribute("value") },
+                { "FAX", txt_FAX.GetAttribute("value") },
+                { "CONSUMER", chkbx_CONSUMER.Selected ? "true" : "false" },
+                { "DEPARTMENT", txt_DEPARTMENT.GetAttribute("value") },
+                { "COST_CTR", txt_COST_CTR.GetAttribute("value") },
+                { "STOPFLAGDR", chkbx_STOPFLAGDR.Selected ? "true" : "false" },
+                { "REASONDR", txt_REASONDR.GetAttribute("value") },
+                { "STOPFLAGCR", chkbx_STOPFLAGCR.Selected ? "true" : "false" },
+                { "REASONCR", txt_REASONCR.GetAttribute("value") },
+                { "EFFECTIVE_DATE", txt_EFFECTIVE_DATE.GetAttribute("value") },
+                { "ACCOUNT_OWNER_NAME", txt_ACCOUNT_OWNER_NAME.GetAttribute("value") },
+                { "REC_STATUS", txt_REC_STATUS.GetAttribute("value") },
+                { "BOOKNG_ENT", txt_BOOKNG_ENT.GetAttribute("value") },
+                { "CDB_CHCK_DBT_IND", chkbx_CDB_CHCK_DBT_IND.Selected ? "true" : "false" },
+                { "CDB_CHCK_CDT_IND", chkbx_CDB_CHCK_CDT_IND.Selected ? "true" : "false" },
+                { "CATEGORY_LIST", txt_CATEGORY_LIST.GetAttribute("value") },
+                { "DEBIT_CONVERSION", chkbx_DEBIT_CONVERSION.Selected ? "true" : "false" },
+                { "CREDIT_CONVERSION", chkbx_CREDIT_CONVERSION.Selected ? "true" : "false" },
+                { "EXT_AGREEMENT_IND", chkbx_EXT_AGREEMENT_IND.Selected ? "true" : "false" },
+                { "EXT_AGREEMENT_START_DT", txt_EXT_AGREEMENT_START_DT.GetAttribute("value") },
+                { "EXT_AGREEMENT_END_DT", txt_EXT_AGREEMENT_END_DT.GetAttribute("value") },
+                { "BALANCE_AND_ACOUNT_IND", chkbx_BALANCE_AND_ACOUNT_IND.Selected ? "true" : "false" },
+                { "COUNTRYCODE", txt_COUNTRYCODE.GetAttribute("value") },
+                { "BRANCHCODE", txt_BRANCHCODE.GetAttribute("value") },
+                { "ACC_SERVICING_INSTITUTION", txt_ACC_SERVICING_INSTITUTION.GetAttribute("value") },
+                { "PROD_CAT_CODE", txt_PROD_CAT_CODE.GetAttribute("value") }
+            };
 
-     // Save the Excel file after writing the data
-     package.Save();
+            // Write field values to the Excel file
+            int currentColumn = 2;
+            foreach (var field in columnResult)
+            {
+                var fieldName = field.Key;
+                var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
+                var actualValue = actualValues[fieldName];
+                var result = actualValue == expectedValue ? "PASS" : "FAIL";
+
+                // Write Expected, Actual, Result
+                worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                worksheet.Cells[nextRow, currentColumn + 2].Value = result;
+
+                currentColumn += 3;
+            }
+
+            // Save the Excel package
+            package.Save();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error: {ex.Message}");
+    }
+}
