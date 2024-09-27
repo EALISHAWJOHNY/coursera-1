@@ -1,4 +1,62 @@
-OVERALL_RESULT - Expected	OVERALL_RESULT - Actual
-N/A	FAIL
-N/A	FAIL
-N/A	FAIL
+private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Dictionary<string, string> columnResult)
+{
+    string filePath = @"C:\src\GPP_DMV\GPP\OutputFile.xlsx";
+
+    try
+    {
+        // Ensure directory exists
+        string directory = Path.GetDirectoryName(filePath);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        FileInfo fileInfo = new FileInfo(filePath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        // Use the `using` statement to ensure proper disposal
+        using (ExcelPackage package = new ExcelPackage(fileInfo))
+        {
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
+
+            // Add headers if the worksheet is empty
+            if (worksheet.Dimension == null)
+            {
+                worksheet.Cells[1, 1].Value = "Row Number";
+                int columnIndex = 2;
+
+                foreach (var field in columnResult.Keys)
+                {
+                    worksheet.Cells[1, columnIndex].Value = field + " - Expected";
+                    worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
+                    columnIndex += 2;
+                }
+            }
+
+            // Find the next row to write data
+            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+            worksheet.Cells[nextRow, 1].Value = rowNumber;
+
+            // Populate row data
+            int currentColumn = 2;
+            foreach (var field in columnResult)
+            {
+                var fieldName = field.Key;
+                var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
+                var actualValue = GetFieldValue(fieldName, field.Value);
+                
+                var result = actualValue == expectedValue ? "PASS" : "FAIL";
+
+                worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                currentColumn += 2;
+            }
+            //// Save the Excel file
+            package.Save();
+        }
+    }
+    catch (Exception ex)
+    {
+        Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
+    }
+}
