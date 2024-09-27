@@ -17,6 +17,7 @@ private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, D
         // Use the `using` statement to ensure proper disposal
         using (ExcelPackage package = new ExcelPackage(fileInfo))
         {
+            // Load or create the worksheet
             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
 
             // Add headers if the worksheet is empty
@@ -27,9 +28,18 @@ private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, D
 
                 foreach (var field in columnResult.Keys)
                 {
-                    worksheet.Cells[1, columnIndex].Value = field + " - Expected";
-                    worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
-                    columnIndex += 2;
+                    // If the field is OVERALL_RESULT, only add a single column
+                    if (field == "OVERALL_RESULT")
+                    {
+                        worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
+                        columnIndex++;
+                    }
+                    else
+                    {
+                        worksheet.Cells[1, columnIndex].Value = field + " - Expected";
+                        worksheet.Cells[1, columnIndex + 1].Value = field + " - Actual";
+                        columnIndex += 2;
+                    }
                 }
             }
 
@@ -44,14 +54,28 @@ private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, D
                 var fieldName = field.Key;
                 var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
                 var actualValue = GetFieldValue(fieldName, field.Value);
-                
-                var result = actualValue == expectedValue ? "PASS" : "FAIL";
 
-                worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                currentColumn += 2;
+                // If the field is OVERALL_RESULT, only write the actual value and skip expected
+                if (fieldName == "OVERALL_RESULT")
+                {
+                    worksheet.Cells[nextRow, currentColumn].Value = actualValue;
+                    currentColumn++;
+                }
+                else
+                {
+                    worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                    worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                    currentColumn += 2;
+                }
             }
-            //// Save the Excel file
+
+            // Delete the "OVERALL_RESULT - Expected" column (assuming it's in column 74)
+            worksheet.DeleteColumn(74);
+
+            // Rename "OVERALL_RESULT - Actual" to "OVERALL_RESULT" in the header
+            worksheet.Cells[1, 74].Value = "OVERALL_RESULT";
+
+            // Save the Excel file
             package.Save();
         }
     }
