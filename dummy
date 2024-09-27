@@ -184,6 +184,7 @@ private string GetFieldValue(string fieldName)
 {
     switch (fieldName)
     {
+        // Existing cases
         case "ACC_TYPE":
             return this.txt_ACC_TYPE.GetAttribute("value");
         case "ACC_NO":
@@ -194,42 +195,35 @@ private string GetFieldValue(string fieldName)
             return this.txt_CURRENCY.GetAttribute("value");
         case "ACCOUNTNAME":
             return this.txt_ACCOUNTNAME.GetAttribute("value");
-        case "Address1":
-            return this.txt_Address1.GetAttribute("value");
-        case "Address2":
-            return this.txt_Address2.GetAttribute("value");
-        case "Address3":
-            return this.txt_Address3.GetAttribute("value");
-        case "LOCATION":
-            return this.txt_LOCATION.GetAttribute("value");
-        case "NET_ADDR":
-            return this.txt_NET_ADDR.GetAttribute("value");
-        case "PHONE":
-            return this.txt_PHONE.GetAttribute("value");
-        case "FAX":
-            return this.txt_FAX.GetAttribute("value");
-        case "CONSUMER":
-            return this.chkbx_CONSUMER.Selected ? "True" : "False";
-        case "DEPARTMENT":
-            return this.txt_DEPARTMENT.GetAttribute("value");
-        case "COST_CTR":
-            return this.txt_COST_CTR.GetAttribute("value");
-        case "STOPFLAGDR":
-            return this.chkbx_STOPFLAGDR.Selected ? "True" : "False";
-        case "REASONDR":
-            return this.txt_REASONDR.GetAttribute("value");
-        case "STOPFLAGCR":
-            return this.chkbx_STOPFLAGCR.Selected ? "True" : "False";
-        case "REASONCR":
-            return this.txt_REASONCR.GetAttribute("value");
-        case "EFFECTIVE_DATE":
-            return this.txt_EFFECTIVE_DATE.GetAttribute("value");
-        case "ACCOUNT_OWNER_NAME":
-            return this.txt_ACCOUNT_OWNER_NAME.GetAttribute("value");
-        case "REC_STATUS":
-            return this.txt_REC_STATUS.GetAttribute("value");
-        case "BOOKNG_ENT":
-            return this.txt_BOOKNG_ENT.GetAttribute("value");
+        // Additional fields from the new example:
+        case "CDB_CHCK_DBT_IND":
+            return this.chkbx_CDB_CHCK_DBT_IND.Selected ? "True" : "False";
+        case "CDB_CHCK_CDT_IND":
+            return this.chkbx_CDB_CHCK_CDT_IND.Selected ? "True" : "False";
+        case "CATEGORY_LIST":
+            return this.txt_CATEGORY_LIST.GetAttribute("value");
+        case "DEBIT_CONVERSION":
+            return this.chkbx_DEBIT_CONVERSION.Selected ? "True" : "False";
+        case "CREDIT_CONVERSION":
+            return this.chkbx_CREDIT_CONVERSION.Selected ? "True" : "False";
+        case "EXT_AGREEMENT_IND":
+            return this.chkbx_EXT_AGREEMENT_IND.Selected ? "True" : "False";
+        case "EXT_AGREEMENT_START_DT":
+            return this.txt_EXT_AGREEMENT_START_DT.GetAttribute("value");
+        case "EXT_AGREEMENT_END_DT":
+            return this.txt_EXT_AGREEMENT_END_DT.GetAttribute("value");
+        case "BALANCE_AND_ACOUNT_IND":
+            return this.chkbx_BALANCE_AND_ACOUNT_IND.Selected ? "True" : "False";
+        case "COUNTRYCODE":
+            return this.txt_COUNTRYCODE.GetAttribute("value");
+        case "BRANCHCODE":
+            return this.txt_BRANCHCODE.GetAttribute("value");
+        case "ACC_SERVICING_INSTITUTION":
+            return this.txt_ACC_SERVICING_INSTITUTION.GetAttribute("value");
+        case "PROD_CAT_CODE":
+            return this.txt_PROD_CAT_CODE.GetAttribute("value");
+
+        // Default case
         default:
             return "Field not found";
     }
