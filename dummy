@@ -1,127 +1,55 @@
- private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Dictionary<string, string> columnResult)
- {
-     string workingDiectory = Directory.GetCurrentDirectory();
-
-     //string filePath = @"C:\src\GPP_DMV\GPP\OutputFile.xlsx";
-     string accountReports = Path.Combine(workingDiectory, "Accounts");
-
-     try
-     {
-         // Ensure directory exists
-         string directory = Path.GetDirectoryName(accountReports);
-         if (!Directory.Exists(directory))
-         {
-             Directory.CreateDirectory(directory);
-         }
-         string filePath = Path.Combine(accountReports, "Account_OutputFile.xlsx");
-
-         FileInfo fileInfo = new FileInfo(filePath);
-         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-         // Use the `using` statement to ensure proper disposal
-         using (ExcelPackage package = new ExcelPackage(fileInfo))
-         {
-             // Load or create the worksheet
-             ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
-
-             // Add headers if the worksheet is empty
-             if (worksheet.Dimension == null)
-             {
-                 //worksheet.Cells[1, 1].Value = "Row Number";
-                 int columnIndex = 1;
-
-                 foreach (var field in columnResult.Keys)
-                 {
-                     // If the field is OVERALL_RESULT, only add a single column
-                     if (field == "OVERALL_RESULT")
-                     {
-                         worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
-                         columnIndex++;
-                     }
-                     else
-                     {
-                         worksheet.Cells[1, columnIndex].Value = field + " - ExcelFile";
-                         worksheet.Cells[1, columnIndex + 1].Value = field + " - Accounts_UI";
-                         columnIndex += 2;
-                     }
-                 }
-             }
-
-             // Find the next row to write data
-             int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-             worksheet.Cells[nextRow, 1].Value = rowNumber;
-
-             // Populate row data
-             int currentColumn = 1;
-             foreach (var field in columnResult)
-             {
-                 var fieldName = field.Key;
-                 var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
-                 var actualValue = GetFieldValue(fieldName, field.Value);
-
-                 // If the field is OVERALL_RESULT, only write the actual value and skip expected
-                 if (fieldName == "OVERALL_RESULT")
-                 {
-                     worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                     currentColumn++;
-                 }
-                 else
-                 {
-                     worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                     worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                     currentColumn += 2;
-                 }
-             }
-             // Save the Excel file
-             package.Save();
-         }
-     }
-     catch (Exception ex)
-     {
-         Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
-     }
- }
-
-
-
-public class AccountDmvDataModel
+public void GPP_TC_DMV_ACCOUNTS_VALIDATION()
 {
-    public string ACC_TYPE { get; set; }
-    public string ACC_NO { get; set; }
-    public string CUST_CODE { get; set; }
-    public string CURRENCY { get; set; }
-    public string ACCOUNTNAME { get; set; }
-    public string Address1 { get; set; }
-    public string Address2 { get; set; }
-    public string Address3 { get; set; }
-    public string LOCATION { get; set; }
-    public string NET_ADDR { get; set; }
-    public string PHONE { get; set; }
-    public string FAX { get; set; }
-    public string CONSUMER { get; set; }
-    public string DEPARTMENT { get; set; }
-    public string COST_CTR { get; set; }
-    public string STOPFLAGDR { get; set; }
-    public string REASONDR { get; set; }
-    public string STOPFLAGCR { get; set; }
-    public string REASONCR { get; set; }
-    public string EFFECTIVE_DATE { get; set; }
-    public string ACCOUNT_OWNER_NAME { get; set; }
-    public string REC_STATUS { get; set; }
-    public string BOOKNG_ENT { get; set; }
-    public string CDB_CHCK_DBT_IND { get; set; }
-    public string CDB_CHCK_CDT_IND { get; set; }
-    public string CATEGORY_LIST { get; set; }
-    public string DEBIT_CONVERSION { get; set; }
-    public string CREDIT_CONVERSION { get; set; }
-    public string EXT_AGREEMENT_IND { get; set; }
-    public string EXT_AGREEMENT_START_DT { get; set; }
-    public string EXT_AGREEMENT_END_DT { get; set; }
-    public string BALANCE_AND_ACOUNT_IND { get; set; }
-    public string COUNTRYCODE { get; set; }
-    public string BRANCHCODE { get; set; }
-    public string ACC_SERVICING_INSTITUTION { get; set; }
-    public string PROD_CAT_CODE { get; set; }
-    public string IS_RECORD_EXIST { get; set; }
-    public string OVERALL_RESULT { get; set; }
+    Reports.TestDescription = "Verify a User can create Account Alias.";
+    try
+    {
+        
+        List<AccountDmvDataModel> dataset = PageOperations.GPPAccountSetupOperation.ReadExcel(filepath);
+        
+        // Start the Web Driver.
+        FATrustDrivers.StartWebDriver();
+
+        // As a Primary Agent Login to Application 
+        Reports.TestStep = "Login to GPP Application.";
+        PageOperations.GPPLoginPageOperations.OpenGPP(AutoConfig.GPPUrl);
+        PageOperations.GPPLoginPageOperations.LoginToGPP(AutoConfig.GPPUserName, AutoConfig.GPPPassword);
+
+        Reports.TestStep = "Navigate from Business Setup Page to Account Alias Page";
+        PageOperations.GPPBusinessSetupOperations.NavigateToBusinessSetupPage();
+        PageOperations.GPPBusinessSetupOperations.NavigateToBusinessEntitiesAccountsPage();
+        PageOperations.GPPBusinessSetupOperations.FilterAccountType();
+        List<AccountDmvDataModel> accountDMV = new List<AccountDmvDataModel>();
+        for(int rowNumber = 1; rowNumber < dataset.Count; rowNumber++)
+        {
+            bool account_Exists = PageOperations.GPPBusinessSetupOperations.VerifyAccountsExists(dataset[rowNumber].ACC_NO);
+            dataset[rowNumber].IS_RECORD_EXIST = account_Exists ? "PASS" : "FAIL";
+            if (dataset[rowNumber].IS_RECORD_EXIST.Equals("PASS"))
+            {
+                AccountDmvDataModel currentDataModel = dataset[rowNumber];
+                Url_AccountsSearch_Page = PageOperations.GPPMessageCenterOperations.FetchCurrentURLFromMessageCentreSearchPage();
+                PageOperations.GPPTransactionDataFullViewOperations.SwitchToTransactionDataPageInFullView(WindowTitle, Url_Accounts_Page);
+                var result = PageOperations.GPPAccountSetupOperation.CompareData(currentDataModel,rowNumber);
+                accountDMV.Add(result);
+                PageOperations.GPPTransactionDataFullViewOperations.SwitchBackToMessageCenterSearchPage(Url_AccountsSearch_Page);
+            }
+            PageOperations.GPPAccountSetupOperation.ClearAccountFilter();
+            Console.WriteLine("row"+rowNumber+" " +dataset[rowNumber]);
+            LogWriter logWriter = new LogWriter("C:\\src\\GPP_DMV\\GPP\\log.txt");
+            logWriter.WriteLog("This is a log message." + dataset[rowNumber].ACC_NO);
+            logWriter.WriteLog("This is a log message." + dataset[rowNumber].IS_RECORD_EXIST);
+        }
+
+        Reports.TestStep = "As an Agent Logout from the application";
+        PageOperations.GPPMessageCenterOperations.Logout();
+
+        Reports.TestStep = "Save output excel";
+        // PageOperations.GPPAccountSetupOperation.GenerateUIValidationReport();
+
+        Reports.TestStep = "Quit and Close the WebBrowser";
+        FATrustDrivers.QuitWebDriver();
+    }
+    catch (Exception ex)
+    {
+        FailTest(ex.Message);
+    }
 }
