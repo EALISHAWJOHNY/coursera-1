@@ -1,80 +1,20 @@
-public void GPP_TC_DMV_ACCOUNTS_VALIDATION()
+public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Dictionary<string, string> columnResult)
 {
-    Reports.TestDescription = "Verify a User can create Account Alias.";
-    try
-    {
-        
-        List<AccountDmvDataModel> dataset = PageOperations.GPPAccountSetupOperation.ReadExcel(filepath);
-        
-        // Start the Web Driver.
-        FATrustDrivers.StartWebDriver();
-
-        // As a Primary Agent Login to Application 
-        Reports.TestStep = "Login to GPP Application.";
-        PageOperations.GPPLoginPageOperations.OpenGPP(AutoConfig.GPPUrl);
-        PageOperations.GPPLoginPageOperations.LoginToGPP(AutoConfig.GPPUserName, AutoConfig.GPPPassword);
-
-        Reports.TestStep = "Navigate from Business Setup Page to Account Alias Page";
-        PageOperations.GPPBusinessSetupOperations.NavigateToBusinessSetupPage();
-        PageOperations.GPPBusinessSetupOperations.NavigateToBusinessEntitiesAccountsPage();
-        PageOperations.GPPBusinessSetupOperations.FilterAccountType();
-        List<AccountDmvDataModel> accountDMV = new List<AccountDmvDataModel>();
-        for(int rowNumber = 1; rowNumber < dataset.Count; rowNumber++)
-        {
-            bool account_Exists = PageOperations.GPPBusinessSetupOperations.VerifyAccountsExists(dataset[rowNumber].ACC_NO);
-            dataset[rowNumber].IS_RECORD_EXIST = account_Exists ? "PASS" : "FAIL";
-            if (dataset[rowNumber].IS_RECORD_EXIST.Equals("PASS"))
-            {
-                AccountDmvDataModel currentDataModel = dataset[rowNumber];
-                Url_AccountsSearch_Page = PageOperations.GPPMessageCenterOperations.FetchCurrentURLFromMessageCentreSearchPage();
-                PageOperations.GPPTransactionDataFullViewOperations.SwitchToTransactionDataPageInFullView(WindowTitle, Url_Accounts_Page);
-                var result = PageOperations.GPPAccountSetupOperation.CompareData(currentDataModel,rowNumber);
-                accountDMV.Add(result);
-                PageOperations.GPPTransactionDataFullViewOperations.SwitchBackToMessageCenterSearchPage(Url_AccountsSearch_Page);
-            }
-            PageOperations.GPPAccountSetupOperation.ClearAccountFilter();
-            Console.WriteLine("row"+rowNumber+" " +dataset[rowNumber]);
-            LogWriter logWriter = new LogWriter("C:\\src\\GPP_DMV\\GPP\\log.txt");
-            logWriter.WriteLog("This is a log message." + dataset[rowNumber].ACC_NO);
-            logWriter.WriteLog("This is a log message." + dataset[rowNumber].IS_RECORD_EXIST);
-        }
-
-        Reports.TestStep = "As an Agent Logout from the application";
-        PageOperations.GPPMessageCenterOperations.Logout();
-
-        Reports.TestStep = "Save output excel";
-        // PageOperations.GPPAccountSetupOperation.GenerateUIValidationReport();
-
-        Reports.TestStep = "Quit and Close the WebBrowser";
-        FATrustDrivers.QuitWebDriver();
-    }
-    catch (Exception ex)
-    {
-        FailTest(ex.Message);
-    }
-}
-
-private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Dictionary<string, string> columnResult)
-{
-    string workingDiectory = Directory.GetCurrentDirectory();
-
-    //string filePath = @"C:\src\GPP_DMV\GPP\OutputFile.xlsx";
-    string accountReports = Path.Combine(workingDiectory, "Accounts");
+    string workingDirectory = Directory.GetCurrentDirectory();
+    string accountReports = Path.Combine(workingDirectory, "Accounts");
 
     try
     {
         // Ensure directory exists
-        string directory = Path.GetDirectoryName(accountReports);
-        if (!Directory.Exists(directory))
+        if (!Directory.Exists(accountReports))
         {
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(accountReports);
         }
-        string filePath = Path.Combine(accountReports, "Account_OutputFile.xlsx");
 
+        string filePath = Path.Combine(accountReports, "Account_OutputFile.xlsx");
         FileInfo fileInfo = new FileInfo(filePath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-        // Use the `using` statement to ensure proper disposal
         using (ExcelPackage package = new ExcelPackage(fileInfo))
         {
             // Load or create the worksheet
@@ -83,63 +23,97 @@ private void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, D
             // Add headers if the worksheet is empty
             if (worksheet.Dimension == null)
             {
-                //worksheet.Cells[1, 1].Value = "Row Number";
                 int columnIndex = 1;
-
-                foreach (var field in columnResult.Keys)
+                if (columnResult != null && columnResult.Keys.Count > 0)
                 {
-                    // If the field is OVERALL_RESULT, only add a single column
-                    if (field == "OVERALL_RESULT")
+                    // Add headers based on columnResult
+                    foreach (var field in columnResult.Keys)
                     {
-                        worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
-                        columnIndex++;
+                        if (field == "OVERALL_RESULT")
+                        {
+                            worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
+                            columnIndex++;
+                        }
+                        else
+                        {
+                            worksheet.Cells[1, columnIndex].Value = field + " - ExcelFile";
+                            worksheet.Cells[1, columnIndex + 1].Value = field + " - Accounts_UI";
+                            columnIndex += 2;
+                        }
                     }
-                    else
-                    {
-                        worksheet.Cells[1, columnIndex].Value = field + " - ExcelFile";
-                        worksheet.Cells[1, columnIndex + 1].Value = field + " - Accounts_UI";
-                        columnIndex += 2;
-                    }
+                    worksheet.Cells[1, columnIndex].Value = "COMMENT"; // Add comment column header
+                }
+                else
+                {
+                    // Default headers for when columnResult is null
+                    worksheet.Cells[1, 1].Value = "ACC_NO";
+                    worksheet.Cells[1, 2].Value = "Data ExcelFile";
+                    worksheet.Cells[1, 3].Value = "Data Accounts_UI";
+                    worksheet.Cells[1, 4].Value = "COMMENT";
+                    worksheet.Cells[1, 5].Value = "OVERALL_RESULT";
                 }
             }
 
             // Find the next row to write data
             int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-            // worksheet.Cells[nextRow, 1].Value = rowNumber;
 
-            // Populate row data
+            // Populate row with "N/A" if columnResult is null
             int currentColumn = 1;
-            foreach (var field in columnResult)
+
+            if (columnResult == null)
             {
-                var fieldName = field.Key;
-                var expectedValue = dataModel.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
-                var actualValue = GetFieldValue(fieldName, field.Value);
+                // If columnResult is null, fill every expected column with "N/A"
+                int totalColumns = worksheet.Dimension.End.Column; // Get total number of columns
+                worksheet.Cells[nextRow, 1].Value = dataModel?.ACC_NO ?? "N/A"; // ACC_NO
 
-                if (fieldName == "EFFECTIVE_DATE")
+                for (int i = 2; i <= totalColumns; i++)
                 {
-                    if (DateTime.TryParse(expectedValue, out DateTime expected_Date))
+                    if (i == totalColumns - 1) // Second last column for comment
                     {
-                        expectedValue = expected_Date.ToString("MM/dd/yyyy");
+                        worksheet.Cells[nextRow, i].Value = "Data Missing";
                     }
-                    if (DateTime.TryParse(expectedValue, out DateTime actual_Date))
+                    else if (i == totalColumns) // Last column for overall result
                     {
-                        actualValue = actual_Date.ToString("MM/dd/yyyy");
+                        worksheet.Cells[nextRow, i].Value = "FAIL";
                     }
-                }
-
-                // If the field is OVERALL_RESULT, only write the actual value and skip expected
-                if (fieldName == "OVERALL_RESULT")
-                {
-                    worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                    currentColumn++;
-                }
-                else
-                {
-                    worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                    worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                    currentColumn += 2;
+                    else
+                    {
+                        worksheet.Cells[nextRow, i].Value = "N/A";
+                    }
                 }
             }
+            else
+            {
+                // Populate row data when columnResult is available
+                foreach (var field in columnResult)
+                {
+                    var fieldName = field.Key;
+                    var expectedValue = dataModel?.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
+                    var actualValue = field.Value ?? "N/A";
+
+                    // Format date field if needed
+                    if (fieldName == "EFFECTIVE_DATE")
+                    {
+                        if (DateTime.TryParse(expectedValue, out DateTime expectedDate))
+                        {
+                            expectedValue = expectedDate.ToString("MM/dd/yyyy");
+                        }
+                        if (DateTime.TryParse(actualValue, out DateTime actualDate))
+                        {
+                            actualValue = actualDate.ToString("MM/dd/yyyy");
+                        }
+                    }
+
+                    // Write the values to the Excel file
+                    worksheet.Cells[nextRow, currentColumn++].Value = expectedValue;
+                    worksheet.Cells[nextRow, currentColumn++].Value = actualValue;
+                }
+
+                // Add comment and overall result columns
+                worksheet.Cells[nextRow, currentColumn++].Value = "Data Verified";
+                worksheet.Cells[nextRow, currentColumn].Value = "PASS";
+            }
+
             // Save the Excel file
             package.Save();
         }
