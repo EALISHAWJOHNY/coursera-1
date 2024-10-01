@@ -24,74 +24,54 @@ public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Di
             if (worksheet.Dimension == null)
             {
                 int columnIndex = 1;
-                if (columnResult != null && columnResult.Keys.Count > 0)
+
+                // If columnResult is null, generate headers based on dataModel properties
+                if (dataModel != null)
                 {
-                    // Add headers based on columnResult
-                    foreach (var field in columnResult.Keys)
+                    foreach (var prop in dataModel.GetType().GetProperties())
                     {
-                        if (field == "OVERALL_RESULT")
-                        {
-                            worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
-                            columnIndex++;
-                        }
-                        else
-                        {
-                            worksheet.Cells[1, columnIndex].Value = field + " - ExcelFile";
-                            worksheet.Cells[1, columnIndex + 1].Value = field + " - Accounts_UI";
-                            columnIndex += 2;
-                        }
+                        worksheet.Cells[1, columnIndex].Value = prop.Name + " - Expected";
+                        worksheet.Cells[1, columnIndex + 1].Value = prop.Name + " - Actual";
+                        columnIndex += 2;
                     }
-                    worksheet.Cells[1, columnIndex].Value = "COMMENT"; // Add comment column header
-                }
-                else
-                {
-                    // Default headers for when columnResult is null
-                    worksheet.Cells[1, 1].Value = "ACC_NO";
-                    worksheet.Cells[1, 2].Value = "Data ExcelFile";
-                    worksheet.Cells[1, 3].Value = "Data Accounts_UI";
-                    worksheet.Cells[1, 4].Value = "COMMENT";
-                    worksheet.Cells[1, 5].Value = "OVERALL_RESULT";
+
+                    worksheet.Cells[1, columnIndex++].Value = "COMMENT";      // Add comment column
+                    worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT"; // Add overall result column
                 }
             }
 
             // Find the next row to write data
             int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-
-            // Populate row with "N/A" if columnResult is null
             int currentColumn = 1;
 
-            if (columnResult == null)
+            // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
+            if (columnResult == null && dataModel != null)
             {
-                // If columnResult is null, fill every expected column with "N/A"
-                int totalColumns = worksheet.Dimension.End.Column; // Get total number of columns
-                worksheet.Cells[nextRow, 1].Value = dataModel?.ACC_NO ?? "N/A"; // ACC_NO
-
-                for (int i = 2; i <= totalColumns; i++)
+                // Populate "Expected" values from dataModel and "Actual" values as "N/A"
+                foreach (var prop in dataModel.GetType().GetProperties())
                 {
-                    if (i == totalColumns - 1) // Second last column for comment
-                    {
-                        worksheet.Cells[nextRow, i].Value = "Data Missing";
-                    }
-                    else if (i == totalColumns) // Last column for overall result
-                    {
-                        worksheet.Cells[nextRow, i].Value = "FAIL";
-                    }
-                    else
-                    {
-                        worksheet.Cells[nextRow, i].Value = "N/A";
-                    }
+                    var expectedValue = prop.GetValue(dataModel, null)?.ToString() ?? "N/A"; // Expected value from dataModel
+                    var actualValue = "N/A"; // Actual value is always N/A since data is missing
+
+                    worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
+                    worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
+                    currentColumn += 2;
                 }
+
+                // Add comment and overall result
+                worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
+                worksheet.Cells[nextRow, currentColumn].Value = "FAIL"; // OVERALL_RESULT
             }
-            else
+            else if (columnResult != null)
             {
-                // Populate row data when columnResult is available
+                // Populate row with columnResult values when available (previous logic)
                 foreach (var field in columnResult)
                 {
                     var fieldName = field.Key;
                     var expectedValue = dataModel?.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString() ?? "N/A";
                     var actualValue = field.Value ?? "N/A";
 
-                    // Format date field if needed
+                    // Handle date formatting if needed
                     if (fieldName == "EFFECTIVE_DATE")
                     {
                         if (DateTime.TryParse(expectedValue, out DateTime expectedDate))
