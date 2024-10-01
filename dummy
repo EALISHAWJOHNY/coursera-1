@@ -103,3 +103,38 @@ public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Di
         Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
     }
 }
+
+
+private void CaptureScreenshot(string accountNo)
+{
+    try
+    {
+        // Create a timestamp for the folder
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string testReportFolder = Path.Combine(Directory.GetCurrentDirectory(), $"TestReports_{timestamp}");
+
+        // Create the test report folder if it doesn't exist
+        if (!Directory.Exists(testReportFolder))
+        {
+            Directory.CreateDirectory(testReportFolder);
+        }
+
+        // Create subfolder for the Account_No
+        string accountFolder = Path.Combine(testReportFolder, accountNo);
+        if (!Directory.Exists(accountFolder))
+        {
+            Directory.CreateDirectory(accountFolder);
+        }
+
+        // Capture the screenshot and save it to the account folder
+        Screenshot screenshot = ((ITakesScreenshot)Driver).GetScreenshot();
+        string screenshotFilePath = Path.Combine(accountFolder, "screenshot.png");
+        screenshot.SaveAsFile(screenshotFilePath, ScreenshotImageFormat.Png);
+
+        Console.WriteLine($"Screenshot saved at: {screenshotFilePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Failed to capture screenshot: " + ex.Message);
+    }
+}
