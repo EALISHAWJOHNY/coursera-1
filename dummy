@@ -588,38 +588,28 @@ public void GenerateExcelReport(AccountDmvDataModel dataModel, int rowNumber, Li
         Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
     }
 }
-
 private static string GetFieldValue(string fieldName, AccountDmvDataModel field)
 {
     var property = field.GetType().GetProperty(fieldName);
     if (property != null)
     {
-        return property.GetValue(field, null)?.ToString() ?? " ";
+        // Get the value of the property dynamically
+        var value = property.GetValue(field, null);
+        
+        // Handle specific cases for boolean or other types
+        if (property.PropertyType == typeof(bool))
+        {
+            return (bool)value ? "1" : "0";  // Convert boolean to "1" or "0"
+        }
+        
+        // If the value is DateTime, format it if necessary
+        if (property.PropertyType == typeof(DateTime))
+        {
+            return ((DateTime)value).ToString("MM/dd/yyyy");
+        }
+
+        // Return the value as string
+        return value?.ToString() ?? " ";  // Handle null values
     }
-    return " ";
-}
-
-Key Changes:
-
-1. Dynamically Assign fieldName:
-
-We use reflection to loop through the properties of the AccountDmvDataModel class.
-
-For each property, we dynamically get its name (fieldName = prop.Name), allowing the code to handle any property in AccountDmvDataModel.
-
-
-
-2. Dynamic Value Extraction:
-
-The expectedValue is obtained using reflection (dataModel?.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)).
-
-Similarly, the actualValue is retrieved by calling GetFieldValue, which uses reflection to extract the value of the property from field.
-
-
-
-
-This approach will ensure that fieldName is dynamically set based on the properties of the AccountDmvDataModel class, allowing the function to handle any field in the model.
-
-
-
-
+    return " ";  // Default return value for unknown properties
+} 
