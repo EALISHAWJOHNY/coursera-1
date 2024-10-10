@@ -4,6 +4,7 @@ for (rowNumber = 1; rowNumber < dataset.Count; rowNumber++)
 {
     bool account_Exists = PageOperations.GPPBusinessSetupOperations.VerifyAccountsExists(dataset[rowNumber].ACC_NO);
     dataset[rowNumber].IS_RECORD_EXIST = account_Exists ? "PASS" : "FAIL";
+
     if (dataset[rowNumber].IS_RECORD_EXIST.Equals("PASS"))
     {
         AccountDmvDataModel currentDataModel = dataset[rowNumber];
@@ -15,12 +16,23 @@ for (rowNumber = 1; rowNumber < dataset.Count; rowNumber++)
     }
     else
     {
-        
-        accountDMV.Add(null);
+        // Dynamically assign all properties of AccountDmvDataModel to null
+        AccountDmvDataModel nullDataModel = new AccountDmvDataModel();
+        foreach (var property in nullDataModel.GetType().GetProperties())
+        {
+            if (property.CanWrite)
+            {
+                property.SetValue(nullDataModel, null);
+            }
+        }
+
+        accountDMV.Add(nullDataModel);
         PageOperations.GPPAccountSetupOperation.GenerateExcelReport(rowNumber, dataset[rowNumber], accountDMV);
     }
+
     PageOperations.GPPAccountSetupOperation.ClearAccountFilter();
     Console.WriteLine("row" + rowNumber + " " + dataset[rowNumber]);
+
     LogWriter logWriter = new LogWriter("C:\\Work\\Git\\6-Jun-2024\\DMV activity\\GPP\\log.txt");
     logWriter.WriteLog("This is a log message." + dataset[rowNumber].ACC_NO);
     logWriter.WriteLog("This is a log message." + dataset[rowNumber].IS_RECORD_EXIST);
