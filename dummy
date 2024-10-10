@@ -1,22 +1,20 @@
-public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, List<AccountDmvDataModel> columnResult)
+public void GenerateExcelReport(List<AccountDmvDataModel> dataset, Dictionary<int, Dictionary<string, string>> accountDataDict)
 {
-    string workingDiectory = Directory.GetCurrentDirectory();
-    string accountReports = Path.Combine(workingDiectory, "Accounts");
+    string workingDirectory = Directory.GetCurrentDirectory();
+    string accountReports = Path.Combine(workingDirectory, "Accounts");
 
     try
     {
         // Ensure directory exists
-        string directory = Path.Combine(accountReports);
         if (!Directory.Exists(accountReports))
         {
             Directory.CreateDirectory(accountReports);
         }
-        string filePath = Path.Combine(accountReports, "Account_OutputFile.xlsx");
 
+        string filePath = Path.Combine(accountReports, "Account_OutputFile.xlsx");
         FileInfo fileInfo = new FileInfo(filePath);
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-        // Use the `using` statement to ensure proper disposal
         using (ExcelPackage package = new ExcelPackage(fileInfo))
         {
             // Load or create the worksheet
@@ -26,11 +24,11 @@ public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Li
             if (worksheet.Dimension == null)
             {
                 int columnIndex = 1;
-                if (dataModel != null)
-                {
 
-                    // Add headers based on columnResult
-                    foreach (var field in dataModel.GetType().GetProperties())
+                if (dataset != null && dataset.Count > 0)
+                {
+                    // Add headers based on AccountDmvDataModel properties
+                    foreach (var field in dataset[0].GetType().GetProperties())
                     {
                         if (field.Name != "IS_RECORD_EXIST")
                         {
@@ -47,94 +45,76 @@ public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Li
                             }
                         }
                     }
-                    worksheet.Cells[1, columnIndex++].Value = "COMMENT";
+                    worksheet.Cells[1, columnIndex].Value = "COMMENT";
                 }
             }
 
-            // Find the next row to write data
-            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-
-            // Populate row data                    
-            int currentColumn = 1;
-
-            // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
-            if (columnResult == null && dataModel != null)
+            // Populate rows from the dataset and accountDataDict
+            foreach (var entry in accountDataDict)
             {
-                // Populate "Expected" values from dataModel and "Actual" values as "N/A"
-                foreach (var prop in dataModel.GetType().GetProperties())
+                int rowNumber = entry.Key;
+                Dictionary<string, string> result = entry.Value;
+                AccountDmvDataModel dataModel = dataset[rowNumber];
+
+                // Find the next row to write data
+                int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+                int currentColumn = 1;
+
+                if (result.Count == 0) // Handle when account doesn't exist
                 {
-                    var expectedValue = prop.GetValue(dataModel, null)?.ToString() ?? "N/A"; // Expected value from dataModel
-                    var actualValue = "N/A"; // Actual value is always N/A since data is missing
-
-                    if (prop.Name == "OVERALL_RESULT")
+                    // Populate "Expected" values from dataModel and "N/A" for "Actual"
+                    foreach (var prop in dataModel.GetType().GetProperties())
                     {
-                        worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
-                        currentColumn++;
-                    }
-                    else
-                    {
-                        if (prop.Name != "IS_RECORD_EXIST" && prop.Name != "OVERALL_RESULT")
+                        var expectedValue = prop.GetValue(dataModel, null)?.ToString() ?? "N/A";
+                        var actualValue = "N/A";
+
+                        if (prop.Name == "OVERALL_RESULT")
                         {
-                            worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
-                            worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
-                            currentColumn += 2;
+                            worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
+                            currentColumn++;
                         }
-                    }
-                }
-
-                // Add comment 
-                worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
-
-
-            }
-            else if (columnResult != null)
-            {
-                // Populate row with columnResult values when available
-                foreach (var field in columnResult)
-                {
-                    foreach (var prop in field.GetType().GetProperties())
-                    {
-                        var fieldName = prop.Name;
-                        var expectedValue = dataModel?.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString();
-                        var actualValue = GetFieldValue(fieldName, field.Value);
-
-                        // Handle date formatting if needed
-                        if (fieldName == "EFFECTIVE_DATE")
-                        {
-                            if (DateTime.TryParse(expectedValue, out DateTime expectedDate))
-                            {
-                                expectedValue = expectedDate.ToString("MM/dd/yyyy");
-                            }
-                            if (DateTime.TryParse(actualValue, out DateTime actualDate))
-                            {
-                                actualValue = actualDate.ToString("MM/dd/yyyy");
-                            }
-                        }
-                        if (fieldName == "OVERALL_RESULT")
-                        {
-                            string accountNo = dataModel.ACC_NO;
-                            if (actualValue == "FAIL")
-                            {
-
-                                worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                                currentColumn++;
-                            }
-                            else
-                            {
-                                worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                                currentColumn++;
-                            }
-                            //CaptureScreenshot(accountNo);
-                        }
-                        else
+                        else if (prop.Name != "IS_RECORD_EXIST" && prop.Name != "OVERALL_RESULT")
                         {
                             worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
                             worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
                             currentColumn += 2;
                         }
                     }
+                    worksheet.Cells[nextRow, currentColumn].Value = "Data Missing"; // COMMENT
+                }
+                else // Handle when account exists
+                {
+                    foreach (var field in result)
+                    {
+                        foreach (var prop in dataModel.GetType().GetProperties())
+                        {
+                            string fieldName = prop.Name;
+                            var expectedValue = dataModel?.GetType().GetProperty(fieldName)?.GetValue(dataModel, null)?.ToString();
+                            var actualValue = field.Value;
+
+                            // Handle date formatting if needed
+                            if (fieldName == "EFFECTIVE_DATE")
+                            {
+                                expectedValue = FormatDate(expectedValue);
+                                actualValue = FormatDate(actualValue);
+                            }
+
+                            if (fieldName == "OVERALL_RESULT")
+                            {
+                                worksheet.Cells[nextRow, currentColumn].Value = actualValue;
+                                currentColumn++;
+                            }
+                            else
+                            {
+                                worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                                worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                                currentColumn += 2;
+                            }
+                        }
+                    }
                 }
             }
+
             // Save the Excel file
             package.Save();
         }
@@ -143,4 +123,14 @@ public void GenerateExcelReport(int rowNumber, AccountDmvDataModel dataModel, Li
     {
         Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
     }
+}
+
+// Utility function to format date strings
+private string FormatDate(string dateValue)
+{
+    if (DateTime.TryParse(dateValue, out DateTime parsedDate))
+    {
+        return parsedDate.ToString("MM/dd/yyyy");
+    }
+    return dateValue;
 }
