@@ -1,266 +1,107 @@
-public Dictionary<string, string> CompareData(AccountDmvDataModel dataModel, int rowNumber, bool dataexist)
+public Dictionary<string, string> ValidateAndCaptureScreenshots(DataModel dataModel)
 {
-    List<ResultModel> results = new List<ResultModel>();
-    var res = new AccountDmvDataModel();
-    Dictionary<string, string> columnResult = new Dictionary<string, string>();
+    var columnResult = new Dictionary<string, string>();
+    var results = new List<ValidationResult>();
+    
     try
     {
-        if (dataModel != null)
+        // Create a temporary folder to store screenshots
+        string tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "TempScreenshots", dataModel.ACC_NO);
+        if (!Directory.Exists(tempFolder))
         {
-            if (dataexist)
-            {
-                // Navigating and validating general tab fields
-                this.tab_General.Click();
-                results.Add(this.ValidateData("ACC_TYPE", dataModel.ACC_TYPE, txt_ACC_TYPE, false, true));
-                columnResult["ACC_TYPE"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("ACC_NO", dataModel.ACC_NO, txt_ACC_NO, false, true));
-                columnResult["ACC_NO"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("CUST_CODE", dataModel.CUST_CODE, txt_CUST_CODE, false, true));
-                columnResult["CUST_CODE"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("CURRENCY", dataModel.CURRENCY, txt_CURRENCY, false, true));
-                columnResult["CURRENCY"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("ACCOUNTNAME", dataModel.ACCOUNTNAME, txt_ACCOUNTNAME, false, true));
-                columnResult["ACCOUNTNAME"] = results[results.Count - 1].ResultLog;
-
-                // Navigating and validating contact information tab fields
-                tab_Contact_Information.Click();
-                results.Add(this.ValidateData("Address1", dataModel.Address1, txt_Address1, false, true));
-                columnResult["Address1"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("Address2", dataModel.Address2, txt_Address2, false, true));
-                columnResult["Address2"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("Address3", dataModel.Address3, txt_Address3, false, true));
-                columnResult["Address3"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("LOCATION", dataModel.LOCATION, txt_LOCATION, false, true));
-                columnResult["LOCATION"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("NET_ADDR", dataModel.NET_ADDR, txt_NET_ADDR, false, true));
-                columnResult["NET_ADDR"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("PHONE", dataModel.PHONE, txt_PHONE, false, true));
-                columnResult["PHONE"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("FAX", dataModel.FAX, txt_FAX, false, true));
-                columnResult["FAX"] = results[results.Count - 1].ResultLog;
-
-                // Switch back to general tab for more validations
-                tab_General.Click();
-                results.Add(this.ValidateData("CONSUMER", dataModel.CONSUMER, chkbx_CONSUMER, true, false));
-                columnResult["CONSUMER"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, txt_DEPARTMENT, false, true));
-                columnResult["DEPARTMENT"] = results[results.Count - 1].ResultLog;
-
-                // Switch to preferences tab for validations
-                tab_Preference.Click();
-                results.Add(this.ValidateData("COST_CTR", dataModel.COST_CTR, txt_COST_CTR, false, true));
-                columnResult["COST_CTR"] = results[results.Count - 1].ResultLog;
-
-                // Switch back to general tab for more validations
-                tab_General.Click();
-                results.Add(ValidateData("STOPFLAGDR", dataModel.STOPFLAGDR, chkbx_STOPFLAGDR, true, false));
-                columnResult["STOPFLAGDR"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("REASONDR", dataModel.REASONDR, txt_REASONDR, false, true));
-                columnResult["REASONDR"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("STOPFLAGCR", dataModel.STOPFLAGCR, chkbx_STOPFLAGCR, true, false));
-                columnResult["STOPFLAGCR"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("REASONCR", dataModel.REASONCR, txt_REASONCR, false, true));
-                columnResult["REASONCR"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("EFFECTIVE_DATE", dataModel.EFFECTIVE_DATE, txt_EFFECTIVE_DATE, false, true));
-                columnResult["EFFECTIVE_DATE"] = results[results.Count - 1].ResultLog;
-
-                results.Add(ValidateData("ACCOUNT_OWNER_NAME", dataModel.ACCOUNT_OWNER_NAME, txt_ACCOUNT_OWNER_NAME, false, true));
-                columnResult["ACCOUNT_OWNER_NAME"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("REC_STATUS", dataModel.REC_STATUS, txt_REC_STATUS, false, true));
-                columnResult["REC_STATUS"] = results[results.Count - 1].ResultLog;
-
-                results.Add(this.ValidateData("BOOKNG_ENT", dataModel.BOOKNG_ENT, txt_BOOKNG_ENT, false, true));
-                columnResult["BOOKNG_ENT"] = results[results.Count - 1].ResultLog;
-
-                this.tab_Preference.Click();
-                results.Add(this.ValidateData("CDB_CHCK_DBT_IND", dataModel.CDB_CHCK_DBT_IND, chkbx_CDB_CHCK_DBT_IND, true, false));
-                columnResult["CDB_CHCK_DBT_IND"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("CDB_CHCK_CDT_IND", dataModel.CDB_CHCK_CDT_IND, chkbx_CDB_CHCK_CDT_IND, true, false));
-                columnResult["CDB_CHCK_CDT_IND"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("CATEGORY_LIST", dataModel.CATEGORY_LIST, txt_CATEGORY_LIST, false, true));
-                columnResult["CATEGORY_LIST"] = results[results.Count - 1].ResultLog;
-
-                this.tab_Accounting_and_Fees.Click();
-                results.Add(this.ValidateData("DEBIT_CONVERSION", dataModel.DEBIT_CONVERSION, chkbx_DEBIT_CONVERSION, true, false));
-                columnResult["DEBIT_CONVERSION"] = results[results.Count - 1].ResultLog;
-                results.Add(ValidateData("CREDIT_CONVERSION", dataModel.CREDIT_CONVERSION, chkbx_CREDIT_CONVERSION, true, false));
-                columnResult["CREDIT_CONVERSION"] = results[results.Count - 1].ResultLog;
-
-                this.tab_General.Click();
-                results.Add(this.ValidateData("EXT_AGREEMENT_IND", dataModel.EXT_AGREEMENT_IND, chkbx_EXT_AGREEMENT_IND, true, false));
-                columnResult["EXT_AGREEMENT_IND"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("EXT_AGREEMENT_START_DT", dataModel.EXT_AGREEMENT_START_DT, txt_EXT_AGREEMENT_START_DT, false, true));
-                columnResult["EXT_AGREEMENT_START_DT"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("EXT_AGREEMENT_END_DT", dataModel.EXT_AGREEMENT_END_DT, txt_EXT_AGREEMENT_END_DT, false, true));
-                columnResult["EXT_AGREEMENT_END_DT"] = results[results.Count - 1].ResultLog;
-
-                this.tab_Preference.Click();
-                results.Add(this.ValidateData("BALANCE_AND_ACOUNT_IND", dataModel.BALANCE_AND_ACOUNT_IND, chkbx_BALANCE_AND_ACOUNT_IND, true, false));
-                columnResult["BALANCE_AND_ACOUNT_IND"] = results[results.Count - 1].ResultLog;
-
-                this.tab_Contact_Information.Click();
-                results.Add(this.ValidateData("COUNTRYCODE", dataModel.COUNTRYCODE, txt_COUNTRYCODE, false, true));
-                columnResult["COUNTRYCODE"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("BRANCHCODE", dataModel.BRANCHCODE, txt_BRANCHCODE, false, true));
-                columnResult["BRANCHCODE"] = results[results.Count - 1].ResultLog;
-
-                this.tab_Preference.Click();
-                results.Add(this.ValidateData("ACC_SERVICING_INSTITUTION", dataModel.ACC_SERVICING_INSTITUTION, txt_ACC_SERVICING_INSTITUTION, false, true));
-                columnResult["ACC_SERVICING_INSTITUTION"] = results[results.Count - 1].ResultLog;
-                results.Add(this.ValidateData("PROD_CAT_CODE", dataModel.PROD_CAT_CODE, txt_PROD_CAT_CODE, false, true));
-                columnResult["PROD_CAT_CODE"] = results[results.Count - 1].ResultLog;
-
-                columnResult["OVERALL_RESULT"] = (results.All(items => items.IsMatched)) ? "PASS" : "FAIL";
-
-            }
-            else
-            {
-                foreach (var result in dataModel.GetType().GetProperties())
-                {
-
-                    var property = res.GetType().GetProperty(result.Name);
-                    if (property != null && property.CanWrite)
-                    {
-                        columnResult.Add(result.Name, null);
-                    }
-                }
-            }
-            // Map dictionary values to the properties of AccountDmvDataModel
-            if (columnResult.ContainsKey("ACC_TYPE")) res.ACC_TYPE = columnResult["ACC_TYPE"];
-            if (columnResult.ContainsKey("ACC_NO")) res.ACC_NO = columnResult["ACC_NO"];
-            if (columnResult.ContainsKey("CUST_CODE")) res.CUST_CODE = columnResult["CUST_CODE"];
-            if (columnResult.ContainsKey("CURRENCY")) res.CURRENCY = columnResult["CURRENCY"];
-            if (columnResult.ContainsKey("ACCOUNTNAME")) res.ACCOUNTNAME = columnResult["ACCOUNTNAME"];
-            if (columnResult.ContainsKey("Address1")) res.Address1 = columnResult["Address1"];
-            if (columnResult.ContainsKey("Address2")) res.Address2 = columnResult["Address2"];
-            if (columnResult.ContainsKey("Address3")) res.Address3 = columnResult["Address3"];
-            if (columnResult.ContainsKey("LOCATION")) res.LOCATION = columnResult["LOCATION"];
-            if (columnResult.ContainsKey("NET_ADDR")) res.NET_ADDR = columnResult["NET_ADDR"];
-            if (columnResult.ContainsKey("PHONE")) res.PHONE = columnResult["PHONE"];
-            if (columnResult.ContainsKey("FAX")) res.FAX = columnResult["FAX"];
-            if (columnResult.ContainsKey("CONSUMER")) res.CONSUMER = columnResult["CONSUMER"];
-            if (columnResult.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnResult["DEPARTMENT"];
-            if (columnResult.ContainsKey("COST_CTR")) res.COST_CTR = columnResult["COST_CTR"];
-            if (columnResult.ContainsKey("STOPFLAGDR")) res.STOPFLAGDR = columnResult["STOPFLAGDR"];
-            if (columnResult.ContainsKey("REASONDR")) res.REASONDR = columnResult["REASONDR"];
-            if (columnResult.ContainsKey("STOPFLAGCR")) res.STOPFLAGCR = columnResult["STOPFLAGCR"];
-            if (columnResult.ContainsKey("REASONCR")) res.REASONCR = columnResult["REASONCR"];
-            if (columnResult.ContainsKey("EFFECTIVE_DATE")) res.EFFECTIVE_DATE = columnResult["EFFECTIVE_DATE"];
-            if (columnResult.ContainsKey("ACCOUNT_OWNER_NAME")) res.ACCOUNT_OWNER_NAME = columnResult["ACCOUNT_OWNER_NAME"];
-            if (columnResult.ContainsKey("REC_STATUS")) res.REC_STATUS = columnResult["REC_STATUS"];
-            if (columnResult.ContainsKey("BOOKNG_ENT")) res.BOOKNG_ENT = columnResult["BOOKNG_ENT"];
-            if (columnResult.ContainsKey("CDB_CHCK_DBT_IND")) res.CDB_CHCK_DBT_IND = columnResult["CDB_CHCK_DBT_IND"];
-            if (columnResult.ContainsKey("CDB_CHCK_CDT_IND")) res.CDB_CHCK_CDT_IND = columnResult["CDB_CHCK_CDT_IND"];
-            if (columnResult.ContainsKey("CATEGORY_LIST")) res.CATEGORY_LIST = columnResult["CATEGORY_LIST"];
-            if (columnResult.ContainsKey("DEBIT_CONVERSION")) res.DEBIT_CONVERSION = columnResult["DEBIT_CONVERSION"];
-            if (columnResult.ContainsKey("CREDIT_CONVERSION")) res.CREDIT_CONVERSION = columnResult["CREDIT_CONVERSION"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_IND")) res.EXT_AGREEMENT_IND = columnResult["EXT_AGREEMENT_IND"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_START_DT")) res.EXT_AGREEMENT_START_DT = columnResult["EXT_AGREEMENT_START_DT"];
-            if (columnResult.ContainsKey("EXT_AGREEMENT_END_DT")) res.EXT_AGREEMENT_END_DT = columnResult["EXT_AGREEMENT_END_DT"];
-            if (columnResult.ContainsKey("BALANCE_AND_ACOUNT_IND")) res.BALANCE_AND_ACOUNT_IND = columnResult["BALANCE_AND_ACOUNT_IND"];
-            if (columnResult.ContainsKey("COUNTRYCODE")) res.COUNTRYCODE = columnResult["COUNTRYCODE"];
-            if (columnResult.ContainsKey("BRANCHCODE")) res.BRANCHCODE = columnResult["BRANCHCODE"];
-            if (columnResult.ContainsKey("ACC_SERVICING_INSTITUTION")) res.ACC_SERVICING_INSTITUTION = columnResult["ACC_SERVICING_INSTITUTION"];
-            if (columnResult.ContainsKey("PROD_CAT_CODE")) res.PROD_CAT_CODE = columnResult["PROD_CAT_CODE"];
-            if (columnResult.ContainsKey("OVERALL_RESULT")) res.OVERALL_RESULT = columnResult["OVERALL_RESULT"];
-
-            //// Update the result model with column result data
-            //foreach (var result in columnResult)
-            //{
-            //    if (string.IsNullOrEmpty(result.Value))
-            //    {
-            //        if (result.Key != "OVERALL_RESULT")
-            //        {
-            //            columnResult[result.Key] = null;
-            //        }
-            //        else
-            //        {
-            //            columnResult["OVERALL_RESULT"] = "FAIL";
-            //        }
-            //    }
-            //   }
-
-            bool allValluesNA = columnResult.All(items => items.Value == "N/A");
-            if (allValluesNA)
-            {
-                columnResult["Comments"] = "Data missing;";
-            }
-            if (!columnResult.ContainsKey("Comments"))
-            {
-                columnResult.Add("Comments", "");
-            }
+            Directory.CreateDirectory(tempFolder);
         }
+
+        // Navigate and validate each tab, capturing screenshots and storing them temporarily
+        results.Add(this.ValidateData("COUNTRYCODE", dataModel.COUNTRYCODE, txt_COUNTRYCODE, false, true));
+        columnResult["COUNTRYCODE"] = results[results.Count - 1].ResultLog;
+        this.CaptureScreenshotTemp(tempFolder, dataModel.ACC_NO, "COUNTRYCODE");
+
+        results.Add(this.ValidateData("BRANCHCODE", dataModel.BRANCHCODE, txt_BRANCHCODE, false, true));
+        columnResult["BRANCHCODE"] = results[results.Count - 1].ResultLog;
+        this.CaptureScreenshotTemp(tempFolder, dataModel.ACC_NO, "BRANCHCODE");
+
+        this.tab_Preference.Click();
+        results.Add(this.ValidateData("ACC_SERVICING_INSTITUTION", dataModel.ACC_SERVICING_INSTITUTION, txt_ACC_SERVICING_INSTITUTION, false, true));
+        columnResult["ACC_SERVICING_INSTITUTION"] = results[results.Count - 1].ResultLog;
+        this.CaptureScreenshotTemp(tempFolder, dataModel.ACC_NO, "ACC_SERVICING_INSTITUTION");
+
+        results.Add(this.ValidateData("PROD_CAT_CODE", dataModel.PROD_CAT_CODE, txt_PROD_CAT_CODE, false, true));
+        columnResult["PROD_CAT_CODE"] = results[results.Count - 1].ResultLog;
+        this.CaptureScreenshotTemp(tempFolder, dataModel.ACC_NO, "PROD_CAT_CODE");
+
+        // Determine the overall result
+        columnResult["OVERALL_RESULT"] = (results.All(items => items.IsMatched)) ? "PASS" : "FAIL";
+
+        // Check if all values are "N/A" and add comments accordingly
+        bool allValuesNA = columnResult.All(items => items.Value == "N/A");
+        if (allValuesNA)
+        {
+            columnResult["Comments"] = "Data missing;";
+        }
+
+        // Ensure "Comments" key exists in columnResult
+        if (!columnResult.ContainsKey("Comments"))
+        {
+            columnResult.Add("Comments", "");
+        }
+
+        // Move all screenshots from the temporary folder to either "Pass" or "Fail" folder based on the overall result
+        MoveScreenshots(tempFolder, dataModel.ACC_NO, columnResult["OVERALL_RESULT"]);
     }
     catch (Exception ex)
     {
-        Support.IsTrue(false, "Issue in Comparing Data" + ex.Message);
+        Support.IsTrue(false, "Issue in Comparing Data: " + ex.Message);
     }
     finally
     {
-
+        // Ensure temporary files are cleaned up if needed
     }
     return columnResult;
 }
 
-public void CaptureScreenshot(string accountNo, string overallResult)
+public void CaptureScreenshotTemp(string tempFolder, string accountNo, string tabName)
 {
     try
     {
-        // Create a timestamp for the folder
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string testReportFolder = Path.Combine(Directory.GetCurrentDirectory(), $"TestReports");
-
-        // Create the test report folder if it doesn't exist
-        if (!Directory.Exists(testReportFolder))
-        {
-            Directory.CreateDirectory(testReportFolder);
-        }
-        string accountFolder;
-        string ssPath;
-        // Create subfolder for the Account_No
-        if (overallResult == "PASS")
-        {
-            accountFolder = Path.Combine(testReportFolder, $"Pass");
-            ssPath = Path.Combine(accountFolder, accountNo);
-        }
-        else
-        {
-
-            accountFolder = Path.Combine(testReportFolder, $"Fail");
-            ssPath = Path.Combine(accountFolder, accountNo);
-        }
-        if (!Directory.Exists(accountFolder))
-        {
-            Directory.CreateDirectory(accountFolder);
-        }
-        if (!Directory.Exists(ssPath))
-        {
-            Directory.CreateDirectory(ssPath);
-        }
-
-        // Capture the screenshot and save it to the account folder
+        // Capture screenshot and save it to a temporary folder
         Screenshot screenshot = ((ITakesScreenshot)FATrustDrivers.WebDriver).GetScreenshot();
-        string screenshotFilePath = Path.Combine(ssPath, $"{accountNo}.png");
+        string screenshotFilePath = Path.Combine(tempFolder, $"{accountNo}_{tabName}.png");
         screenshot.SaveAsFile(screenshotFilePath, ScreenshotImageFormat.Png);
     }
     catch (Exception ex)
     {
-        Support.IsTrue(false, "Failed to capture screenshot: " + ex.Message);
+        Support.IsTrue(false, "Failed to capture screenshot for " + tabName + ": " + ex.Message);
+    }
+}
+
+public void MoveScreenshots(string tempFolder, string accountNo, string overallResult)
+{
+    try
+    {
+        // Determine the destination folder based on the overall result
+        string testReportFolder = Path.Combine(Directory.GetCurrentDirectory(), "TestReports");
+        string accountFolder = Path.Combine(testReportFolder, overallResult == "PASS" ? "Pass" : "Fail", accountNo);
+
+        // Create the destination folder if it doesn't exist
+        if (!Directory.Exists(accountFolder))
+        {
+            Directory.CreateDirectory(accountFolder);
+        }
+
+        // Move screenshots from the temporary folder to the destination folder
+        foreach (string screenshotFile in Directory.GetFiles(tempFolder))
+        {
+            string fileName = Path.GetFileName(screenshotFile);
+            string destFile = Path.Combine(accountFolder, fileName);
+            File.Move(screenshotFile, destFile);
+        }
+
+        // Optionally delete the temporary folder after moving files
+        Directory.Delete(tempFolder, true);
+    }
+    catch (Exception ex)
+    {
+        Support.IsTrue(false, "Failed to move screenshots: " + ex.Message);
     }
 }
