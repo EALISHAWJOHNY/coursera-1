@@ -1,3 +1,146 @@
+Dictionary<string, string> result = CompareSOData(currentDataModel, rowNumber,account_Exists);
+standingOrdersDmv[rowNumber]= result;
+AppendToExcel(dataset, standingOrdersDmv);
+
+        public void AppendToExcel(List<StandingOrdersDmvDataModel> dataModel, Dictionary<int, Dictionary<string, string>> columnResult)
+        {
+            string workingDiectory = Directory.GetCurrentDirectory();
+            string synonmsReports = Path.Combine(workingDiectory, "StandingOrders");
+
+            try
+            {
+                // Ensure directory exists
+                if (!Directory.Exists(synonmsReports))
+                {
+                    Directory.CreateDirectory(synonmsReports);
+                }
+                string filePath = Path.Combine(synonmsReports, "Standing_Order_Report.xlsx");
+
+                FileInfo fileInfo = new FileInfo(filePath);
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                // Use the `using` statement to ensure proper disposal
+                using (ExcelPackage package = new ExcelPackage(fileInfo))
+                {
+                    // Load or create the worksheet
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
+
+                    // Add headers if the worksheet is empty
+                    if (worksheet.Dimension == null)
+                    {
+                        int columnIndex = 1;
+                        if (dataModel != null && dataModel.Count > 0)
+                        {
+                            worksheet.Cells[1, columnIndex].Value = "SOURCE_TYPE";
+                            columnIndex++;
+                            // Add headers based on columnResult
+                            foreach (var field in dataModel[0].GetType().GetProperties())
+                            {
+                                if (field.Name != "IS_RECORD_EXIST" && field.Name != "SOURCE_TYPE")
+                                {
+                                    if (field.Name == "OVERALL_RESULT")
+                                    {
+                                        worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
+                                        columnIndex++;
+                                    }
+                                    else
+                                    {
+                                        worksheet.Cells[1, columnIndex].Value = field.Name + " - ExcelFile";
+                                        worksheet.Cells[1, columnIndex + 1].Value = field.Name + " - Accounts_UI";
+                                        columnIndex += 2;
+                                    }
+                                }
+                            }
+                            worksheet.Cells[1, columnIndex++].Value = "COMMENT";
+                        }
+                    }
+
+                    var lastentry = columnResult.Last();
+                    int rowNumber = lastentry.Key;
+                    Dictionary<string, string> result = lastentry.Value;
+                    StandingOrdersDmvDataModel dataset = dataModel[rowNumber];
+                    string accountno = dataset.ACC_NO;
+                    
+                    // Find the next row to write data
+                    int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+                    // Populate row data                    
+                    int currentColumn = 1;
+
+                    worksheet.Cells[nextRow, currentColumn].Value = dataset.SOURCE_TYPE;
+                    currentColumn++;
+                    // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
+                    if (result.Values.All(value => string.IsNullOrEmpty(value)))
+                    {
+                        // Populate "Expected" values from dataModel and "Actual" values as "N/A"
+                        foreach (var prop in dataset.GetType().GetProperties())
+                        {
+                            var expectedValue = prop.GetValue(dataset, null)?.ToString() ?? "N/A"; // Expected value from dataModel
+                            var actualValue = "N/A"; // Actual value is always N/A since data is missing
+
+                            if (prop.Name == "OVERALL_RESULT")
+                            {
+                                worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
+                                currentColumn++;
+                            }
+                            else
+                            {
+                                if (prop.Name != "IS_RECORD_EXIST" && prop.Name != "OVERALL_RESULT")
+                                {
+                                    worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
+                                    worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
+                                    currentColumn += 2;
+                                }
+                            }
+                        }
+
+                        // Add comment 
+                        worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
+
+
+                    }
+                    else 
+                    {
+                        // Populate row with columnResult values when available
+                        foreach (var field in result)
+                        {
+                            var fieldName = field.Key;
+                            var expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString();
+                            var actualValue = GetSOFieldValue(fieldName, field.Value);
+
+                            // Handle date formatting if needed
+                            if (fieldName == "EFFECTIVE_DATE")
+                            {
+                                expectedValue = FormatDate(expectedValue);
+                                actualValue = FormatDate(actualValue);
+                            }
+                            if (fieldName == "OVERALL_RESULT")
+                            {
+                                worksheet.Cells[nextRow, currentColumn].Value = actualValue;
+                                currentColumn++;
+                            }
+                            else if (fieldName != "SOURCE_TYPE")
+                            {
+                                worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                                worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                                currentColumn += 2;
+                            }
+                        }
+                        this.btn_CloseStandingOrderWindow.FATClick();
+                    }
+                    // Save the Excel file
+                    package.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
+            }
+
+        }
+
+
+ var actualValue = GetSOFieldValue(fieldName, field.Value);
+
 private string GetSOFieldValue(string fieldName, string fieldvalue)
 {
     switch (fieldName)
