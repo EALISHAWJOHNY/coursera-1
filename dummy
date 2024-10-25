@@ -1,150 +1,89 @@
-public class SynonymDataModel
+private string GetSOFieldValue(string fieldName, string fieldvalue)
 {
-    public string SOURCE_TYPE { get; set; }
-    public string OFFICE { get; set; }
-    public string DEPARTMENT { get; set; }
-    public string ACC_NO { get; set; }
-    public string CURRENCY { get; set; }
-    public string ACCOUNT_ALIAS { get; set; }
-    public string ALIAS_TYPE { get; set; }
-    public string UID_ACCOUNTS { get; set; }
-    public string REC_STATUS { get; set; }
-    public string TIME_STAMP { get; set; }
-    public string PROFILE_CHANGE_STATUS { get; set; }
-    public string PENDING_ACTION { get; set; }
-    public string EFFECTIVE_DATE { get; set; }
-    public string UID_ACCOUNT_ALIAS { get; set; }
-    public string RESULT { get; set; }
-    public string COMMENTS { get; set; }
-    public string IS_RECORD_EXIST { get; set; }
-}
-
-public void AppendToExcel(List<SynonymDataModel> dataModel, Dictionary<int, Dictionary<string, string>> columnResult)
-{
-    string workingDiectory = Directory.GetCurrentDirectory();
-    string accountReports = Path.Combine(workingDiectory, "Accounts");
-
-    try
+    switch (fieldName)
     {
-        // Ensure directory exists               
-        if (!Directory.Exists(accountReports))
-        {
-            Directory.CreateDirectory(accountReports);
-        }
-        string filePath = Path.Combine(accountReports, "AccountAlias_OutputFile.xlsx");
-
-        FileInfo fileInfo = new FileInfo(filePath);
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-        // Use the `using` statement to ensure proper disposal
-        using (ExcelPackage package = new ExcelPackage(fileInfo))
-        {
-            // Load or create the worksheet
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
-
-            int columnIndex = 1;
-            var lastentry = columnResult.Last();
-            int rowNumber = lastentry.Key;
-            Dictionary<string, string> result = lastentry.Value;
-            SynonymDataModel dataset = dataModel[rowNumber];
-            string accountno = dataset.ACC_NO;
-            // Add headers if the worksheet is empty
-            if (worksheet.Dimension == null)
-            {
-                
-                if (dataModel != null && dataModel.Count > 0)
-                {
-                    worksheet.Cells[1, columnIndex].Value = "SOURCE_TYPE";
-                    columnIndex++;
-                    // Add headers based on columnResult
-                    foreach (var field in dataModel.GetType().GetProperties())
-                    {
-                        if (field.Name != "IS_RECORD_EXIST" && field.Name != "SOURCE_TYPE")
-                        {
-                            if (field.Name == "OVERALL_RESULT")
-                            {
-                                worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
-                                columnIndex++;
-                            }
-                            else
-                            {
-                                worksheet.Cells[1, columnIndex].Value = field.Name + " - ExcelFile";
-                                worksheet.Cells[1, columnIndex + 1].Value = field.Name + " - AccountAlias_UI";
-                                columnIndex += 2;
-                            }
-                        }
-                    }
-                    worksheet.Cells[1, columnIndex++].Value = "COMMENT";
-                }
-            }
-
-            
-            // Find the next row to write data
-            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-
-            // Populate row data                    
-            int currentColumn = 1;
-
-            worksheet.Cells[nextRow, currentColumn].Value = dataset.SOURCE_TYPE;
-            currentColumn++;
-            // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
-            if (result.Values.All(value => string.IsNullOrEmpty(value)))
-            {
-                // Populate "Expected" values from dataModel and "Actual" values as "N/A"
-                foreach (var prop in dataset.GetType().GetProperties())
-                {
-                    var expectedValue = prop.GetValue(dataset, null)?.ToString() ?? "N/A"; // Expected value from dataModel
-                    var actualValue = "N/A"; // Actual value is always N/A since data is missing
-
-                    if (prop.Name == "OVERALL_RESULT")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
-                        currentColumn++;
-                    }
-                    else if (prop.Name != "IS_RECORD_EXIST" && prop.Name != "OVERALL_RESULT" && prop.Name != "SOURCE_TYPE")
-                    {
-
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
-                        currentColumn += 2;
-
-                    }
-                }
-
-                // Add comment 
-                worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
-
-
-            }
-            else
-            {
-                // Populate row with columnResult values when available
-                foreach (var field in result)
-                {
-                    var fieldName = field.Key;
-                    var expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                    var actualValue = GetFieldValue(fieldName, field.Value) ?? " ";
-                   
-                    if (fieldName == "OVERALL_RESULT")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                        currentColumn++;
-                    }
-                    else if (fieldName != "SOURCE")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
-                    }
-                }
-                this.btn_CloseAccountAliasWindow.FATClick();
-            }
-            // Save the Excel file
-            package.Save();
-        }
-    }
-    catch (Exception ex)
-    {
-        Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
+        case "SO_NAME":
+            return txt_SO_NAME.GetAttribute("value");
+        case "SO_DESCRIPTION":
+            return txt_SO_DESCRIPTION.GetAttribute("value");
+        case "END_BY_DATE":
+            return txt_END_BY_DATE.GetAttribute("value");
+        case "CT_TEMPLATE_MID":
+            return txt_CT_TEMPLATE_MID.GetAttribute("value");
+        case "CT_TEMPLATE":
+            return txt_CT_TEMPLATE.GetAttribute("value");
+        case "PAYMENTS_GENERATED_CNT":
+            return txt_PAYMENTS_GENERATED_CNT.GetAttribute("value");
+        case "DEPARTMENT":
+            return txt_SODEPARTMENT.GetAttribute("value");
+        case "OFFICE":
+            return txt_OFFICE.GetAttribute("value");
+        case "REC_STATUS":
+            return txt_SOREC_STATUS.GetAttribute("value");
+        case "PROFILE_CHANGE_STATUS":
+            return txt_PROFILE_CHANGE_STATUS.GetAttribute("value");
+        case "EFFECTIVE_DATE":
+            return txt_SOEFFECTIVE_DATE.Selected ? "1" : "0";
+        //case "PENDING_ACTION":
+        //    return txt_PENDING_ACTION.GetAttribute("value");
+        case "TIMES_OF_OCCURRENCE1":
+            return txt_TIME_OF_OCCURENCE1.GetAttribute("value");
+        case "SO_CLOSED":
+            return txt_SO_CLOSED.Selected ? "1" : "0";
+        //case "TIME_STAMP":
+        //    return txt_TIME_STAMP.GetAttribute("value");
+        case "PMNT_TYPE":
+            return txt_PMNT_TYPE.Selected ? "1" : "0";
+        case "AMT_SRC":
+            return txt_AMT_SRC.GetAttribute("value");
+        case "CT_MIN_SWEEP_AMT":
+            return txt_CT_MIN_SWEEP_AMT.GetAttribute("value");
+        case "CT_MAX_SWEEP_AMT":
+            return txt_CT_MAX_SWEEP_AMT.GetAttribute("value");
+        case "MIN_REMAIN_BAL":
+            return txt_MIN_REMAIN_BAL.GetAttribute("value");
+        case "ACC_CCY":
+            return txt_ACC_CCY.Selected ? "1" : "0";
+        case "DAY_OF_WEEK":
+            return txt_DAY_OF_WEEK.Selected ? "1" : "0";
+        case "DAY_OF_MONTH":
+            return txt_DAY_OF_MONTH.GetAttribute("value");
+        case "MONTH_NUMBER":
+            return txt_MONTH_NUMBER.Selected ? "1" : "0";
+        //case "NEXT_STTLM_DT":
+        //    return txt_NEXT_STTLM_DT.Selected ? "1" : "0";
+        //case "NEXT_PROC_DT":
+        //    return txt_NEXT_PROC_DT.Selected ? "1" : "0";
+        //case "BASE_LINE_DATE":
+        //    return txt_BASE_LINE_DATE.GetAttribute("value");
+        case "FREQUENCY_PATTERN":
+            return txt_FREQUENCY_PATTERN.GetAttribute("value");
+        case "RECUR_EVERY":
+            return txt_RECUR_EVERY.Selected ? "1" : "0";
+        case "ADJ_TO_BSNESSDATE":
+            return txt_ADJ_TO_BSNESSDATE.GetAttribute("value");
+        //case "LAST_EXECUTION_TIME":
+        //    return txt_LAST_EXECUTION_TIME.GetAttribute("value");
+        case "DD_TEMPLATE":
+            return txt_DD_TEMPLATE.GetAttribute("value");
+        case "LAST_MID":
+            return txt_LAST_MID.GetAttribute("value");
+        case "DD_MIN_SWEEP_AMT":
+            return txt_DD_MIN_SWEEP_AMT.GetAttribute("value");
+        case "DD_MAX_SWEEP_AMT":
+            return txt_DD_MAX_SWEEP_AMT.GetAttribute("value");
+        //case "APPROVALS":
+        //    return txt_APPROVALS.GetAttribute("value");
+        //case "PRIMARY":
+        //    return txt_PRIMARY.GetAttribute("value");
+        //case "ACC_NO":
+        //    return txt_SOACC_NO.GetAttribute("value");
+        //case "UID_STANDING_ORDER":
+        //    return txt_UID_STANDING_ORDER.GetAttribute("value");
+        // Default case
+        case "OVERALL_RESULT":
+            return fieldvalue;
+        default:
+            return " ";
     }
 }
