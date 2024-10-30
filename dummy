@@ -1,52 +1,212 @@
-Time_of_Occurence(dataModel.TIMES_OF_OCCURRENCES);
-
-results.Add(this.ValidateData("TIMES_OF_OCCURRENCES1", TIME_OF_OCCURENCE1, txt_TIME_OF_OCCURENCE1, true, false));
-columnResult["TIMES_OF_OCCURRENCES1"] = results[results.Count - 1].ResultLog;
-columnvalues["TIMES_OF_OCCURRENCES1"] = txt_TIME_OF_OCCURENCE1.FATGetValue();
-
-results.Add(this.ValidateData("TIMES_OF_OCCURRENCES2", TIME_OF_OCCURENCE2, txt_TIME_OF_OCCURENCE2, true, false));
-columnResult["TIMES_OF_OCCURRENCES2"] = results[results.Count - 1].ResultLog;
-columnvalues["TIMES_OF_OCCURRENCES2"] = txt_TIME_OF_OCCURENCE2.FATGetValue();
-
-CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab2");
-
-results.Add(this.ValidateData("TIMES_OF_OCCURRENCES3", TIME_OF_OCCURENCE3, txt_TIME_OF_OCCURENCE3, true, false));
-columnResult["TIMES_OF_OCCURRENCES3"] = results[results.Count - 1].ResultLog;
-columnvalues["TIMES_OF_OCCURRENCES3"] = txt_TIME_OF_OCCURENCE3.FATGetValue();
-
-results.Add(this.ValidateData("TIMES_OF_OCCURRENCES4", TIME_OF_OCCURENCE4, txt_TIME_OF_OCCURENCE4, true, false));
-columnResult["TIMES_OF_OCCURRENCES4"] = results[results.Count - 1].ResultLog;
-columnvalues["TIMES_OF_OCCURRENCES4"] = txt_TIME_OF_OCCURENCE4.FATGetValue();
-
-
-public void Time_of_Occurence(string timeOfOccurenceValues)
+public void AppendToExcel(List<StandingOrdersDmvDataModel> dataModel, Dictionary<int, Dictionary<string, string>> columnResult)
 {
-    //split the value if they are comma separated values
-    var times = timeOfOccurenceValues.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-    
-    switch (times.Length)
-    {
+    string workingDiectory = Directory.GetCurrentDirectory();
+    string synonmsReports = Path.Combine(workingDiectory, "StandingOrders");
 
-        //if there is 1 value, set it to the first webelement
-        case 1:
-                TIME_OF_OCCURENCE1 = times[0];
-            //txt_TIME_OF_OCCURENCE1.SendKeys(times[0]);
-            break;
-        //if there are 2 values, set it to the first two web elements
-        case 2:
-                TIME_OF_OCCURENCE2 = times[0];
-                TIME_OF_OCCURENCE1 = times[1];
-                break;
-        case 3:
-                TIME_OF_OCCURENCE3 = times[0];
-                TIME_OF_OCCURENCE2 = times[1];
-                TIME_OF_OCCURENCE1 = times[2];
-                break;
-        case 4:
-                TIME_OF_OCCURENCE4 = times[0];
-                TIME_OF_OCCURENCE3 = times[1];
-                TIME_OF_OCCURENCE2 = times[2];
-                TIME_OF_OCCURENCE1 = times[3];
-            break;
+    try
+    {
+        // Ensure directory exists
+        if (!Directory.Exists(synonmsReports))
+        {
+            Directory.CreateDirectory(synonmsReports);
+        }
+        string filePath = Path.Combine(synonmsReports, "Standing_Order_Report.xlsx");
+
+        FileInfo fileInfo = new FileInfo(filePath);
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        
+        // Use the `using` statement to ensure proper disposal
+        using (ExcelPackage package = new ExcelPackage(fileInfo))
+        {
+            // Load or create the worksheet
+            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
+            var lastentry = columnResult.Last();
+            int rowNumber = lastentry.Key;
+            Dictionary<string, string> result = lastentry.Value;
+            StandingOrdersDmvDataModel dataset = dataModel[rowNumber];
+            string accountno = dataset.SO_NAME;
+            int columnIndex = 1;
+            // Add headers if the worksheet is empty
+            if (worksheet.Dimension == null)
+            {
+                
+                if (dataModel != null && dataModel.Count > 0)
+                {
+                    worksheet.Cells[1, columnIndex].Value = "SOURCE_TYPE";
+                    columnIndex++;
+                    // Add headers based on columnResult
+                    foreach (var field in result)
+                    {
+                        if (field.Key != "IS_RECORD_EXIST" && field.Key != "SOURCE_TYPE" && field.Key != "RESULT" && field.Key != "TIMES_OF_OCCURRENCES")
+                        {
+                            if (field.Key == "OVERALL_RESULT")
+                            {
+                                worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
+                                columnIndex++;
+                            }
+                            else if (field.Key != "Comments")
+                            {
+                                worksheet.Cells[1, columnIndex].Value = field.Key + " - ExcelFile";
+                                worksheet.Cells[1, columnIndex + 1].Value = field.Key + " - AccountAlias_UI";
+                                columnIndex += 2;
+                            }
+                        }
+                    }
+                    worksheet.Cells[1, columnIndex++].Value = "COMMENT";
+                }
+            }
+
+
+
+            // Find the next row to write data
+            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
+            // Populate row data                    
+            int currentColumn = 1;
+
+            worksheet.Cells[nextRow, currentColumn].Value = dataset.SOURCE_TYPE;
+            currentColumn++;
+            // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
+            if (result.Values.All(value => string.IsNullOrEmpty(value)))
+            {
+                // Populate "Expected" values from dataModel and "Actual" values as "N/A"
+                foreach (var field in result)
+                {
+                    var fieldName = field.Key;
+                    var expectedValue = dataset.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? ""; // Expected value from dataModel
+                    var actualValue = "N/A"; // Actual value is always N/A since data is missing
+
+                    if (fieldName == "OVERALL_RESULT")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
+                        currentColumn++;
+                    }
+                    else if (fieldName != "IS_RECORD_EXIST" && fieldName != "OVERALL_RESULT"  && fieldName != "SOURCE_TYPE" && fieldName != "COMMENT" && fieldName != "RESULT" && fieldName != "TIMES_OF_OCCURRENCES")
+                    {
+                        
+
+                            worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
+                            worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
+                            currentColumn += 2;
+                        
+                    }
+                }
+
+                // Add comment 
+                worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
+
+
+            }
+            else
+            {
+                // Populate row with columnResult values when available
+                foreach (var field in result)
+                {
+                    var fieldName = field.Key;
+                    string expectedValue;
+                    string actualValue;
+                    if (fieldName == "TIMES_OF_OCCURRENCES1")
+                    {
+
+                        expectedValue = TIME_OF_OCCURENCE1;
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES2")
+                    {
+                        expectedValue = TIME_OF_OCCURENCE2;
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES3")
+                    {
+                        expectedValue = TIME_OF_OCCURENCE3;
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES4")
+                    {
+                        expectedValue = TIME_OF_OCCURENCE4;
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+                    else if (fieldName == "END_BY_DATE" || fieldName == "EFFECTIVE_DATE")
+                    {
+                        var res = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
+                        expectedValue = FormatDate(res);
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+                    else if (fieldName == "ADJ_TO_BSNESSDATE")
+                    {
+                        if (field.Value == "Previous Business Date")
+                        {
+                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
+                            actualValue = GetSOFieldValue(fieldName, "0") ?? " ";
+                        }
+                        else if (field.Value == "Next Business Date")
+                        {
+                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
+                            actualValue = GetSOFieldValue(fieldName, "1") ?? " ";
+                        }
+                        else
+                        {
+                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
+                            actualValue = GetSOFieldValue(fieldName, "2") ?? " ";
+                        }
+                    }
+                    else
+                    {
+                        expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
+                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
+                    }
+
+                    // Handle date formatting if needed
+                    if (fieldName == "EFFECTIVE_DATE")
+                    {
+                        expectedValue = FormatDate(expectedValue);
+                        actualValue = FormatDate(actualValue);
+                    }
+                    if (fieldName == "OVERALL_RESULT")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = actualValue;
+                        currentColumn++;
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES1")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                        currentColumn += 2;
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES2")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                        currentColumn += 2;
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES3")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                        currentColumn += 2;
+                    }
+                    else if (fieldName == "TIMES_OF_OCCURRENCES4")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                        currentColumn += 2;
+                    }
+                    else if (fieldName != "SOURCE_TYPE")
+                    {
+                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
+                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
+                        currentColumn += 2;
+                    }
+                }
+                this.btn_CloseStandingOrderWindow.FATClick();
+            }
+            // Save the Excel file
+            package.Save();
+        }
     }
+    catch (Exception ex)
+    {
+        Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
+    }
+
 }
