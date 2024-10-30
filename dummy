@@ -1,212 +1,362 @@
-public void AppendToExcel(List<StandingOrdersDmvDataModel> dataModel, Dictionary<int, Dictionary<string, string>> columnResult)
+public Dictionary<string, string> CompareSOData(StandingOrdersDmvDataModel dataModel, int rowNumber, bool dataexist)
 {
-    string workingDiectory = Directory.GetCurrentDirectory();
-    string synonmsReports = Path.Combine(workingDiectory, "StandingOrders");
-
+    List<ResultModel> results = new List<ResultModel>();
+    var res = new StandingOrdersDmvDataModel();
+    Dictionary<string, string> columnResult = new Dictionary<string, string>();
+    Dictionary<string, string> columnvalues = new Dictionary<string, string>();
+    string tempFolder = Path.Combine(Directory.GetCurrentDirectory(), "TempScreenshots", dataModel.SO_NAME);
+    string date;
     try
     {
-        // Ensure directory exists
-        if (!Directory.Exists(synonmsReports))
+        if (dataModel != null)
         {
-            Directory.CreateDirectory(synonmsReports);
-        }
-        string filePath = Path.Combine(synonmsReports, "Standing_Order_Report.xlsx");
 
-        FileInfo fileInfo = new FileInfo(filePath);
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-        
-        // Use the `using` statement to ensure proper disposal
-        using (ExcelPackage package = new ExcelPackage(fileInfo))
-        {
-            // Load or create the worksheet
-            ExcelWorksheet worksheet = package.Workbook.Worksheets.FirstOrDefault() ?? package.Workbook.Worksheets.Add("Results");
-            var lastentry = columnResult.Last();
-            int rowNumber = lastentry.Key;
-            Dictionary<string, string> result = lastentry.Value;
-            StandingOrdersDmvDataModel dataset = dataModel[rowNumber];
-            string accountno = dataset.SO_NAME;
-            int columnIndex = 1;
-            // Add headers if the worksheet is empty
-            if (worksheet.Dimension == null)
+            if (!Directory.Exists(tempFolder))
             {
-                
-                if (dataModel != null && dataModel.Count > 0)
-                {
-                    worksheet.Cells[1, columnIndex].Value = "SOURCE_TYPE";
-                    columnIndex++;
-                    // Add headers based on columnResult
-                    foreach (var field in result)
-                    {
-                        if (field.Key != "IS_RECORD_EXIST" && field.Key != "SOURCE_TYPE" && field.Key != "RESULT" && field.Key != "TIMES_OF_OCCURRENCES")
-                        {
-                            if (field.Key == "OVERALL_RESULT")
-                            {
-                                worksheet.Cells[1, columnIndex].Value = "OVERALL_RESULT";
-                                columnIndex++;
-                            }
-                            else if (field.Key != "Comments")
-                            {
-                                worksheet.Cells[1, columnIndex].Value = field.Key + " - ExcelFile";
-                                worksheet.Cells[1, columnIndex + 1].Value = field.Key + " - AccountAlias_UI";
-                                columnIndex += 2;
-                            }
-                        }
-                    }
-                    worksheet.Cells[1, columnIndex++].Value = "COMMENT";
-                }
+                Directory.CreateDirectory(tempFolder);
             }
-
-
-
-            // Find the next row to write data
-            int nextRow = worksheet.Dimension?.End.Row + 1 ?? 2;
-            // Populate row data                    
-            int currentColumn = 1;
-
-            worksheet.Cells[nextRow, currentColumn].Value = dataset.SOURCE_TYPE;
-            currentColumn++;
-            // If columnResult is null, populate row with dataModel values as expected, and "N/A" as actual
-            if (result.Values.All(value => string.IsNullOrEmpty(value)))
+            if (dataexist)
             {
-                // Populate "Expected" values from dataModel and "Actual" values as "N/A"
-                foreach (var field in result)
-                {
-                    var fieldName = field.Key;
-                    var expectedValue = dataset.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? ""; // Expected value from dataModel
-                    var actualValue = "N/A"; // Actual value is always N/A since data is missing
+                //results.Add(this.ValidateData("SOURCE_TYPE", dataModel.SOURCE_TYPE, txt_SOSOURCE_TYPE, false, true));
+                //columnResult["SOURCE_TYPE"] = results[results.Count - 1].ResultLog;
 
-                    if (fieldName == "OVERALL_RESULT")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = "FAIL";
-                        currentColumn++;
-                    }
-                    else if (fieldName != "IS_RECORD_EXIST" && fieldName != "OVERALL_RESULT"  && fieldName != "SOURCE_TYPE" && fieldName != "COMMENT" && fieldName != "RESULT" && fieldName != "TIMES_OF_OCCURRENCES")
-                    {
-                        
+                results.Add(ValidateData("SO_NAME", dataModel.SO_NAME, txt_SO_NAME2, false, true));
+                columnResult["SO_NAME"] = results[results.Count - 1].ResultLog;
+                columnvalues["SO_NAME"] = txt_SO_NAME2.FATGetValue();
 
-                            worksheet.Cells[nextRow, currentColumn].Value = expectedValue;  // Expected value
-                            worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue; // Actual value as N/A
-                            currentColumn += 2;
-                        
-                    }
-                }
 
-                // Add comment 
-                worksheet.Cells[nextRow, currentColumn++].Value = "Data Missing"; // COMMENT
+                results.Add(this.ValidateData("SO_DESCRIPTION", dataModel.SO_DESCRIPTION, txt_SO_DESCRIPTION, false, true));
+                columnResult["SO_DESCRIPTION"] = results[results.Count - 1].ResultLog;
+                columnvalues["SO_DESCRIPTION"] = txt_SO_DESCRIPTION.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab1");
+
+                results.Add(this.ValidateData("CT_TEMPLATE_MID", dataModel.CT_TEMPLATE_MID, txt_CT_TEMPLATE_MID, false, true));
+                columnResult["CT_TEMPLATE_MID"] = results[results.Count - 1].ResultLog;
+                columnvalues["CT_TEMPLATE_MID"] = txt_CT_TEMPLATE_MID.FATGetValue();
+
+                results.Add(ValidateData("CT_TEMPLATE", dataModel.CT_TEMPLATE, txt_CT_TEMPLATE, false, true));
+                columnResult["CT_TEMPLATE"] = results[results.Count - 1].ResultLog;
+                columnvalues["CT_TEMPLATE"] = txt_CT_TEMPLATE.FATGetValue();
+
+                results.Add(this.ValidateData("PAYMENTS_GENERATED_CNT", dataModel.PAYMENTS_GENERATED_CNT, txt_PAYMENTS_GENERATED_CNT, false, true));
+                columnResult["PAYMENTS_GENERATED_CNT"] = results[results.Count - 1].ResultLog;
+                columnvalues["PAYMENTS_GENERATED_CNT"] = txt_PAYMENTS_GENERATED_CNT.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab2");
+
+                //results.Add(this.ValidateData("NUMBER_OF_OCCURRENCES", dataModel.NUMBER_OF_OCCURRENCES, txt_NUMBER_OF_OCCURRENCES, false, true));
+                //columnResult["NUMBER_OF_OCCURRENCES"] = results[results.Count - 1].ResultLog;
+
+                results.Add(this.ValidateData("DEPARTMENT", dataModel.DEPARTMENT, txt_SODEPARTMENT, false, true));
+                columnResult["DEPARTMENT"] = results[results.Count - 1].ResultLog;
+                columnvalues["DEPARTMENT"] = txt_SODEPARTMENT.Text;
+
+                this.btn_Expand_Arrow.Click();
+
+                results.Add(this.ValidateData("OFFICE", dataModel.OFFICE, txt_OFFICE, false, true));
+                columnResult["OFFICE"] = results[results.Count - 1].ResultLog;
+                columnvalues["OFFICE"] = txt_OFFICE.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Standing Orders Tab");
+
+                results.Add(ValidateData("REC_STATUS", dataModel.REC_STATUS, txt_SOREC_STATUS, false, true));
+                columnResult["REC_STATUS"] = results[results.Count - 1].ResultLog;
+                columnvalues["REC_STATUS"] = txt_SOREC_STATUS.FATGetValue();
+
+                results.Add(this.ValidateData("PROFILE_CHANGE_STATUS", dataModel.PROFILE_CHANGE_STATUS, txt_PROFILE_CHANGE_STATUS, false, true));
+                columnResult["PROFILE_CHANGE_STATUS"] = results[results.Count - 1].ResultLog;
+                columnvalues["PROFILE_CHANGE_STATUS"] = txt_PROFILE_CHANGE_STATUS.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab3");
+
+                results.Add(this.ValidateData("EFFECTIVE_DATE", FormatDate(dataModel.EFFECTIVE_DATE), txt_SOEFFECTIVE_DATE, true, false));
+                columnResult["EFFECTIVE_DATE"] = results[results.Count - 1].ResultLog;
+                columnvalues["EFFECTIVE_DATE"] = txt_SOEFFECTIVE_DATE.FATGetValue();
+
+                this.btn_Expand_Arrow.FATClick();
+
+
+                results.Add(ValidateData("PMNT_TYPE", dataModel.PMNT_TYPE, txt_PMNT_TYPE, true, false));
+                columnResult["PMNT_TYPE"] = results[results.Count - 1].ResultLog;
+                columnvalues["PMNT_TYPE"] = txt_PMNT_TYPE.Text;
+
+                results.Add(this.ValidateData("AMT_SRC", dataModel.AMT_SRC, txt_AMT_SRC, false, true));
+                columnResult["AMT_SRC"] = results[results.Count - 1].ResultLog;
+                columnvalues["AMT_SRC"] = txt_AMT_SRC.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab4");
+
+
+                results.Add(this.ValidateData("CT_MIN_SWEEP_AMT", dataModel.CT_MIN_SWEEP_AMT, txt_CT_MIN_SWEEP_AMT, false, true));
+                columnResult["CT_MIN_SWEEP_AMT"] = results[results.Count - 1].ResultLog;
+                columnvalues["CT_MIN_SWEEP_AMT"] = txt_CT_MIN_SWEEP_AMT.FATGetValue();
+
+                results.Add(ValidateData("CT_MAX_SWEEP_AMT", dataModel.CT_MAX_SWEEP_AMT, txt_CT_MAX_SWEEP_AMT, false, true));
+                columnResult["CT_MAX_SWEEP_AMT"] = results[results.Count - 1].ResultLog;
+                columnvalues["CT_MAX_SWEEP_AMT"] = txt_CT_MAX_SWEEP_AMT.FATGetValue();
+
+                results.Add(this.ValidateData("MIN_REMAIN_BAL", dataModel.MIN_REMAIN_BAL, txt_MIN_REMAIN_BAL, false, true));
+                columnResult["MIN_REMAIN_BAL"] = results[results.Count - 1].ResultLog;
+                columnvalues["MIN_REMAIN_BAL"] = txt_MIN_REMAIN_BAL.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab5");
+
+                results.Add(this.ValidateData("ACC_CCY", dataModel.ACC_CCY, txt_ACC_CCY, false, true));
+                columnResult["ACC_CCY"] = results[results.Count - 1].ResultLog;
+                columnvalues["ACC_CCY"] = txt_ACC_CCY.FATGetValue();
+
+                results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, txt_SOACC_NO, false, true));
+                columnResult["ACC_NO"] = results[results.Count - 1].ResultLog;
+                columnvalues["ACC_NO"] = txt_SOACC_NO.FATGetValue();
+
+
+                results.Add(this.ValidateData("DD_TEMPLATE_MID", dataModel.DD_TEMPLATE_MID, txt_DD_TEMPLATE_MID, false, true));
+                columnResult["DD_TEMPLATE_MID"] = results[results.Count - 1].ResultLog;
+                columnvalues["DD_TEMPLATE_MID"] = txt_DD_TEMPLATE_MID.FATGetValue();
+
+
+                results.Add(this.ValidateData("DD_TEMPLATE", dataModel.DD_TEMPLATE, txt_DD_TEMPLATE, false, true));
+                columnResult["DD_TEMPLATE"] = results[results.Count - 1].ResultLog;
+                columnvalues["DD_TEMPLATE"] = txt_DD_TEMPLATE.FATGetValue();
+
+                results.Add(this.ValidateData("LAST_MID", dataModel.LAST_MID, txt_LAST_MID, false, true));
+                columnResult["LAST_MID"] = results[results.Count - 1].ResultLog;
+                columnvalues["LAST_MID"] = txt_LAST_MID.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab6");
+
+                results.Add(this.ValidateData("DD_MIN_SWEEP_AMT", dataModel.DD_MIN_SWEEP_AMT, txt_DD_MIN_SWEEP_AMT, false, true));
+                columnResult["DD_MIN_SWEEP_AMT"] = results[results.Count - 1].ResultLog;
+                columnvalues["DD_MIN_SWEEP_AMT"] = txt_DD_MIN_SWEEP_AMT.FATGetValue();
+
+                results.Add(this.ValidateData("DD_MAX_SWEEP_AMT", dataModel.DD_MAX_SWEEP_AMT, txt_DD_MAX_SWEEP_AMT, false, true));
+                columnResult["DD_MAX_SWEEP_AMT"] = results[results.Count - 1].ResultLog;
+                columnvalues["DD_MAX_SWEEP_AMT"] = txt_DD_MAX_SWEEP_AMT.Text;
+
+                results.Add(ValidateData("SO_CLOSED", dataModel.SO_CLOSED, txt_SO_CLOSED, true, false));
+                columnResult["SO_CLOSED"] = results[results.Count - 1].ResultLog;
+                columnvalues["SO_CLOSED"] = txt_SO_CLOSED.FATGetValue();
+
+                //results.Add(ValidateData("NEXT_PROC_DT", dataModel.NEXT_PROC_DT, txt_NEXT_PROC_DT, true, false));
+                //columnResult["NEXT_PROC_DT"] = results[results.Count - 1].ResultLog;
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "General Tab7");
+
+                this.tab_Recurrence.Click();
+
+
+                results.Add(ValidateData("END_BY_DATE", FormatDate(dataModel.END_BY_DATE), txt_END_BY_DATE, false, true));
+                columnResult["END_BY_DATE"] = results[results.Count - 1].ResultLog;
+                columnvalues["END_BY_DATE"] = txt_END_BY_DATE.FATGetValue();
+
+
+
+
+
+                //results.Add(this.ValidateData("PENDING_ACTION", dataModel.PENDING_ACTION, txt_PENDING_ACTION, false, true));
+                //columnResult["PENDING_ACTION"] = results[results.Count - 1].ResultLog;
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab1");
+
+                Time_of_Occurence(dataModel.TIMES_OF_OCCURRENCES);
+
+
+
+                //results.Add(ValidateData("TIME_STAMP", dataModel.TIME_STAMP, txt_TIME_STAMP, false, true));
+                //columnResult["TIME_STAMP"] = results[results.Count - 1].ResultLog;
+
+
+                results.Add(this.ValidateData("TIMES_OF_OCCURRENCES1", TIME_OF_OCCURENCE1, txt_TIME_OF_OCCURENCE1, true, false));
+                columnResult["TIMES_OF_OCCURRENCES1"] = results[results.Count - 1].ResultLog;
+                columnvalues["TIMES_OF_OCCURRENCES1"] = txt_TIME_OF_OCCURENCE1.FATGetValue();
+
+                results.Add(this.ValidateData("TIMES_OF_OCCURRENCES2", TIME_OF_OCCURENCE2, txt_TIME_OF_OCCURENCE2, true, false));
+                columnResult["TIMES_OF_OCCURRENCES2"] = results[results.Count - 1].ResultLog;
+                columnvalues["TIMES_OF_OCCURRENCES2"] = txt_TIME_OF_OCCURENCE2.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab2");
+
+                results.Add(this.ValidateData("TIMES_OF_OCCURRENCES3", TIME_OF_OCCURENCE3, txt_TIME_OF_OCCURENCE3, true, false));
+                columnResult["TIMES_OF_OCCURRENCES3"] = results[results.Count - 1].ResultLog;
+                columnvalues["TIMES_OF_OCCURRENCES3"] = txt_TIME_OF_OCCURENCE3.FATGetValue();
+
+                results.Add(this.ValidateData("TIMES_OF_OCCURRENCES4", TIME_OF_OCCURENCE4, txt_TIME_OF_OCCURENCE4, true, false));
+                columnResult["TIMES_OF_OCCURRENCES4"] = results[results.Count - 1].ResultLog;
+                columnvalues["TIMES_OF_OCCURRENCES4"] = txt_TIME_OF_OCCURENCE4.FATGetValue();
+
+                results.Add(this.ValidateData("DAY_OF_WEEK", dataModel.DAY_OF_WEEK, txt_DAY_OF_WEEK, true, false));
+                columnResult["DAY_OF_WEEK"] = results[results.Count - 1].ResultLog;
+                columnvalues["DAY_OF_WEEK"] = txt_DAY_OF_WEEK.FATGetValue();
+
+                results.Add(this.ValidateData("DAY_OF_MONTH", dataModel.DAY_OF_MONTH, txt_DAY_OF_MONTH, true, false));
+                columnResult["DAY_OF_MONTH"] = results[results.Count - 1].ResultLog;
+                columnvalues["DAY_OF_MONTH"] = txt_DAY_OF_MONTH.FATGetValue();
+
+                results.Add(this.ValidateData("MONTH_NUMBER", dataModel.MONTH_NUMBER, txt_MONTH_NUMBER, false, true));
+                columnResult["MONTH_NUMBER"] = results[results.Count - 1].ResultLog;
+                columnvalues["MONTH_NUMBER"] = txt_MONTH_NUMBER.FATGetValue();
+
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab3");
+
+                //results.Add(this.ValidateData("NEXT_STTLM_DT", dataModel.NEXT_STTLM_DT, txt_NEXT_STTLM_DT, true, false));
+                //columnResult["NEXT_STTLM_DT"] = results[results.Count - 1].ResultLog;
+
+
+
+                //results.Add(this.ValidateData("BASE_LINE_DATE", dataModel.BASE_LINE_DATE, txt_BASE_LINE_DATE, true, false));
+                //columnResult["BASE_LINE_DATE"] = results[results.Count - 1].ResultLog;
+                results.Add(this.ValidateData("FREQUENCY_PATTERN", dataModel.FREQUENCY_PATTERN, txt_FREQUENCY_PATTERN, false, true));
+                columnResult["FREQUENCY_PATTERN"] = results[results.Count - 1].ResultLog;
+                columnvalues["FREQUENCY_PATTERN"] = txt_FREQUENCY_PATTERN.Text;
+
+
+
+
+                results.Add(this.ValidateData("RECUR_EVERY", dataModel.RECUR_EVERY, txt_RECUR_EVERY, false, true));
+                columnResult["RECUR_EVERY"] = results[results.Count - 1].ResultLog;
+                columnvalues["RECUR_EVERY"] = txt_RECUR_EVERY.FATGetValue();
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab4");
+
+                results.Add(this.ValidateData("ADJ_TO_BSNESSDATE", dataModel.ADJ_TO_BSNESSDATE, txt_ADJ_TO_BSNESSDATE, true, false));
+                columnResult["ADJ_TO_BSNESSDATE"] = results[results.Count - 1].ResultLog;
+                columnvalues["ADJ_TO_BSNESSDATE"] = txt_ADJ_TO_BSNESSDATE.Text;
+
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Recurrence Tab5");
+                this.tab_General.FATClickAction();
+
+                //results.Add(this.ValidateData("LAST_EXECUTION_TIME", dataModel.LAST_EXECUTION_TIME, txt_LAST_EXECUTION_TIME, false, true));
+                //columnResult["LAST_EXECUTION_TIME"] = results[results.Count - 1].ResultLog;
+
+
+
+                //results.Add(this.ValidateData("APPROVALS", dataModel.APPROVALS, txt_APPROVALS, false, true));
+                //columnResult["APPROVALS"] = results[results.Count - 1].ResultLog;
+                //results.Add(this.ValidateData("PRIMARY", dataModel.PRIMARY, txt_PRIMARY, false, true));
+                //columnResult["PRIMARY"] = results[results.Count - 1].ResultLog;
+                //results.Add(this.ValidateData("ACC_NO", dataModel.ACC_NO, txt_SOACC_NO, false, true));
+                //columnResult["ACC_NO"] = results[results.Count - 1].ResultLog;
+                //results.Add(this.ValidateData("UID_STANDING_ORDER", dataModel.UID_STANDING_ORDER, txt_UID_STANDING_ORDER, false, true));
+                //columnResult["UID_STANDING_ORDER"] = results[results.Count - 1].ResultLog;
+                //results.Add(this.ValidateData("RESULT", dataModel.RESULT, txt_RESULT, false, true));
+                //columnResult["RESULT"] = results[results.Count - 1].ResultLog;
+
+
+                columnResult["OVERALL_RESULT"] = columnvalues["OVERALL_RESULT"] = (results.All(items => items.IsMatched)) ? "PASS" : "FAIL";
 
 
             }
             else
             {
-                // Populate row with columnResult values when available
-                foreach (var field in result)
+                foreach (var result in dataModel.GetType().GetProperties())
                 {
-                    var fieldName = field.Key;
-                    string expectedValue;
-                    string actualValue;
-                    if (fieldName == "TIMES_OF_OCCURRENCES1")
-                    {
 
-                        expectedValue = TIME_OF_OCCURENCE1;
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES2")
+                    var property = res.GetType().GetProperty(result.Name);
+                    if (property != null && property.CanWrite)
                     {
-                        expectedValue = TIME_OF_OCCURENCE2;
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES3")
-                    {
-                        expectedValue = TIME_OF_OCCURENCE3;
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES4")
-                    {
-                        expectedValue = TIME_OF_OCCURENCE4;
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-                    else if (fieldName == "END_BY_DATE" || fieldName == "EFFECTIVE_DATE")
-                    {
-                        var res = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                        expectedValue = FormatDate(res);
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-                    else if (fieldName == "ADJ_TO_BSNESSDATE")
-                    {
-                        if (field.Value == "Previous Business Date")
-                        {
-                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                            actualValue = GetSOFieldValue(fieldName, "0") ?? " ";
-                        }
-                        else if (field.Value == "Next Business Date")
-                        {
-                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                            actualValue = GetSOFieldValue(fieldName, "1") ?? " ";
-                        }
-                        else
-                        {
-                            expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                            actualValue = GetSOFieldValue(fieldName, "2") ?? " ";
-                        }
-                    }
-                    else
-                    {
-                        expectedValue = dataset?.GetType().GetProperty(fieldName)?.GetValue(dataset, null)?.ToString() ?? " ";
-                        actualValue = GetSOFieldValue(fieldName, field.Value) ?? " ";
-                    }
-
-                    // Handle date formatting if needed
-                    if (fieldName == "EFFECTIVE_DATE")
-                    {
-                        expectedValue = FormatDate(expectedValue);
-                        actualValue = FormatDate(actualValue);
-                    }
-                    if (fieldName == "OVERALL_RESULT")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = actualValue;
-                        currentColumn++;
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES1")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES2")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES3")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
-                    }
-                    else if (fieldName == "TIMES_OF_OCCURRENCES4")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
-                    }
-                    else if (fieldName != "SOURCE_TYPE")
-                    {
-                        worksheet.Cells[nextRow, currentColumn].Value = expectedValue;
-                        worksheet.Cells[nextRow, currentColumn + 1].Value = actualValue;
-                        currentColumn += 2;
+                        columnvalues[result.Name] = null;
                     }
                 }
-                this.btn_CloseStandingOrderWindow.FATClick();
+                CaptureScreenshotTemp(tempFolder, dataModel.SO_NAME, "Standing Orders Tab");
             }
-            // Save the Excel file
-            package.Save();
+
+
+            // Map dictionary values to the properties of StandingOrdersDMVDataModel
+            //if (columnResult.ContainsKey("SOURCE_TYPE")) res.SOURCE_TYPE = columnResult["SOURCE_TYPE"];
+            if (columnvalues.ContainsKey("SO_NAME")) res.SO_NAME = columnvalues["SO_NAME"];
+            if (columnvalues.ContainsKey("SO_DESCRIPTION")) res.SO_DESCRIPTION = columnvalues["SO_DESCRIPTION"];
+            //if (columnvalues.ContainsKey("NUMBER_OF_OCCURRENCES")) res.NUMBER_OF_OCCURRENCES = columnvalues["NUMBER_OF_OCCURRENCES"];
+            if (columnvalues.ContainsKey("END_BY_DATE")) res.END_BY_DATE = columnvalues["END_BY_DATE"];
+            if (columnvalues.ContainsKey("CT_TEMPLATE_MID")) res.CT_TEMPLATE_MID = columnvalues["CT_TEMPLATE_MID"];
+            if (columnvalues.ContainsKey("CT_TEMPLATE")) res.CT_TEMPLATE = columnvalues["CT_TEMPLATE"];
+            if (columnvalues.ContainsKey("PAYMENTS_GENERATED_CNT")) res.PAYMENTS_GENERATED_CNT = columnvalues["PAYMENTS_GENERATED_CNT"];
+            if (columnvalues.ContainsKey("DEPARTMENT")) res.DEPARTMENT = columnvalues["DEPARTMENT"];
+            if (columnvalues.ContainsKey("OFFICE")) res.OFFICE = columnvalues["OFFICE"];
+            if (columnvalues.ContainsKey("REC_STATUS")) res.REC_STATUS = columnvalues["REC_STATUS"];
+            if (columnvalues.ContainsKey("PROFILE_CHANGE_STATUS")) res.PROFILE_CHANGE_STATUS = columnvalues["PROFILE_CHANGE_STATUS"];
+            if (columnvalues.ContainsKey("EFFECTIVE_DATE")) res.EFFECTIVE_DATE = columnvalues["EFFECTIVE_DATE"];
+            if (columnvalues.ContainsKey("PENDING_ACTION")) res.PENDING_ACTION = columnvalues["PENDING_ACTION"];
+            if (columnvalues.ContainsKey("TIMES_OF_OCCURRENCES1")) res.TIMES_OF_OCCURRENCES1 = columnvalues["TIMES_OF_OCCURRENCES1"];
+            if (columnvalues.ContainsKey("TIMES_OF_OCCURRENCES2")) res.TIMES_OF_OCCURRENCES2 = columnvalues["TIMES_OF_OCCURRENCES2"];
+            if (columnvalues.ContainsKey("TIMES_OF_OCCURRENCES3")) res.TIMES_OF_OCCURRENCES3 = columnvalues["TIMES_OF_OCCURRENCES3"];
+            if (columnvalues.ContainsKey("TIMES_OF_OCCURRENCES4")) res.TIMES_OF_OCCURRENCES4 = columnvalues["TIMES_OF_OCCURRENCES4"];
+            if (columnvalues.ContainsKey("SO_CLOSED")) res.SO_CLOSED = columnvalues["SO_CLOSED"];
+           // if (columnvalues.ContainsKey("TIME_STAMP")) res.TIME_STAMP = columnvalues["TIME_STAMP"];
+            if (columnvalues.ContainsKey("PMNT_TYPE")) res.PMNT_TYPE = columnvalues["PMNT_TYPE"];
+            if (columnvalues.ContainsKey("AMT_SRC")) res.AMT_SRC = columnvalues["AMT_SRC"];
+            if (columnvalues.ContainsKey("CT_MIN_SWEEP_AMT")) res.CT_MIN_SWEEP_AMT = columnvalues["CT_MIN_SWEEP_AMT"];
+            if (columnvalues.ContainsKey("CT_MAX_SWEEP_AMT")) res.CT_MAX_SWEEP_AMT = columnvalues["CT_MAX_SWEEP_AMT"];
+            if (columnvalues.ContainsKey("MIN_REMAIN_BAL")) res.MIN_REMAIN_BAL = columnvalues["MIN_REMAIN_BAL"];
+            if (columnvalues.ContainsKey("ACC_CCY")) res.ACC_CCY = columnvalues["ACC_CCY"];
+            if (columnvalues.ContainsKey("DAY_OF_WEEK")) res.DAY_OF_WEEK = columnvalues["DAY_OF_WEEK"];
+            if (columnvalues.ContainsKey("DAY_OF_MONTH")) res.DAY_OF_MONTH = columnvalues["DAY_OF_MONTH"];
+            if (columnvalues.ContainsKey("MONTH_NUMBER")) res.MONTH_NUMBER = columnvalues["MONTH_NUMBER"];
+            //if (columnvalues.ContainsKey("NEXT_STTLM_DT")) res.NEXT_STTLM_DT = columnvalues["NEXT_STTLM_DT"];
+            //if (columnvalues.ContainsKey("NEXT_PROC_DT")) res.NEXT_PROC_DT = columnvalues["NEXT_PROC_DT"];
+            //if (columnvalues.ContainsKey("BASE_LINE_DATE")) res.BASE_LINE_DATE = columnvalues["BASE_LINE_DATE"];
+            if (columnvalues.ContainsKey("FREQUENCY_PATTERN")) res.FREQUENCY_PATTERN = columnvalues["FREQUENCY_PATTERN"];
+            if (columnvalues.ContainsKey("RECUR_EVERY")) res.RECUR_EVERY = columnvalues["RECUR_EVERY"];
+            if (columnvalues.ContainsKey("ADJ_TO_BSNESSDATE")) res.ADJ_TO_BSNESSDATE = columnvalues["ADJ_TO_BSNESSDATE"];
+            //if (columnvalues.ContainsKey("LAST_EXECUTION_TIME")) res.LAST_EXECUTION_TIME = columnvalues["LAST_EXECUTION_TIME"];
+            if (columnvalues.ContainsKey("DD_TEMPLATE_MID")) res.DD_TEMPLATE_MID = columnvalues["DD_TEMPLATE_MID"];
+            if (columnvalues.ContainsKey("DD_TEMPLATE")) res.DD_TEMPLATE = columnvalues["DD_TEMPLATE"];
+            if (columnvalues.ContainsKey("LAST_MID")) res.LAST_MID = columnvalues["LAST_MID"];
+            if (columnvalues.ContainsKey("DD_MIN_SWEEP_AMT")) res.DD_MIN_SWEEP_AMT = columnvalues["DD_MIN_SWEEP_AMT"];
+            if (columnvalues.ContainsKey("DD_MAX_SWEEP_AMT")) res.DD_MAX_SWEEP_AMT = columnvalues["DD_MAX_SWEEP_AMT"];
+            //if (columnvalues.ContainsKey("APPROVALS")) res.APPROVALS = columnvalues["APPROVALS"];
+            //if (columnvalues.ContainsKey("PRIMARY")) res.PRIMARY = columnvalues["PRIMARY"];
+            if (columnvalues.ContainsKey("ACC_NO")) res.ACC_NO = columnvalues["ACC_NO"];
+            //if (columnvalues.ContainsKey("UID_STANDING_ORDER")) res.UID_STANDING_ORDER = columnvalues["UID_STANDING_ORDER"];
+            if (columnvalues.ContainsKey("OVERALL_RESULT")) res.RESULT = columnvalues["OVERALL_RESULT"];
+
+
+
+            // Update the result model with column result data
+            //foreach (var result in columnResult)
+            //{
+            //    if (string.IsNullOrEmpty(result.Value))
+            //    {
+            //        if (result.Key != "OVERALL_RESULT")
+            //        {
+            //            columnResult[result.Key] = "N/A";
+            //        }
+            //        else
+            //        {
+            //            columnResult["OVERALL_RESULT"] = "FAIL";
+            //        }
+            //    }
+            //    var property = res.GetType().GetProperty(result.Key);
+            //    if (property != null && property.CanWrite)
+            //    {
+            //        property.SetValue(res, result.Value);
+            //    }
+            //}
+
+            bool allValluesNA = columnvalues.All(items => items.Value == "N/A");
+            //if (allValluesNA)
+            //{
+            //    columnvalues["Comments"] = "Data missing;";
+            //}
+            //if (!columnvalues.ContainsKey("Comments"))
+            //{
+            //    columnvalues["Comments"]= "";
+            //}
+            // Generate the Excel report
+            //GenerateSOExcelReport(rowNumber, dataModel, columnResult);
         }
+
+
     }
     catch (Exception ex)
     {
-        Support.IsTrue(false, "Failed to generate Excel report: " + ex.Message);
+        Support.IsTrue(false, "Issue in Comparing Data" + ex.Message);
     }
+    finally
+    {
+        MoveScreenshots(tempFolder, dataModel.SO_NAME, columnvalues["OVERALL_RESULT"]);
 
+    }
+    return columnvalues;
 }
